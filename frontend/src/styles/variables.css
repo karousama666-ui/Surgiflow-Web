@@ -1,24 +1,24 @@
 :root{
 
---primary:#5B3FD6;
---primary-hover:#4C31C0;
+    --primary:#5B3FD6;
+    --primary-dark:#4A2FB8;
 
---background:#F5F7FB;
+    --background:#F5F7FB;
 
---surface:#FFFFFF;
+    --surface:#FFFFFF;
 
---text:#232323;
+    --text:#242424;
 
---gray:#707070;
+    --text-light:#7A7A7A;
 
---success:#23B26D;
+    --border:#E5E7EB;
 
---warning:#F59E0B;
+    --success:#3BB273;
 
---danger:#EF4444;
+    --warning:#F5A524;
 
---radius:18px;
+    --danger:#E5484D;
 
---shadow:0px 8px 30px rgba(0,0,0,.08);
+    --radius:18px;
 
 }
