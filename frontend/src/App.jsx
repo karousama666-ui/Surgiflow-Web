@@ -1,7 +1,19 @@
-import Login from "./pages/Login";
+import MainLayout from "./layouts/MainLayout";
 
-function App() {
-  return <Login />;
+import Dashboard from "./pages/Dashboard";
+
+function App(){
+
+    return(
+
+        <MainLayout>
+
+            <Dashboard />
+
+        </MainLayout>
+
+    )
+
 }
 
 export default App;

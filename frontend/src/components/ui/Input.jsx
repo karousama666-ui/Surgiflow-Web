@@ -1,16 +1,81 @@
 import "./Input.css";
 
-function Input(props){
+import { useState } from "react";
 
-    return(
+import { Eye, EyeOff } from "lucide-react";
 
-        <input
+function Input({ icon: Icon, type, ...props }) {
 
-            className="input"
+    const [mostrarSenha, setMostrarSenha] = useState(false);
 
-            {...props}
+    return (
 
-        />
+        <div className="input-container">
+
+            {Icon && (
+
+                <Icon
+                    size={20}
+                    className="input-icon"
+                />
+
+            )}
+
+            <input
+
+                className="input"
+
+                type={
+
+                type === "password"
+
+                    ? mostrarSenha
+
+                    ? "text"
+
+                    : "password"
+
+                    : type
+
+        }
+
+        {...props}
+
+/>
+
+{type === "password" && (
+
+    <button
+
+        type="button"
+
+        className="eye-button"
+
+        onClick={() =>
+
+            setMostrarSenha(!mostrarSenha)
+
+        }
+
+    >
+
+        {
+
+            mostrarSenha
+
+                ? <EyeOff size={18}/>
+
+                : <Eye size={18}/>
+
+        }
+
+    </button>
+
+)}
+
+
+
+        </div>
 
     )
 

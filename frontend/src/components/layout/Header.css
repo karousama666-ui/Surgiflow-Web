@@ -1,0 +1,53 @@
+.header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:32px;
+
+    border-bottom:1px solid var(--border);
+
+    background:white;
+
+}
+
+.header h2{
+
+    font-size:28px;
+
+}
+
+.header span{
+
+    color:var(--text-light);
+
+}
+
+.notification{
+
+    width:46px;
+
+    height:46px;
+
+    border:none;
+
+    border-radius:50%;
+
+    background:#F5F7FB;
+
+    cursor:pointer;
+
+    transition:.2s;
+
+}
+
+.notification:hover{
+
+    background:#EFEAFF;
+
+    color:var(--primary);
+
+}

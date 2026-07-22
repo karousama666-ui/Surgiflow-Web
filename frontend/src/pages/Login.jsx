@@ -2,6 +2,7 @@ import Logo from "../components/layout/Logo";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import Card from '../components/ui/Card';
+import { Mail, Lock } from "lucide-react";
 
 function Login() {
   return (
@@ -26,11 +27,21 @@ function Login() {
         <Card>
           <Logo />
 
-          <Input placeholder="Email" />
+          <Input
+
+            icon={Mail}
+
+            placeholder="Email"
+
+          />
 
           <div style={{ height: '18px' }} />
 
-          <Input placeholder="Senha" type="password" />
+          <Input
+            icon={Lock}
+            placeholder="Senha"
+            type="password"
+          />
 
           <div style={{ height: '28px' }} />
 
