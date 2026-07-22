@@ -1,0 +1,51 @@
+table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+    background:white;
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.05);
+
+}
+
+thead{
+
+    background:#F3F0FF;
+
+}
+
+th{
+
+    text-align:left;
+
+    padding:18px;
+
+    color:var(--primary);
+
+}
+
+td{
+
+    padding:18px;
+
+    border-top:1px solid #ECECEC;
+
+}
+
+tbody tr{
+
+    transition:.2s;
+
+}
+
+tbody tr:hover{
+
+    background:#FAFAFA;
+
+}

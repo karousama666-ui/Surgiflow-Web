@@ -1,6 +1,6 @@
 import MainLayout from "./layouts/MainLayout";
 
-import Dashboard from "./pages/Dashboard";
+import Agenda from "./pages/Agenda";
 
 function App(){
 
@@ -8,7 +8,7 @@ function App(){
 
         <MainLayout>
 
-            <Dashboard />
+            <Agenda />
 
         </MainLayout>
 
