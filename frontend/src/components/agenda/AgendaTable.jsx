@@ -1,6 +1,23 @@
 import "./AgendaTable.css";
 
-function AgendaTable({ cirurgias }) {
+function AgendaTable({
+
+    cirurgias,
+
+    onStatusChange
+
+}) {
+
+function formatarData(data){
+
+    if(!data) return "";
+
+    const [ano, mes, dia] = data.split("-");
+
+    return `${dia}/${mes}/${ano}`;
+
+}
+
   return (
     <table
       style={{
@@ -32,9 +49,55 @@ function AgendaTable({ cirurgias }) {
             <td>{cirurgia.paciente}</td>
             <td>{cirurgia.medico}</td>
             <td>{cirurgia.hospital}</td>
-            <td>{cirurgia.data}</td>
+            <td>{formatarData(cirurgia.data)}</td>
             <td>{cirurgia.horario}</td>
-            <td>{cirurgia.status}</td>
+            <td>
+
+<select
+
+value={cirurgia.status}
+
+onChange={(e)=>
+
+onStatusChange(
+
+cirurgia.id,
+
+e.target.value
+
+)
+
+}
+
+>
+
+<option>
+
+Pendente
+
+</option>
+
+<option>
+
+Confirmada
+
+</option>
+
+<option>
+
+Finalizada
+
+</option>
+
+<option>
+
+Cancelada
+
+</option>
+
+</select>
+
+</td>
           </tr>
         ))}
       </tbody>
