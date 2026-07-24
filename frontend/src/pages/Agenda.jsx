@@ -13,6 +13,7 @@ function Agenda() {
     
     const [pesquisa, setPesquisa] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
+    const [cirurgiaEditando, setCirurgiaEditando] = useState(null);
     const [listaCirurgias, setListaCirurgias] = useState(() => {
 
     const dadosSalvos = localStorage.getItem("cirurgias");
@@ -94,11 +95,51 @@ useEffect(() => {
 
             <AgendaTable
 
-cirurgias={cirurgiasFiltradas}
+    cirurgias={cirurgiasFiltradas}
 
-onStatusChange={(id,novoStatus)=>{
+    onStatusChange={(id, novoStatus) => {
 
-console.log(id,novoStatus);
+        const novaLista = listaCirurgias.map((cirurgia) => {
+
+            if (cirurgia.id === id) {
+
+                return {
+
+                    ...cirurgia,
+
+                    status: novoStatus
+
+                };
+
+            }
+
+            return cirurgia;
+
+        });
+
+        setListaCirurgias(novaLista);
+
+    }}
+
+    onDelete={(id) => {
+
+        const novaLista = listaCirurgias.filter(
+
+            (cirurgia) => cirurgia.id !== id
+
+        );
+
+        
+
+        setListaCirurgias(novaLista);
+
+    }}
+
+    onEdit={(cirurgia) => {
+
+    setCirurgiaEditando(cirurgia);
+
+    setModalOpen(true);
 
 }}
 
@@ -122,13 +163,25 @@ console.log(id,novoStatus);
 
     <NovaCirurgiaForm
 
+    dados={cirurgiaEditando}
+
     onSave={(dados) => {
+
+    const novaCirurgia = {
+
+        id: Date.now(),
+
+        ...dados,
+
+        status: "Pendente"
+
+    };
 
     setListaCirurgias([
 
         ...listaCirurgias,
 
-        dados
+        novaCirurgia
 
     ]);
 

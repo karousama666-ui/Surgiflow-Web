@@ -1,108 +1,222 @@
 import "./AgendaTable.css";
+import { Pencil, Trash2 } from "lucide-react";
 
 function AgendaTable({
 
     cirurgias,
 
-    onStatusChange
+    onStatusChange,
+
+    onDelete,
+
+    onEdit
 
 }) {
 
-function formatarData(data){
+    function formatarData(data) {
 
-    if(!data) return "";
+        if (!data) return "";
 
-    const [ano, mes, dia] = data.split("-");
+        if (data.includes("/")) {
 
-    return `${dia}/${mes}/${ano}`;
+            return data;
 
-}
+        }
 
-  return (
-    <table
-      style={{
-        width: "100%",
-        borderCollapse: "collapse",
-        background: "#fff",
-        borderRadius: "16px",
-        overflow: "hidden",
-      }}
-    >
-      <thead>
-        <tr
-          style={{
-            background: "#EEF2FF",
-          }}
+        const [ano, mes, dia] = data.split("-");
+
+        return `${dia}/${mes}/${ano}`;
+
+    }
+
+    return (
+
+        <table
+
+            style={{
+
+                width: "100%",
+
+                borderCollapse: "collapse",
+
+                background: "#fff",
+
+                borderRadius: "16px",
+
+                overflow: "hidden",
+
+            }}
+
         >
-          <th>Paciente</th>
-          <th>Médico</th>
-          <th>Hospital</th>
-          <th>Data</th>
-          <th>Hora</th>
-          <th>Status</th>
-        </tr>
-      </thead>
 
-      <tbody>
-        {cirurgias.map((cirurgia) => (
-          <tr key={cirurgia.id}>
-            <td>{cirurgia.paciente}</td>
-            <td>{cirurgia.medico}</td>
-            <td>{cirurgia.hospital}</td>
-            <td>{formatarData(cirurgia.data)}</td>
-            <td>{cirurgia.horario}</td>
-            <td>
+            <thead>
 
-<select
+                <tr
 
-value={cirurgia.status}
+                    style={{
 
-onChange={(e)=>
+                        background: "#EEF2FF",
 
-onStatusChange(
+                    }}
 
-cirurgia.id,
+                >
 
-e.target.value
+                    <th>Paciente</th>
 
-)
+                    <th>Médico</th>
 
-}
+                    <th>Hospital</th>
+
+                    <th>Data</th>
+
+                    <th>Hora</th>
+
+                    <th>Status</th>
+
+                    <th>Ações</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {cirurgias.map((cirurgia) => (
+
+                    <tr key={cirurgia.id}>
+
+                        <td>{cirurgia.paciente}</td>
+
+                        <td>{cirurgia.medico}</td>
+
+                        <td>{cirurgia.hospital}</td>
+
+                        <td>{formatarData(cirurgia.data)}</td>
+
+                        <td>{cirurgia.horario}</td>
+
+                        <td>
+
+                            <select
+
+                                value={cirurgia.status}
+
+                                onChange={(e) =>
+
+                                    onStatusChange(
+
+                                        cirurgia.id,
+
+                                        e.target.value
+
+                                    )
+
+                                }
+
+                            >
+
+                                <option>Pendente</option>
+
+                                <option>Confirmada</option>
+
+                                <option>Finalizada</option>
+
+                                <option>Cancelada</option>
+
+                            </select>
+
+                        </td>
+
+                        <td>
+
+                            <div
+
+style={{
+
+display:"flex",
+
+gap:"10px",
+
+justifyContent:"center"
+
+}}
 
 >
 
-<option>
+<button
 
-Pendente
+onClick={() => onEdit(cirurgia)}
 
-</option>
+style={{
 
-<option>
+background:"#EEF2FF",
 
-Confirmada
+border:"none",
 
-</option>
+padding:"8px",
 
-<option>
+borderRadius:"8px",
 
-Finalizada
+cursor:"pointer"
 
-</option>
+}}
 
-<option>
+>
 
-Cancelada
+<Pencil
 
-</option>
+size={18}
 
-</select>
+/>
 
-</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
+</button>
+
+<button
+
+onClick={() => onDelete(cirurgia.id)}
+
+style={{
+
+background:"#FEE2E2",
+
+border:"none",
+
+padding:"8px",
+
+borderRadius:"8px",
+
+cursor:"pointer"
+
+}}
+
+>
+
+<Trash2
+
+size={18}
+
+color="#DC2626"
+
+/>
+
+</button>
+
+</div>
+
+                            
+
+                        </td>
+
+                    </tr>
+
+                ))}
+
+            </tbody>
+
+        </table>
+
+    );
+
 }
 
 export default AgendaTable;

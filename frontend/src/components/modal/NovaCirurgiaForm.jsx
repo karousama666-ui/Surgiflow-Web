@@ -1,8 +1,14 @@
 import Input from "../ui/Input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 
-function NovaCirurgiaForm({ onSave }) {
+function NovaCirurgiaForm({
+
+    onSave,
+
+    dados
+
+}) {
 
     const [form, setForm] = useState({
 
@@ -14,11 +20,19 @@ function NovaCirurgiaForm({ onSave }) {
 
     data: "",
 
-    horario: "",
-
-    status: "Pendente",
+    horario: ""
 
 });
+
+useEffect(() => {
+
+    if(dados){
+
+        setForm(dados);
+
+    }
+
+}, [dados]);
 
 function handleChange(e){
 
