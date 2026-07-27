@@ -1,14 +1,18 @@
+import CalendarHeader from "../components/calendar/CalendarHeader";
+import CalendarToolbar from "../components/calendar/CalendarToolbar";
+import CalendarContainer from "../components/calendar/CalendarContainer";
+
 function Calendario(){
 
     return(
 
         <>
 
-            <h1>
+            <CalendarHeader />
 
-                Calendário Cirúrgico
+            <CalendarToolbar />
 
-            </h1>
+            <CalendarContainer />
 
         </>
 
