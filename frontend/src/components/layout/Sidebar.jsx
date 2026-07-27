@@ -2,12 +2,14 @@ import "./Sidebar.css";
 
 import Logo from "./Logo";
 
+import { NavLink } from "react-router-dom";
+
 import {
     LayoutDashboard,
     CalendarDays,
-    Stethoscope,
+    Calendar,
     Users,
-    Building2,
+    ClipboardList,
     FileText,
     Settings
 } from "lucide-react";
@@ -21,43 +23,41 @@ function Sidebar() {
             <Logo />
 
             <nav>
+  <NavLink to="/" end>
+    <LayoutDashboard size={20} />
+    Dashboard
+  </NavLink>
 
-                <a href="#">
-                    <LayoutDashboard size={20}/>
-                    Dashboard
-                </a>
+  <NavLink to="/agenda">
+    <CalendarDays size={20} />
+    Agenda
+  </NavLink>
 
-                <a href="#">
-                    <CalendarDays size={20}/>
-                    Agenda
-                </a>
+  <NavLink to="/calendario">
+    <Calendar size={20} />
+    Calendário
+  </NavLink>
 
-                <a href="#">
-                    <Stethoscope size={20}/>
-                    Nova Cirurgia
-                </a>
+  <NavLink to="/medicos">
+    <Users size={20} />
+    Médicos
+  </NavLink>
 
-                <a href="#">
-                    <Users size={20}/>
-                    Médicos
-                </a>
+  <NavLink to="/pedidos">
+    <ClipboardList size={20} />
+    Pedidos
+  </NavLink>
 
-                <a href="#">
-                    <Building2 size={20}/>
-                    Hospitais
-                </a>
+  <NavLink to="/relatorios">
+    <FileText size={20} />
+    Relatórios
+  </NavLink>
 
-                <a href="#">
-                    <FileText size={20}/>
-                    Relatórios
-                </a>
-
-                <a href="#">
-                    <Settings size={20}/>
-                    Configurações
-                </a>
-
-            </nav>
+  <NavLink to="/configuracoes">
+    <Settings size={20} />
+    Configurações
+  </NavLink>
+</nav>
 
             <div className="profile">
 

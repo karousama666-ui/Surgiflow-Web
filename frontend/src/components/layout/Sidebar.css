@@ -77,3 +77,19 @@
     font-size:14px;
 
 }
+
+.sidebar nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #64748b;
+  text-decoration: none;
+}
+
+.sidebar nav a.active {
+  background: #eef2ff;
+  color: #4f46e5;
+  font-weight: 600;
+}

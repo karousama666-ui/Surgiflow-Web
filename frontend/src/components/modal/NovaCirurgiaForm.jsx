@@ -20,7 +20,9 @@ function NovaCirurgiaForm({
 
     data: "",
 
-    horario: ""
+    horario: "",
+    
+    anexo: null
 
 });
 
@@ -129,13 +131,77 @@ onChange={handleChange}
 <br />
 <br />
 
+<label>
+
+    Anexo
+
+</label>
+
+<br />
+
+<input
+
+    type="file"
+
+    onChange={(e) => {
+
+        setForm({
+
+            ...form,
+
+            anexo: e.target.files[0]
+
+        });
+
+    }}
+
+/>
+
+<br />
+
+<br />
+
+{form.anexo && (
+
+    <p
+        style={{
+            marginTop: "10px",
+            color: "#6C63FF",
+            fontWeight: "600"
+        }}
+    >
+
+        📎 {form.anexo.name}
+
+    </p>
+
+)}
+
 <button
 
-    onClick={() => onSave(form)}
+    onClick={() => {
+
+        onSave(form);
+
+        setForm({
+
+            paciente: "",
+
+            medico: "",
+
+            hospital: "",
+
+            data: "",
+
+            horario: ""
+
+        });
+
+    }}
 
 >
 
-    Salvar
+Salvar
 
 </button>
 

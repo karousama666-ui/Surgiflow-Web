@@ -149,13 +149,19 @@ useEffect(() => {
 
     isOpen={modalOpen}
 
-    onClose={() => setModalOpen(false)}
+    onClose={() => {
+
+        setModalOpen(false);
+
+        setCirurgiaEditando(null);
+
+    }}
 
 >
 
     <h2>
 
-        Nova Cirurgia
+        {cirurgiaEditando ? "Editar Cirurgia" : "Nova Cirurgia"}
 
     </h2>
 
@@ -163,33 +169,61 @@ useEffect(() => {
 
     <NovaCirurgiaForm
 
-    dados={cirurgiaEditando}
+        dados={cirurgiaEditando}
 
-    onSave={(dados) => {
+        onSave={(dados) => {
 
-    const novaCirurgia = {
+            if (cirurgiaEditando) {
 
-        id: Date.now(),
+                const novaLista = listaCirurgias.map((cirurgia) => {
 
-        ...dados,
+                    if (cirurgia.id === cirurgiaEditando.id) {
 
-        status: "Pendente"
+                        return {
 
-    };
+                            ...dados,
 
-    setListaCirurgias([
+                            id: cirurgia.id
 
-        ...listaCirurgias,
+                        };
 
-        novaCirurgia
+                    }
 
-    ]);
+                    return cirurgia;
 
-    setModalOpen(false);
+                });
 
-}}
+                setListaCirurgias(novaLista);
 
-/>
+                setCirurgiaEditando(null);
+
+            } else {
+
+                const novaCirurgia = {
+
+                    id: Date.now(),
+
+                    ...dados,
+
+                    status: "Pendente"
+
+                };
+
+                setListaCirurgias([
+
+                    ...listaCirurgias,
+
+                    novaCirurgia
+
+                ]);
+
+            }
+
+            setModalOpen(false);
+
+        }}
+
+    />
 
 </Modal>
 
