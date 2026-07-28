@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import cirurgias from "../data/cirurgias";
+import { useCirurgias } from "../context/CirurgiasContext";
 
 import AgendaTable from "../components/agenda/AgendaTable";
 
@@ -9,40 +8,19 @@ import Modal from "../components/modal/Modal";
 
 import NovaCirurgiaForm from "../components/modal/NovaCirurgiaForm";
 
+import { useState, useEffect } from "react";
+
+
+
 function Agenda() {
-    
     const [pesquisa, setPesquisa] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
     const [cirurgiaEditando, setCirurgiaEditando] = useState(null);
-    const [listaCirurgias, setListaCirurgias] = useState(() => {
-
-    const dadosSalvos = localStorage.getItem("cirurgias");
-
-    if(dadosSalvos){
-
-        return JSON.parse(dadosSalvos);
-
-    }
-
-    return cirurgias;
-
-});
+    const { listaCirurgias, setListaCirurgias } = useCirurgias();
 
     const cirurgiasFiltradas = listaCirurgias.filter((cirurgia) =>
-  cirurgia.paciente.toLowerCase().includes(pesquisa.toLowerCase())
-);
-
-useEffect(() => {
-
-    localStorage.setItem(
-
-        "cirurgias",
-
-        JSON.stringify(listaCirurgias)
-
+        cirurgia.paciente.toLowerCase().includes(pesquisa.toLowerCase())
     );
-
-}, [listaCirurgias]);
 
 
 

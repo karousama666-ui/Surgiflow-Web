@@ -1,0 +1,93 @@
+.calendar-drawer-overlay{
+
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(0,0,0,.25);
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    z-index:999;
+
+    animation: fade .2s ease;
+
+}
+
+.calendar-drawer{
+
+    width:420px;
+
+    height:100vh;
+
+    background:white;
+
+    padding:30px;
+
+    box-shadow:-10px 0 30px rgba(0,0,0,.12);
+
+    animation: slide .25s ease;
+
+    overflow-y:auto;
+
+}
+
+.calendar-drawer h2{
+
+    margin-bottom:20px;
+
+}
+
+.calendar-drawer hr{
+
+    margin:20px 0;
+
+}
+
+.calendar-drawer p{
+
+    margin:18px 0;
+
+    color:#555;
+
+}
+
+.calendar-drawer strong{
+
+    color:#222;
+
+}
+
+@keyframes slide{
+
+    from{
+
+        transform:translateX(100%);
+
+    }
+
+    to{
+
+        transform:translateX(0);
+
+    }
+
+}
+
+@keyframes fade{
+
+    from{
+
+        opacity:0;
+
+    }
+
+    to{
+
+        opacity:1;
+
+    }
+
+}

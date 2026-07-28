@@ -2,8 +2,40 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import ptBrLocale from "@fullcalendar/core/locales/pt-br";
+import { useCirurgias } from "../../context/CirurgiasContext";
+import { useState } from "react";
+import CalendarDrawer from "./CalendarDrawer";
+
 
 function CalendarContainer() {
+
+    const { listaCirurgias } = useCirurgias();
+    const [cirurgiaSelecionada, setCirurgiaSelecionada] = useState(null);
+
+const eventos = listaCirurgias.map((cirurgia) => {
+
+    let data = cirurgia.data;
+
+    // Se estiver em dd/mm/yyyy, converte
+    if (data.includes("/")) {
+
+        const [dia, mes, ano] = data.split("/");
+
+        data = `${ano}-${mes}-${dia}`;
+
+    }
+
+    return {
+
+        id: cirurgia.id,
+
+        title: cirurgia.paciente,
+
+        date: data
+
+    };
+
+});
 
     return (
 
@@ -18,24 +50,43 @@ function CalendarContainer() {
 
             <FullCalendar
 
-                plugins={[
+    plugins={[
 
-                    dayGridPlugin,
+        dayGridPlugin,
 
-                    interactionPlugin
+        interactionPlugin
 
-                ]}
+    ]}
 
-                initialView="dayGridMonth"
+    initialView="dayGridMonth"
 
-                    locale={ptBrLocale}
+    locale={ptBrLocale}
 
+    events={eventos}
 
-                height="auto"
+    height="auto"
 
-                locale="pt-br"
+    eventClick={(info) => {
 
-            />
+    const cirurgia = listaCirurgias.find(
+
+        (c) => c.id == info.event.id
+
+    );
+
+    setCirurgiaSelecionada(cirurgia);
+
+}}
+
+/>
+
+<CalendarDrawer
+
+    cirurgia={cirurgiaSelecionada}
+
+    onClose={() => setCirurgiaSelecionada(null)}
+
+/>
 
         </div>
 
