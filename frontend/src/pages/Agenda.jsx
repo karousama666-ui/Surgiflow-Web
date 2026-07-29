@@ -4,11 +4,9 @@ import AgendaTable from "../components/agenda/AgendaTable";
 
 import SearchBar from "../components/agenda/SearchBar";
 
-import Modal from "../components/modal/Modal";
-
-import NovaCirurgiaForm from "../components/modal/NovaCirurgiaForm";
-
 import { useState, useEffect } from "react";
+
+import CirurgiaModal from "../components/modal/CirurgiaModal";
 
 
 
@@ -123,7 +121,7 @@ function Agenda() {
 
 />
 
-            <Modal
+            <CirurgiaModal
 
     isOpen={modalOpen}
 
@@ -135,75 +133,61 @@ function Agenda() {
 
     }}
 
->
+    cirurgia={cirurgiaEditando}
 
-    <h2>
+    onSave={(dados) => {
 
-        {cirurgiaEditando ? "Editar Cirurgia" : "Nova Cirurgia"}
+        if (cirurgiaEditando) {
 
-    </h2>
+            const novaLista = listaCirurgias.map((cirurgia) => {
 
-    <br />
+                if (cirurgia.id === cirurgiaEditando.id) {
 
-    <NovaCirurgiaForm
+                    return {
 
-        dados={cirurgiaEditando}
+                        ...dados,
 
-        onSave={(dados) => {
+                        id: cirurgia.id
 
-            if (cirurgiaEditando) {
+                    };
 
-                const novaLista = listaCirurgias.map((cirurgia) => {
+                }
 
-                    if (cirurgia.id === cirurgiaEditando.id) {
+                return cirurgia;
 
-                        return {
+            });
 
-                            ...dados,
+            setListaCirurgias(novaLista);
 
-                            id: cirurgia.id
+            setCirurgiaEditando(null);
 
-                        };
+        } else {
 
-                    }
+            const novaCirurgia = {
 
-                    return cirurgia;
+                id: Date.now(),
 
-                });
+                ...dados,
 
-                setListaCirurgias(novaLista);
+                status: "Pendente"
 
-                setCirurgiaEditando(null);
+            };
 
-            } else {
+            setListaCirurgias([
 
-                const novaCirurgia = {
+                ...listaCirurgias,
 
-                    id: Date.now(),
+                novaCirurgia
 
-                    ...dados,
+            ]);
 
-                    status: "Pendente"
+        }
 
-                };
+        setModalOpen(false);
 
-                setListaCirurgias([
+    }}
 
-                    ...listaCirurgias,
-
-                    novaCirurgia
-
-                ]);
-
-            }
-
-            setModalOpen(false);
-
-        }}
-
-    />
-
-</Modal>
+/>
 
         </>
 

@@ -60,6 +60,156 @@
 
 }
 
+.drawer-header{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:20px;
+
+    margin-bottom:20px;
+
+}
+
+.drawer-avatar{
+
+    width:72px;
+
+    height:72px;
+
+    border-radius:50%;
+
+    background:#6C63FF;
+
+    color:white;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:24px;
+
+    font-weight:bold;
+
+    flex-shrink:0;
+
+}
+
+.drawer-header h2{
+
+    margin:0;
+
+}
+
+.drawer-header span{
+
+    color:#777;
+
+    font-size:.9rem;
+
+}
+
+.drawer-info{
+
+    display:flex;
+
+    gap:16px;
+
+    align-items:center;
+
+    margin:22px 0;
+
+}
+
+.drawer-info svg{
+
+    color:#6C63FF;
+
+    flex-shrink:0;
+
+}
+
+.drawer-info div{
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+.drawer-info small{
+
+    color:#999;
+
+    font-size:.75rem;
+
+}
+
+.drawer-info strong{
+
+    font-size:.95rem;
+
+    color:#222;
+
+    margin-top:3px;
+
+}
+
+.status-badge{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    width:fit-content;
+
+    padding:8px 14px;
+
+    border-radius:999px;
+
+    font-size:.85rem;
+
+    font-weight:600;
+
+    margin-top:6px;
+
+}
+
+.status-badge.pendente{
+
+    background:#FFF4D6;
+
+    color:#B7791F;
+
+}
+
+.status-badge.confirmada{
+
+    background:#DCFCE7;
+
+    color:#15803D;
+
+}
+
+.status-badge.finalizada{
+
+    background:#DBEAFE;
+
+    color:#1D4ED8;
+
+}
+
+.status-badge.cancelada{
+
+    background:#FEE2E2;
+
+    color:#B91C1C;
+
+}
+
 @keyframes slide{
 
     from{
@@ -89,5 +239,7 @@
         opacity:1;
 
     }
+
+    
 
 }

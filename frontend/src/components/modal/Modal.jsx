@@ -1,4 +1,5 @@
 import "./Modal.css";
+import { createPortal } from "react-dom";
 
 function Modal({ isOpen, children, onClose }) {
 
@@ -8,28 +9,33 @@ function Modal({ isOpen, children, onClose }) {
 
     }
 
-    return (
+    return createPortal(
 
-        <div className="modal-overlay">
+    <div className="modal-overlay">
 
-            <div className="modal">
+        <div className="modal">
 
-                <button
-    onClick={onClose}
-    className="close-button"
->
+            <button
 
-    ✕
+                onClick={onClose}
 
-</button>
+                className="close-button"
 
-                {children}
+            >
 
-            </div>
+                ✕
+
+            </button>
+
+            {children}
 
         </div>
 
-    );
+    </div>,
+
+    document.body
+
+);
 
 }
 

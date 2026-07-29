@@ -1,6 +1,30 @@
 import "./CalendarDrawer.css";
 
-function CalendarDrawer({ cirurgia, onClose }) {
+import {
+
+    Stethoscope,
+
+    Building2,
+
+    Calendar,
+
+    Clock3,
+
+    CircleCheck,
+
+    Paperclip
+
+} from "lucide-react";
+
+function CalendarDrawer({
+
+    cirurgia,
+
+    onClose,
+
+    onEdit
+
+}) {
 
     if (!cirurgia) return null;
 
@@ -16,49 +40,156 @@ function CalendarDrawer({ cirurgia, onClose }) {
 
             >
 
-                <h2>{cirurgia.paciente}</h2>
+                <div className="drawer-header">
+
+    <div className="drawer-avatar">
+
+        {cirurgia.paciente
+            .split(" ")
+            .map(nome => nome[0])
+            .slice(0,2)
+            .join("")
+        }
+
+    </div>
+
+    <div>
+
+        <h2>{cirurgia.paciente}</h2>
+
+        <span>Paciente</span>
+
+    </div>
+
+</div>
+
+<hr />
 
                 <hr />
 
-                <p>
+                <div className="drawer-info">
 
-                    <strong>Médico:</strong>
+    <Stethoscope size={20}/>
 
-                    {cirurgia.medico}
+    <div>
 
-                </p>
+        <small>Médico</small>
 
-                <p>
+        <strong>{cirurgia.medico}</strong>
 
-                    <strong>Hospital:</strong>
+    </div>
 
-                    {cirurgia.hospital}
+</div>
 
-                </p>
+<div className="drawer-info">
 
-                <p>
+    <Building2 size={20}/>
 
-                    <strong>Data:</strong>
+    <div>
 
-                    {cirurgia.data}
+        <small>Hospital</small>
 
-                </p>
+        <strong>{cirurgia.hospital}</strong>
 
-                <p>
+    </div>
 
-                    <strong>Hora:</strong>
+</div>
 
-                    {cirurgia.horario}
+<div className="drawer-info">
 
-                </p>
+    <Calendar size={20}/>
 
-                <p>
+    <div>
 
-                    <strong>Status:</strong>
+        <small>Data</small>
 
-                    {cirurgia.status}
+        <strong>{cirurgia.data}</strong>
 
-                </p>
+    </div>
+
+</div>
+
+<div className="drawer-info">
+
+    <Clock3 size={20}/>
+
+    <div>
+
+        <small>Horário</small>
+
+        <strong>{cirurgia.horario}</strong>
+
+    </div>
+
+</div>
+
+<div className="drawer-info">
+
+    <CircleCheck size={20}/>
+
+    <div>
+
+        <small>Status</small>
+
+        <span
+
+            className={`status-badge ${cirurgia.status.toLowerCase()}`}
+
+        >
+
+            {cirurgia.status}
+
+        </span>
+
+    </div>
+
+</div>
+
+                <hr />
+
+<div
+    style={{
+        display: "flex",
+        gap: "10px",
+        marginTop: "20px"
+    }}
+>
+
+    <button
+
+        onClick={() => {
+
+    onClose();
+
+    onEdit(cirurgia);
+
+}}
+
+        style={{
+
+            flex: 1,
+
+            background: "#6C63FF",
+
+            color: "#fff",
+
+            border: "none",
+
+            padding: "12px",
+
+            borderRadius: "10px",
+
+            cursor: "pointer"
+
+        }}
+
+    >
+
+        ✏ Editar
+
+    </button>
+
+</div>
 
             </aside>
 

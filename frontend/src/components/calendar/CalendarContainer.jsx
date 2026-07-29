@@ -5,14 +5,18 @@ import ptBrLocale from "@fullcalendar/core/locales/pt-br";
 import { useCirurgias } from "../../context/CirurgiasContext";
 import { useState } from "react";
 import CalendarDrawer from "./CalendarDrawer";
+import CirurgiaModal from "../modal/CirurgiaModal";
 
 
 function CalendarContainer() {
 
     const { listaCirurgias } = useCirurgias();
     const [cirurgiaSelecionada, setCirurgiaSelecionada] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false);
 
-const eventos = listaCirurgias.map((cirurgia) => {
+    const [cirurgiaEditando, setCirurgiaEditando] = useState(null);
+
+    const eventos = listaCirurgias.map((cirurgia) => {
 
     let data = cirurgia.data;
 
@@ -85,6 +89,40 @@ const eventos = listaCirurgias.map((cirurgia) => {
     cirurgia={cirurgiaSelecionada}
 
     onClose={() => setCirurgiaSelecionada(null)}
+
+    onEdit={(cirurgia) => {
+
+        setCirurgiaEditando(cirurgia);
+
+        setModalOpen(true);
+
+    }}
+
+/>
+
+<CirurgiaModal
+
+    isOpen={modalOpen}
+
+    onClose={() => {
+
+        setModalOpen(false);
+
+        setCirurgiaEditando(null);
+
+    }}
+
+    cirurgia={cirurgiaEditando}
+
+    onSave={(dados) => {
+
+        // por enquanto só fecha
+
+        setModalOpen(false);
+
+        setCirurgiaEditando(null);
+
+    }}
 
 />
 
