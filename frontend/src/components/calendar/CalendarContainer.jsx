@@ -10,7 +10,13 @@ import CirurgiaModal from "../modal/CirurgiaModal";
 
 function CalendarContainer() {
 
-    const { listaCirurgias } = useCirurgias();
+    const {
+
+    listaCirurgias,
+
+    setListaCirurgias
+
+} = useCirurgias();
     const [cirurgiaSelecionada, setCirurgiaSelecionada] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
 
@@ -95,6 +101,20 @@ function CalendarContainer() {
         setCirurgiaEditando(cirurgia);
 
         setModalOpen(true);
+
+    }}
+
+    onDelete={(id) => {
+
+        const novaLista = listaCirurgias.filter(
+
+            (cirurgia) => cirurgia.id !== id
+
+        );
+
+        setListaCirurgias(novaLista);
+
+        setCirurgiaSelecionada(null);
 
     }}
 

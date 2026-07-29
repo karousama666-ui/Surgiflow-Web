@@ -210,6 +210,66 @@
 
 }
 
+.drawer-actions{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:12px;
+
+    margin-top:28px;
+
+}
+
+.drawer-btn{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:10px;
+
+    padding:12px;
+
+    border-radius:12px;
+
+    border:none;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+    background:#F3F4F6;
+
+    transition:.2s;
+
+}
+
+.drawer-btn:hover{
+
+    transform:translateY(-2px);
+
+}
+
+.drawer-btn.primary{
+
+    background:#6C63FF;
+
+    color:white;
+
+}
+
+.drawer-btn.danger{
+
+    background:#FEE2E2;
+
+    color:#B91C1C;
+
+}
+
 @keyframes slide{
 
     from{

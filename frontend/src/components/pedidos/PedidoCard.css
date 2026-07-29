@@ -1,0 +1,141 @@
+.pedido-card{
+
+    background:#fff;
+
+    border-radius:18px;
+
+    padding:24px;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:20px;
+
+    transition:.25s;
+
+}
+
+.pedido-card:hover{
+
+    transform:translateY(-4px);
+
+    box-shadow:0 16px 40px rgba(0,0,0,.12);
+
+}
+
+.pedido-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+.pedido-header h3{
+
+    margin:0;
+
+    font-size:1.2rem;
+
+}
+
+.pedido-header span{
+
+    background:#DCFCE7;
+
+    color:#15803D;
+
+    padding:8px 14px;
+
+    border-radius:999px;
+
+    font-size:.8rem;
+
+    font-weight:600;
+
+}
+
+.pedido-info{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:12px;
+
+}
+
+.pedido-info p{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    margin:0;
+
+    color:#555;
+
+}
+
+.pedido-info svg{
+
+    color:#6C63FF;
+
+}
+
+.pedido-actions{
+
+    display:flex;
+
+    gap:12px;
+
+}
+
+.pedido-actions button{
+
+    flex:1;
+
+    border:none;
+
+    border-radius:12px;
+
+    padding:12px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:8px;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+    background:#F3F4F6;
+
+    transition:.2s;
+
+}
+
+.pedido-actions button:hover{
+
+    transform:translateY(-2px);
+
+}
+
+.pedido-actions .primary{
+
+    background:#6C63FF;
+
+    color:white;
+
+}

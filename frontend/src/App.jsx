@@ -3,6 +3,7 @@ import MainLayout from "./layouts/MainLayout";
 import Dashboard from "./pages/Dashboard";
 import Agenda from "./pages/Agenda";
 import Calendario from "./pages/Calendario";
+import Pedidos from "./pages/Pedidos";
 
 import { Routes, Route } from "react-router-dom";
 
@@ -37,6 +38,14 @@ function App(){
                 element={<Calendario />}
 
             />
+
+            <Route
+
+    path="/pedidos"
+
+    element={<Pedidos />}
+
+/>
 
         </Routes>
 

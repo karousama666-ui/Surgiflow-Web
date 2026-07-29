@@ -12,7 +12,13 @@ import {
 
     CircleCheck,
 
-    Paperclip
+    Paperclip,
+
+    Pencil,
+
+    Trash2,
+
+    FileText
 
 } from "lucide-react";
 
@@ -22,7 +28,9 @@ function CalendarDrawer({
 
     onClose,
 
-    onEdit
+    onEdit,
+
+    onDelete
 
 }) {
 
@@ -147,47 +155,67 @@ function CalendarDrawer({
 
                 <hr />
 
-<div
-    style={{
-        display: "flex",
-        gap: "10px",
-        marginTop: "20px"
-    }}
->
+<div className="drawer-actions">
 
     <button
 
+        className="drawer-btn primary"
+
         onClick={() => {
 
-    onClose();
+            onClose();
 
-    onEdit(cirurgia);
-
-}}
-
-        style={{
-
-            flex: 1,
-
-            background: "#6C63FF",
-
-            color: "#fff",
-
-            border: "none",
-
-            padding: "12px",
-
-            borderRadius: "10px",
-
-            cursor: "pointer"
+            onEdit(cirurgia);
 
         }}
 
     >
 
-        ✏ Editar
+        <Pencil size={18}/>
+
+        Editar
 
     </button>
+
+    <button
+
+        className="drawer-btn"
+
+    >
+
+        <FileText size={18}/>
+
+        Gerar Pedido
+
+    </button>
+
+    <button
+
+    className="drawer-btn danger"
+
+    onClick={() => {
+
+        const confirmar = window.confirm(
+
+            "Deseja realmente excluir esta cirurgia?"
+
+        );
+
+        if (confirmar) {
+
+            onDelete(cirurgia.id);
+
+        }
+
+    }}
+
+>
+
+    <Trash2 size={18}/>
+
+    Excluir
+
+</button>
 
 </div>
 
