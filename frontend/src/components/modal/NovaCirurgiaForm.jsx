@@ -103,25 +103,30 @@ onChange={handleChange}
             <br />
             <br />
 
-<label>Convênio</label>
+<Input
 
-<input
-    type="text"
     name="convenio"
+
+    placeholder="Convênio"
+
     value={form.convenio}
+
     onChange={handleChange}
-    placeholder="Ex.: Unimed"
+
 />
 
-            <Input
+<br />
+<br />
 
-name="data"
+<Input
 
-type="date"
+    name="data"
 
-value={form.data}
+    type="date"
 
-onChange={handleChange}
+    value={form.data}
+
+    onChange={handleChange}
 
 />
 
@@ -203,9 +208,13 @@ onChange={handleChange}
 
             hospital: "",
 
+            convenio: "",
+
             data: "",
 
-            horario: ""
+            horario: "",
+
+            anexo: null
 
         });
 

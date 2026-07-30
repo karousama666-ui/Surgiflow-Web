@@ -103,13 +103,19 @@ function CalendarDrawer({
 
 </div>
 
-<div>
+<div className="drawer-info">
+
+    <FileText size={20}/>
+
+    <div>
 
         <small>Convênio</small>
 
         <strong>{cirurgia.convenio}</strong>
 
     </div>
+
+</div>
 
 <div className="drawer-info">
 

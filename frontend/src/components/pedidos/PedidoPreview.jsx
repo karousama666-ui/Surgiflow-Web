@@ -4,6 +4,10 @@ import "./PedidoPreview.css";
 
 import logoDocumento from "../../assets/logopdf.png";
 
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import { useRef } from "react";
+
 import {
 
     User,
@@ -34,6 +38,50 @@ function PedidoPreview({
 
     if (!cirurgia) return null;
 
+    const pdfRef = useRef(null);
+
+    const gerarPDF = async () => {
+
+    const elemento = pdfRef.current;
+
+    const canvas = await html2canvas(elemento, {
+
+        scale: 2
+
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    const larguraPDF = 210;
+
+    const alturaPDF = (canvas.height * larguraPDF) / canvas.width;
+
+    pdf.addImage(
+
+        imgData,
+
+        "PNG",
+
+        0,
+
+        0,
+
+        larguraPDF,
+
+        alturaPDF
+
+    );
+
+    pdf.save(
+
+        `Pedido_Cirurgico_${cirurgia.paciente}.pdf`
+
+    );
+
+};
+
     return (
 
         <Modal
@@ -43,6 +91,8 @@ function PedidoPreview({
             onClose={onClose}
 
         >
+
+            <div ref={pdfRef}>
 
             <div className="preview">
 
@@ -160,11 +210,23 @@ function PedidoPreview({
 
 </div>
 
-    <button className="preview-btn">
 
-        📄 Gerar PDF
-
-    </button>
+    <div
+    style={{
+        background: "red",
+        color: "white",
+        padding: "20px",
+        cursor: "pointer",
+        textAlign: "center",
+        borderRadius: "10px",
+        marginTop: "20px"
+    }}
+    onClick={() => {
+        console.log("CLICOU NA DIV");
+    }}
+>
+    TESTE PDF
+</div>
 
     <div className="preview-footer">
 
@@ -172,6 +234,7 @@ function PedidoPreview({
 
     </div>
 
+</div>
 </div>
 
         </Modal>
