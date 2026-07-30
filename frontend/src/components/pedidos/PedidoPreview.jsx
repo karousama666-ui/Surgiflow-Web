@@ -1,5 +1,27 @@
 import Modal from "../modal/Modal";
 
+import "./PedidoPreview.css";
+
+import logoDocumento from "../../assets/logopdf.png";
+
+import {
+
+    User,
+
+    Stethoscope,
+
+    Building2,
+
+    CalendarDays,
+
+    Clock3,
+
+    CircleCheck,
+
+    FileText
+
+} from "lucide-react";
+
 function PedidoPreview({
 
     cirurgia,
@@ -22,29 +44,135 @@ function PedidoPreview({
 
         >
 
-            <h2>Pedido Cirúrgico</h2>
+            <div className="preview">
 
-            <hr />
+    <div className="preview-header">
 
-            <p><strong>Paciente:</strong> {cirurgia.paciente}</p>
+    <img
+        src={logoDocumento}
+        alt="SurgiFlow"
+        className="preview-logo"
+    />
 
-            <p><strong>Médico:</strong> {cirurgia.medico}</p>
+    <h2>Pedido Cirúrgico</h2>
 
-            <p><strong>Hospital:</strong> {cirurgia.hospital}</p>
+</div>
 
-            <p><strong>Data:</strong> {cirurgia.data}</p>
+    <div className="preview-grid">
 
-            <p><strong>Horário:</strong> {cirurgia.horario}</p>
+    <div className="preview-section">
 
-            <p><strong>Status:</strong> {cirurgia.status}</p>
+        <strong>
 
-            <br />
+            <User size={16}/>
 
-            <button>
+            Paciente
 
-                📄 Gerar PDF
+        </strong>
 
-            </button>
+        <span>{cirurgia.paciente}</span>
+
+    </div>
+
+    <div className="preview-section">
+
+        <strong>
+
+            <Stethoscope size={16}/>
+
+            Médico
+
+        </strong>
+
+        <span>{cirurgia.medico}</span>
+
+    </div>
+
+    <div className="preview-section">
+
+        <strong>
+
+            <Building2 size={16}/>
+
+            Hospital
+
+        </strong>
+
+        <span>{cirurgia.hospital}</span>
+
+    </div>
+
+    <div className="preview-section">
+
+    <strong>
+
+        <FileText size={16}/>
+
+        Convênio
+
+    </strong>
+
+    <span>{cirurgia.convenio}</span>
+
+</div>
+
+    <div className="preview-section">
+
+        <strong>
+
+            <CalendarDays size={16}/>
+
+            Data
+
+        </strong>
+
+        <span>{cirurgia.data}</span>
+
+    </div>
+
+    <div className="preview-section">
+
+        <strong>
+
+            <Clock3 size={16}/>
+
+            Horário
+
+        </strong>
+
+        <span>{cirurgia.horario}</span>
+
+    </div>
+
+    <div className="preview-section">
+
+        <strong>
+
+            <CircleCheck size={16}/>
+
+            Status
+
+        </strong>
+
+        <span>{cirurgia.status}</span>
+
+    </div>
+
+</div>
+
+    <button className="preview-btn">
+
+        📄 Gerar PDF
+
+    </button>
+
+    <div className="preview-footer">
+
+        Documento gerado pelo <strong>SurgiFlow</strong>
+
+    </div>
+
+</div>
 
         </Modal>
 

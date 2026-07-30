@@ -66,6 +66,8 @@ function AgendaTable({
                     <th>Médico</th>
 
                     <th>Hospital</th>
+                    
+                    <th>Convênio</th>
 
                     <th>Data</th>
 
@@ -90,6 +92,8 @@ function AgendaTable({
                         <td>{cirurgia.medico}</td>
 
                         <td>{cirurgia.hospital}</td>
+
+                        <td>{cirurgia.convenio}</td>
 
                         <td>{formatarData(cirurgia.data)}</td>
 

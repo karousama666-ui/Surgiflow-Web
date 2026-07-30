@@ -103,6 +103,14 @@ function CalendarDrawer({
 
 </div>
 
+<div>
+
+        <small>Convênio</small>
+
+        <strong>{cirurgia.convenio}</strong>
+
+    </div>
+
 <div className="drawer-info">
 
     <Calendar size={20}/>

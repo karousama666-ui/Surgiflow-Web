@@ -17,6 +17,8 @@ function NovaCirurgiaForm({
     medico: "",
 
     hospital: "",
+    
+    convenio: "",
 
     data: "",
 
@@ -100,6 +102,16 @@ onChange={handleChange}
 
             <br />
             <br />
+
+<label>Convênio</label>
+
+<input
+    type="text"
+    name="convenio"
+    value={form.convenio}
+    onChange={handleChange}
+    placeholder="Ex.: Unimed"
+/>
 
             <Input
 
