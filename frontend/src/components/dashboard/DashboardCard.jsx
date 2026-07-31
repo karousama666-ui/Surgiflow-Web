@@ -1,10 +1,33 @@
 import "./DashboardCard.css";
 
-function DashboardCard({ title, value }) {
+function DashboardCard({
+
+    title,
+
+    value,
+
+    icon,
+
+    color,
+
+    subtitle
+
+}) {
 
     return (
 
         <div className="dashboard-card">
+
+            <div
+                className="dashboard-card-icon"
+                style={{
+                    background: color
+                }}
+            >
+
+                {icon}
+
+            </div>
 
             <h2>
 
@@ -17,6 +40,12 @@ function DashboardCard({ title, value }) {
                 {title}
 
             </span>
+
+            <small>
+
+                {subtitle}
+
+            </small>
 
         </div>
 

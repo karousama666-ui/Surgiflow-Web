@@ -211,22 +211,7 @@ function PedidoPreview({
 </div>
 
 
-    <div
-    style={{
-        background: "red",
-        color: "white",
-        padding: "20px",
-        cursor: "pointer",
-        textAlign: "center",
-        borderRadius: "10px",
-        marginTop: "20px"
-    }}
-    onClick={() => {
-        console.log("CLICOU NA DIV");
-    }}
->
-    TESTE PDF
-</div>
+
 
     <div className="preview-footer">
 
@@ -236,6 +221,21 @@ function PedidoPreview({
 
 </div>
 </div>
+
+<button
+
+    className="preview-btn"
+
+    type="button"
+
+    onClick={gerarPDF}
+
+>
+
+    📄 Gerar PDF
+
+</button>
+
 
         </Modal>
 
