@@ -4,6 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import Agenda from "./pages/Agenda";
 import Calendario from "./pages/Calendario";
 import Pedidos from "./pages/Pedidos";
+import Medicos from "./pages/Medicos";
 
 import { Routes, Route } from "react-router-dom";
 
@@ -44,6 +45,14 @@ function App(){
     path="/pedidos"
 
     element={<Pedidos />}
+
+/>
+
+<Route
+
+    path="/medicos"
+
+    element={<Medicos />}
 
 />
 

@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { CirurgiasProvider } from "./context/CirurgiasContext";
+import { MedicosProvider } from "./context/MedicosContext";
 
 import App from "./App";
 
@@ -16,9 +17,13 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
             <CirurgiasProvider>
 
-                <App />
+    <MedicosProvider>
 
-            </CirurgiasProvider>
+        <App />
+
+    </MedicosProvider>
+
+</CirurgiasProvider>
 
         </BrowserRouter>
 

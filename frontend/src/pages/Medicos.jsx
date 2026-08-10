@@ -1,8 +1,11 @@
+import MedicoForm from "../components/medicos/MedicoForm";
+
 function Medicos() {
 
     return (
 
         <>
+
             <h1>Médicos</h1>
 
             <br />
@@ -12,6 +15,11 @@ function Medicos() {
                 + Novo Médico
 
             </button>
+
+            <br />
+            <br />
+
+            <MedicoForm />
 
         </>
 
