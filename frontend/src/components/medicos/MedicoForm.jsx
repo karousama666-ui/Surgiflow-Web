@@ -1,10 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Input from "../ui/Input";
 import { useMedicos } from "../../context/MedicosContext";
 
-function MedicoForm() {
+function MedicoForm({
+    medicoEditando,
+    setMedicoEditando
+}) {
 
-    const { listaMedicos, setListaMedicos } = useMedicos();
+    const {
+        listaMedicos,
+        setListaMedicos
+    } = useMedicos();
 
     const [form, setForm] = useState({
 
@@ -16,6 +22,25 @@ function MedicoForm() {
         hospital: ""
 
     });
+
+    useEffect(() => {
+
+        if (medicoEditando) {
+
+            setForm({
+
+                nome: medicoEditando.nome || "",
+                crm: medicoEditando.crm || "",
+                especialidade: medicoEditando.especialidade || "",
+                telefone: medicoEditando.telefone || "",
+                email: medicoEditando.email || "",
+                hospital: medicoEditando.hospital || ""
+
+            });
+
+        }
+
+    }, [medicoEditando]);
 
     function handleChange(e) {
 
@@ -31,11 +56,61 @@ function MedicoForm() {
 
     }
 
+    function limparFormulario() {
+
+        setForm({
+
+            nome: "",
+            crm: "",
+            especialidade: "",
+            telefone: "",
+            email: "",
+            hospital: ""
+
+        });
+
+        setMedicoEditando(null);
+
+    }
+
     function handleSave() {
 
         if (!form.nome || !form.crm) {
 
-            alert("Preencha pelo menos o nome e o CRM do médico.");
+            alert(
+                "Preencha pelo menos o nome e o CRM do médico."
+            );
+
+            return;
+
+        }
+
+        if (medicoEditando) {
+
+            const listaAtualizada = listaMedicos.map(
+                medico => {
+
+                    if (medico.id === medicoEditando.id) {
+
+                        return {
+
+                            ...medico,
+                            ...form
+
+                        };
+
+                    }
+
+                    return medico;
+
+                }
+            );
+
+            setListaMedicos(listaAtualizada);
+
+            alert("Médico atualizado com sucesso!");
+
+            limparFormulario();
 
             return;
 
@@ -52,23 +127,13 @@ function MedicoForm() {
         setListaMedicos([
 
             ...listaMedicos,
-
             novoMedico
 
         ]);
 
-        setForm({
-
-            nome: "",
-            crm: "",
-            especialidade: "",
-            telefone: "",
-            email: "",
-            hospital: ""
-
-        });
-
         alert("Médico cadastrado com sucesso!");
+
+        limparFormulario();
 
     }
 
@@ -76,7 +141,14 @@ function MedicoForm() {
 
         <div>
 
-            <h2>Novo Médico</h2>
+            <h2>
+
+                {medicoEditando
+                    ? "Editar Médico"
+                    : "Novo Médico"
+                }
+
+            </h2>
 
             <br />
 
@@ -146,9 +218,28 @@ function MedicoForm() {
                 onClick={handleSave}
             >
 
-                Salvar Médico
+                {medicoEditando
+                    ? "Salvar Alterações"
+                    : "Salvar Médico"
+                }
 
             </button>
+
+            {medicoEditando && (
+
+                <button
+                    type="button"
+                    onClick={limparFormulario}
+                    style={{
+                        marginLeft: "10px"
+                    }}
+                >
+
+                    Cancelar
+
+                </button>
+
+            )}
 
         </div>
 
