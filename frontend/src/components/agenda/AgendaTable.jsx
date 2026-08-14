@@ -1,5 +1,6 @@
 import "./AgendaTable.css";
 import { Pencil, Trash2 } from "lucide-react";
+import { useMedicos } from "../../context/MedicosContext";
 
 function AgendaTable({
 
@@ -12,6 +13,8 @@ function AgendaTable({
     onEdit
 
 }) {
+
+    const { listaMedicos } = useMedicos();
 
     function formatarData(data) {
 
@@ -26,6 +29,29 @@ function AgendaTable({
         const [ano, mes, dia] = data.split("-");
 
         return `${dia}/${mes}/${ano}`;
+
+    }
+
+    function obterNomeMedico(cirurgia) {
+
+        if (cirurgia.medicoId) {
+
+            const medico = listaMedicos.find(
+
+                medico =>
+                    String(medico.id) === String(cirurgia.medicoId)
+
+            );
+
+            if (medico) {
+
+                return medico.nome;
+
+            }
+
+        }
+
+        return cirurgia.medico || "Médico não informado";
 
     }
 
@@ -66,7 +92,7 @@ function AgendaTable({
                     <th>Médico</th>
 
                     <th>Hospital</th>
-                    
+
                     <th>Convênio</th>
 
                     <th>Data</th>
@@ -87,17 +113,29 @@ function AgendaTable({
 
                     <tr key={cirurgia.id}>
 
-                        <td>{cirurgia.paciente}</td>
+                        <td>
+                            {cirurgia.paciente}
+                        </td>
 
-                        <td>{cirurgia.medico}</td>
+                        <td>
+                            {obterNomeMedico(cirurgia)}
+                        </td>
 
-                        <td>{cirurgia.hospital}</td>
+                        <td>
+                            {cirurgia.hospital}
+                        </td>
 
-                        <td>{cirurgia.convenio}</td>
+                        <td>
+                            {cirurgia.convenio}
+                        </td>
 
-                        <td>{formatarData(cirurgia.data)}</td>
+                        <td>
+                            {formatarData(cirurgia.data)}
+                        </td>
 
-                        <td>{cirurgia.horario}</td>
+                        <td>
+                            {cirurgia.horario}
+                        </td>
 
                         <td>
 
@@ -119,13 +157,21 @@ function AgendaTable({
 
                             >
 
-                                <option>Pendente</option>
+                                <option>
+                                    Pendente
+                                </option>
 
-                                <option>Confirmada</option>
+                                <option>
+                                    Confirmada
+                                </option>
 
-                                <option>Finalizada</option>
+                                <option>
+                                    Finalizada
+                                </option>
 
-                                <option>Cancelada</option>
+                                <option>
+                                    Cancelada
+                                </option>
 
                             </select>
 
@@ -135,79 +181,77 @@ function AgendaTable({
 
                             <div
 
-style={{
+                                style={{
 
-display:"flex",
+                                    display: "flex",
 
-gap:"10px",
+                                    gap: "10px",
 
-justifyContent:"center"
+                                    justifyContent: "center"
 
-}}
+                                }}
 
->
+                            >
 
-<button
+                                <button
 
-onClick={() => onEdit(cirurgia)}
+                                    onClick={() => onEdit(cirurgia)}
 
-style={{
+                                    style={{
 
-background:"#EEF2FF",
+                                        background: "#EEF2FF",
 
-border:"none",
+                                        border: "none",
 
-padding:"8px",
+                                        padding: "8px",
 
-borderRadius:"8px",
+                                        borderRadius: "8px",
 
-cursor:"pointer"
+                                        cursor: "pointer"
 
-}}
+                                    }}
 
->
+                                >
 
-<Pencil
+                                    <Pencil
+                                        size={18}
+                                    />
 
-size={18}
+                                </button>
 
-/>
+                                <button
 
-</button>
+                                    onClick={() =>
+                                        onDelete(cirurgia.id)
+                                    }
 
-<button
+                                    style={{
 
-onClick={() => onDelete(cirurgia.id)}
+                                        background: "#FEE2E2",
 
-style={{
+                                        border: "none",
 
-background:"#FEE2E2",
+                                        padding: "8px",
 
-border:"none",
+                                        borderRadius: "8px",
 
-padding:"8px",
+                                        cursor: "pointer"
 
-borderRadius:"8px",
+                                    }}
 
-cursor:"pointer"
+                                >
 
-}}
+                                    <Trash2
 
->
+                                        size={18}
 
-<Trash2
+                                        color="#DC2626"
 
-size={18}
+                                    />
 
-color="#DC2626"
+                                </button>
 
-/>
-
-</button>
-
-</div>
-
-                            
+                            </div>
 
                         </td>
 
