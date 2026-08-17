@@ -4,63 +4,57 @@ import Dashboard from "./pages/Dashboard";
 import Agenda from "./pages/Agenda";
 import Calendario from "./pages/Calendario";
 import Pedidos from "./pages/Pedidos";
-import Medicos from "./pages/Medicos";
 
-import { Routes, Route } from "react-router-dom";
+import {
+    Routes,
+    Route,
+    Navigate
+} from "react-router-dom";
 
-function App(){
+
+function App() {
 
     return (
 
-    <MainLayout>
+        <MainLayout>
 
-        <Routes>
+            <Routes>
 
-            <Route
+                <Route
+                    path="/"
+                    element={<Dashboard />}
+                />
 
-                path="/"
+                <Route
+                    path="/agenda"
+                    element={<Agenda />}
+                />
 
-                element={<Dashboard />}
+                <Route
+                    path="/calendario"
+                    element={<Calendario />}
+                />
 
-            />
+                <Route
+                    path="/pedidos"
+                    element={<Pedidos />}
+                />
 
-            <Route
+                <Route
+                    path="*"
+                    element={
+                        <Navigate
+                            to="/"
+                            replace
+                        />
+                    }
+                />
 
-                path="/agenda"
+            </Routes>
 
-                element={<Agenda />}
+        </MainLayout>
 
-            />
-
-            <Route
-
-                path="/calendario"
-
-                element={<Calendario />}
-
-            />
-
-            <Route
-
-    path="/pedidos"
-
-    element={<Pedidos />}
-
-/>
-
-<Route
-
-    path="/medicos"
-
-    element={<Medicos />}
-
-/>
-
-        </Routes>
-
-    </MainLayout>
-
-)
+    );
 
 }
 

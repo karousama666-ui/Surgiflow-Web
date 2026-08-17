@@ -1,79 +1,145 @@
-.dashboard-card{
+.dashboard-card {
 
-    background:white;
+    background: white;
 
-    border-radius:22px;
+    border-radius: 22px;
 
-    padding:28px;
+    padding: 26px;
 
-    box-shadow:0 10px 25px rgba(0,0,0,.06);
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.05);
 
-    display:flex;
+    display: flex;
 
-    flex-direction:column;
+    flex-direction: column;
 
-    gap:12px;
+    gap: 8px;
 
-    transition:.25s;
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
 
-    position:relative;
+    position: relative;
 
-    overflow:hidden;
+    overflow: hidden;
 
-}
-
-.dashboard-card:hover{
-
-    transform:translateY(-6px);
-
-    box-shadow:0 18px 35px rgba(0,0,0,.12);
+    min-height: 170px;
 
 }
 
-.dashboard-card-icon{
 
-    width:52px;
+/* detalhe decorativo no canto */
 
-    height:52px;
+.dashboard-card::after {
 
-    border-radius:16px;
+    content: "";
 
-    display:flex;
+    position: absolute;
 
-    align-items:center;
+    width: 90px;
 
-    justify-content:center;
+    height: 90px;
 
-    margin-bottom:8px;
+    border-radius: 50%;
 
-}
+    background: rgba(108, 99, 255, 0.04);
 
-.dashboard-card h2{
+    right: -35px;
 
-    font-size:42px;
-
-    color:var(--primary);
-
-    margin:0;
-
-    font-weight:700;
+    top: -35px;
 
 }
 
-.dashboard-card span{
 
-    font-size:17px;
+/* efeito ao passar o mouse */
 
-    font-weight:600;
+.dashboard-card:hover {
 
-    color:#333;
+    transform: translateY(-4px);
+
+    box-shadow:
+        0 14px 32px rgba(0, 0, 0, 0.09);
 
 }
 
-.dashboard-card small{
 
-    color:#8A8A8A;
+/* ícone */
 
-    font-size:14px;
+.dashboard-card-icon {
+
+    width: 48px;
+
+    height: 48px;
+
+    border-radius: 15px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    margin-bottom: 6px;
+
+    position: relative;
+
+    z-index: 1;
+
+}
+
+
+/* número */
+
+.dashboard-card h2 {
+
+    font-size: 40px;
+
+    line-height: 1;
+
+    color: var(--primary);
+
+    margin: 0;
+
+    font-weight: 750;
+
+    letter-spacing: -1px;
+
+    position: relative;
+
+    z-index: 1;
+
+}
+
+
+/* título */
+
+.dashboard-card span {
+
+    font-size: 16px;
+
+    font-weight: 650;
+
+    color: #333;
+
+    position: relative;
+
+    z-index: 1;
+
+}
+
+
+/* descrição */
+
+.dashboard-card small {
+
+    color: #8A8A8A;
+
+    font-size: 13px;
+
+    line-height: 1.4;
+
+    position: relative;
+
+    z-index: 1;
 
 }

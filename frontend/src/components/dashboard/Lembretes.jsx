@@ -10,7 +10,15 @@ function Lembretes() {
 
         if (salvo) {
 
-            return JSON.parse(salvo);
+            try {
+
+                return JSON.parse(salvo);
+
+            } catch {
+
+                return [];
+
+            }
 
         }
 
@@ -22,11 +30,8 @@ function Lembretes() {
     useEffect(() => {
 
         localStorage.setItem(
-
             "lembretes",
-
             JSON.stringify(lembretes)
-
         );
 
     }, [lembretes]);
@@ -74,11 +79,8 @@ function Lembretes() {
                 lembrete.id === id
 
                     ? {
-
                         ...lembrete,
-
                         fixado: !lembrete.fixado
-
                     }
 
                     : lembrete
@@ -99,11 +101,8 @@ function Lembretes() {
                 lembrete.id === id
 
                     ? {
-
                         ...lembrete,
-
                         concluido: !lembrete.concluido
-
                     }
 
                     : lembrete
@@ -130,27 +129,32 @@ function Lembretes() {
     }
 
 
-    const lembretesOrdenados = [
+    const lembretesOrdenados = [...lembretes].sort(
 
-        ...lembretes
+        (a, b) => {
 
-    ].sort((a, b) => {
+            if (a.fixado && !b.fixado) {
 
-        if (a.fixado && !b.fixado) {
+                return -1;
 
-            return -1;
+            }
+
+            if (!a.fixado && b.fixado) {
+
+                return 1;
+
+            }
+
+            return 0;
 
         }
 
-        if (!a.fixado && b.fixado) {
+    );
 
-            return 1;
 
-        }
-
-        return 0;
-
-    });
+    const pendentes = lembretes.filter(
+        lembrete => !lembrete.concluido
+    ).length;
 
 
     return (
@@ -161,26 +165,22 @@ function Lembretes() {
 
                 background: "#fff",
 
-                borderRadius: "18px",
+                borderRadius: "20px",
 
                 padding: "24px",
 
                 boxShadow:
-                    "0 5px 20px rgba(0,0,0,.08)"
+                    "0 8px 25px rgba(0,0,0,.06)",
+
+                height: "100%",
+
+                boxSizing: "border-box"
 
             }}
 
         >
 
-            <h2>
-
-                📝 Lembretes
-
-            </h2>
-
-
-            <br />
-
+            {/* CABEÇALHO */}
 
             <div
 
@@ -188,9 +188,98 @@ function Lembretes() {
 
                     display: "flex",
 
-                    gap: "10px",
+                    justifyContent: "space-between",
+
+                    alignItems: "center",
 
                     marginBottom: "20px"
+
+                }}
+
+            >
+
+                <div>
+
+                    <h2
+
+                        style={{
+
+                            margin: 0,
+
+                            fontSize: "21px"
+
+                        }}
+
+                    >
+
+                        📝 Lembretes
+
+                    </h2>
+
+                    <span
+
+                        style={{
+
+                            color: "#888",
+
+                            fontSize: "13px"
+
+                        }}
+
+                    >
+
+                        Anotações importantes
+
+                    </span>
+
+                </div>
+
+
+                <span
+
+                    style={{
+
+                        background: "#EEF2FF",
+
+                        color: "#6C63FF",
+
+                        padding: "6px 11px",
+
+                        borderRadius: "20px",
+
+                        fontSize: "12px",
+
+                        fontWeight: "600"
+
+                    }}
+
+                >
+
+                    {pendentes}
+
+                    {" "}
+
+                    {pendentes === 1
+                        ? "pendente"
+                        : "pendentes"
+                    }
+
+                </span>
+
+            </div>
+
+
+            {/* CAMPO DE NOVO LEMBRETE */}
+
+            <div
+
+                style={{
+
+                    display: "flex",
+
+                    gap: "8px",
+
+                    marginBottom: "18px"
 
                 }}
 
@@ -222,14 +311,20 @@ function Lembretes() {
 
                         flex: 1,
 
+                        minWidth: 0,
+
+                        padding: "11px 13px",
+
                         border:
                             "1px solid #DDD",
 
                         borderRadius: "10px",
 
-                        padding: "12px",
+                        outline: "none",
 
-                        fontSize: "14px"
+                        fontSize: "13px",
+
+                        boxSizing: "border-box"
 
                     }}
 
@@ -252,9 +347,11 @@ function Lembretes() {
 
                         borderRadius: "10px",
 
-                        padding: "0 18px",
+                        padding: "0 14px",
 
                         fontWeight: "600",
+
+                        fontSize: "13px",
 
                         cursor: "pointer"
 
@@ -262,26 +359,64 @@ function Lembretes() {
 
                 >
 
-                    + Adicionar
+                    +
+
+                    {" "}
+
+                    Adicionar
 
                 </button>
 
             </div>
 
 
+            {/* LISTA */}
+
             <div>
 
                 {lembretesOrdenados.length === 0 ? (
 
-                    <p
+                    <div
+
                         style={{
+
+                            background: "#F8F9FF",
+
+                            borderRadius: "14px",
+
+                            padding: "30px 15px",
+
+                            textAlign: "center",
+
                             color: "#888"
+
                         }}
+
                     >
 
-                        Nenhum lembrete cadastrado.
+                        <div
 
-                    </p>
+                            style={{
+
+                                fontSize: "28px",
+
+                                marginBottom: "8px"
+
+                            }}
+
+                        >
+
+                            📭
+
+                        </div>
+
+                        <span>
+
+                            Nenhum lembrete cadastrado.
+
+                        </span>
+
+                    </div>
 
                 ) : (
 
@@ -297,11 +432,11 @@ function Lembretes() {
 
                                 alignItems: "center",
 
-                                gap: "10px",
+                                gap: "8px",
 
-                                padding: "12px",
+                                padding: "11px",
 
-                                marginBottom: "10px",
+                                marginBottom: "9px",
 
                                 background:
                                     lembrete.fixado
@@ -335,7 +470,9 @@ function Lembretes() {
 
                                     cursor: "pointer",
 
-                                    fontSize: "18px"
+                                    fontSize: "17px",
+
+                                    padding: "0"
 
                                 }}
 
@@ -355,6 +492,12 @@ function Lembretes() {
 
                                     flex: 1,
 
+                                    minWidth: 0,
+
+                                    fontSize: "13px",
+
+                                    lineHeight: "1.4",
+
                                     textDecoration:
                                         lembrete.concluido
                                             ? "line-through"
@@ -363,7 +506,10 @@ function Lembretes() {
                                     color:
                                         lembrete.concluido
                                             ? "#999"
-                                            : "#333"
+                                            : "#333",
+
+                                    wordBreak:
+                                        "break-word"
 
                                 }}
 
@@ -394,11 +540,14 @@ function Lembretes() {
 
                                     border: "none",
 
-                                    background: "transparent",
+                                    background:
+                                        "transparent",
 
                                     cursor: "pointer",
 
-                                    fontSize: "17px"
+                                    fontSize: "15px",
+
+                                    padding: "2px"
 
                                 }}
 
@@ -428,11 +577,14 @@ function Lembretes() {
 
                                     border: "none",
 
-                                    background: "transparent",
+                                    background:
+                                        "transparent",
 
                                     cursor: "pointer",
 
-                                    fontSize: "17px"
+                                    fontSize: "15px",
+
+                                    padding: "2px"
 
                                 }}
 

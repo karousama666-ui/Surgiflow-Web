@@ -7,35 +7,33 @@ function AgendaHoje() {
 
     const { listaMedicos } = useMedicos();
 
-    const hoje = new Date().toISOString().split("T")[0];
+    const hoje = new Date()
+        .toISOString()
+        .split("T")[0];
+
 
     const cirurgiasHoje = listaCirurgias
 
-        .filter(
+        .filter((cirurgia) => {
 
-            cirurgia => {
+            if (cirurgia.data === hoje) {
 
-                if (cirurgia.data === hoje) {
-
-                    return true;
-
-                }
-
-                // Compatibilidade com datas antigas em dd/mm/yyyy
-                if (cirurgia.data?.includes("/")) {
-
-                    const [dia, mes, ano] =
-                        cirurgia.data.split("/");
-
-                    return `${ano}-${mes}-${dia}` === hoje;
-
-                }
-
-                return false;
+                return true;
 
             }
 
-        )
+            if (cirurgia.data?.includes("/")) {
+
+                const [dia, mes, ano] =
+                    cirurgia.data.split("/");
+
+                return `${ano}-${mes}-${dia}` === hoje;
+
+            }
+
+            return false;
+
+        })
 
         .sort(
 
@@ -67,7 +65,49 @@ function AgendaHoje() {
 
         }
 
-        return cirurgia.medico || "Médico não informado";
+        return cirurgia.medico ||
+            "Médico não informado";
+
+    }
+
+
+    function obterStatus(status) {
+
+        if (status === "Confirmada") {
+
+            return {
+                icone: "🟢",
+                background: "#ECFDF3",
+                color: "#15803D"
+            };
+
+        }
+
+        if (status === "Pendente") {
+
+            return {
+                icone: "🟡",
+                background: "#FFFBEB",
+                color: "#B45309"
+            };
+
+        }
+
+        if (status === "Finalizada") {
+
+            return {
+                icone: "🔵",
+                background: "#EFF6FF",
+                color: "#2563EB"
+            };
+
+        }
+
+        return {
+            icone: "🔴",
+            background: "#FEF2F2",
+            color: "#DC2626"
+        };
 
     }
 
@@ -80,128 +120,302 @@ function AgendaHoje() {
 
                 background: "#fff",
 
-                borderRadius: "18px",
+                borderRadius: "20px",
 
                 padding: "24px",
 
                 boxShadow:
-                    "0 5px 20px rgba(0,0,0,.08)"
+                    "0 8px 25px rgba(0,0,0,.06)"
 
             }}
 
         >
 
-            <h2>
+            <div
 
-                📅 Agenda de Hoje
+                style={{
 
-            </h2>
+                    display: "flex",
 
-            <br />
+                    justifyContent: "space-between",
 
+                    alignItems: "center",
 
-            {cirurgiasHoje.length === 0 ? (
+                    marginBottom: "22px"
 
-                <p>
+                }}
 
-                    Nenhuma cirurgia cadastrada.
+            >
 
-                </p>
+                <div>
 
-            ) : (
+                    <h2
+                        style={{
+                            margin: 0,
+                            fontSize: "21px"
+                        }}
+                    >
 
-                cirurgiasHoje.map((cirurgia) => (
+                        📅 Agenda de Hoje
 
-                    <div
+                    </h2>
 
-                        key={cirurgia.id}
+                    <span
 
                         style={{
 
-                            background: "#F8F9FF",
+                            color: "#888",
 
-                            border:
-                                "1px solid #E8E9F3",
-
-                            borderRadius: "14px",
-
-                            padding: "18px",
-
-                            marginBottom: "16px"
+                            fontSize: "13px"
 
                         }}
 
                     >
 
-                        <p>
+                        Cirurgias programadas para hoje
 
-                            🕘{" "}
+                    </span>
 
-                            <strong>
+                </div>
 
-                                {cirurgia.horario}
+                <span
 
-                            </strong>
+                    style={{
 
-                        </p>
+                        background: "#EEF2FF",
 
-                        <p>
+                        color: "#6C63FF",
 
-                            👤{" "}
+                        padding: "6px 12px",
 
-                            {cirurgia.paciente}
+                        borderRadius: "20px",
 
-                        </p>
+                        fontSize: "13px",
 
-                        <p>
+                        fontWeight: "600"
 
-                            👨‍⚕️{" "}
+                    }}
 
-                            {obterNomeMedico(cirurgia)}
+                >
 
-                        </p>
+                    {cirurgiasHoje.length}
 
-                        <p>
+                    {" "}
 
-                            🏥{" "}
+                    {cirurgiasHoje.length === 1
+                        ? "cirurgia"
+                        : "cirurgias"
+                    }
 
-                            {cirurgia.hospital}
+                </span>
 
-                        </p>
+            </div>
 
-                        <p>
 
-                            📄{" "}
+            {cirurgiasHoje.length === 0 ? (
 
-                            {cirurgia.convenio}
+                <div
 
-                        </p>
+                    style={{
 
-                        <p>
+                        padding: "35px 20px",
 
-                            {cirurgia.status ===
-                            "Confirmada"
+                        textAlign: "center",
 
-                                ? "🟢"
+                        background: "#F8F9FF",
 
-                                : cirurgia.status ===
-                                "Pendente"
+                        borderRadius: "14px",
 
-                                ? "🟡"
+                        color: "#888"
 
-                                : "🔴"
+                    }}
 
-                            }
+                >
 
-                            {" "}
+                    <div
 
-                            {cirurgia.status}
+                        style={{
 
-                        </p>
+                            fontSize: "30px",
+
+                            marginBottom: "8px"
+
+                        }}
+
+                    >
+
+                        📭
 
                     </div>
 
-                ))
+                    Nenhuma cirurgia programada para hoje.
+
+                </div>
+
+            ) : (
+
+                <div>
+
+                    {cirurgiasHoje.map((cirurgia) => {
+
+                        const status =
+                            obterStatus(
+                                cirurgia.status
+                            );
+
+                        return (
+
+                            <div
+
+                                key={cirurgia.id}
+
+                                style={{
+
+                                    display: "grid",
+
+                                    gridTemplateColumns:
+                                        "75px 1fr auto",
+
+                                    alignItems: "center",
+
+                                    gap: "18px",
+
+                                    padding: "16px 0",
+
+                                    borderBottom:
+                                        "1px solid #F0F0F5"
+
+                                }}
+
+                            >
+
+                                <div
+
+                                    style={{
+
+                                        fontSize: "18px",
+
+                                        fontWeight: "700",
+
+                                        color: "#6C63FF"
+
+                                    }}
+
+                                >
+
+                                    {cirurgia.horario}
+
+                                </div>
+
+
+                                <div>
+
+                                    <div
+
+                                        style={{
+
+                                            fontSize: "15px",
+
+                                            fontWeight: "650",
+
+                                            color: "#222",
+
+                                            marginBottom: "5px"
+
+                                        }}
+
+                                    >
+
+                                        👤{" "}
+
+                                        {cirurgia.paciente}
+
+                                    </div>
+
+
+                                    <div
+
+                                        style={{
+
+                                            display: "flex",
+
+                                            gap: "14px",
+
+                                            flexWrap: "wrap",
+
+                                            color: "#777",
+
+                                            fontSize: "13px"
+
+                                        }}
+
+                                    >
+
+                                        <span>
+
+                                            👨‍⚕️{" "}
+
+                                            {obterNomeMedico(
+                                                cirurgia
+                                            )}
+
+                                        </span>
+
+                                        <span>
+
+                                            🏥{" "}
+
+                                            {cirurgia.hospital}
+
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+                                <span
+
+                                    style={{
+
+                                        background:
+                                            status.background,
+
+                                        color:
+                                            status.color,
+
+                                        padding:
+                                            "7px 11px",
+
+                                        borderRadius:
+                                            "20px",
+
+                                        fontSize: "12px",
+
+                                        fontWeight: "600",
+
+                                        whiteSpace:
+                                            "nowrap"
+
+                                    }}
+
+                                >
+
+                                    {status.icone}
+
+                                    {" "}
+
+                                    {cirurgia.status}
+
+                                </span>
+
+                            </div>
+
+                        );
+
+                    })}
+
+                </div>
 
             )}
 

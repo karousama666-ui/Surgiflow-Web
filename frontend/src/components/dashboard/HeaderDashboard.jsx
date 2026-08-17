@@ -6,20 +6,6 @@ function HeaderDashboard() {
 
     const agora = new Date();
 
-    const hora = agora.getHours();
-
-    let saudacao = "Boa noite";
-
-    if (hora < 12) {
-
-        saudacao = "Bom dia";
-
-    } else if (hora < 18) {
-
-        saudacao = "Boa tarde";
-
-    }
-
     const hoje = agora.toLocaleDateString("pt-BR", {
         weekday: "long",
         day: "numeric",
@@ -30,10 +16,28 @@ function HeaderDashboard() {
     const hojeISO = agora.toISOString().split("T")[0];
 
     const quantidadeHoje = listaCirurgias.filter(
+        cirurgia => {
 
-        cirurgia => cirurgia.data === hojeISO
+            if (cirurgia.data === hojeISO) {
 
+                return true;
+
+            }
+
+            if (cirurgia.data?.includes("/")) {
+
+                const [dia, mes, ano] =
+                    cirurgia.data.split("/");
+
+                return `${ano}-${mes}-${dia}` === hojeISO;
+
+            }
+
+            return false;
+
+        }
     ).length;
+
 
     return (
 
@@ -43,16 +47,12 @@ function HeaderDashboard() {
             }}
         >
 
-            <h1>
-
-                {saudacao}, Carolina 👋
-
-            </h1>
-
             <p
                 style={{
-                    color:"#666",
-                    marginTop:"8px"
+                    color: "#777",
+                    fontSize: "14px",
+                    margin: "0 0 6px 0",
+                    textTransform: "capitalize"
                 }}
             >
 
@@ -60,15 +60,28 @@ function HeaderDashboard() {
 
             </p>
 
+
             <p
                 style={{
-                    marginTop:"12px",
-                    fontWeight:"600",
-                    color:"#6C63FF"
+                    margin: 0,
+                    fontSize: "15px",
+                    fontWeight: "600",
+                    color: "#6C63FF"
                 }}
             >
 
-                Você possui {quantidadeHoje} cirurgia(s) agendada(s) para hoje.
+                Você possui{" "}
+
+                {quantidadeHoje}
+
+                {" "}
+
+                {quantidadeHoje === 1
+                    ? "cirurgia agendada"
+                    : "cirurgias agendadas"
+                }
+
+                {" "}para hoje.
 
             </p>
 
