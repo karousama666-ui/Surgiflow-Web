@@ -2,8 +2,12 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import ptBrLocale from "@fullcalendar/core/locales/pt-br";
+
 import { useCirurgias } from "../../context/CirurgiasContext";
+import { useMedicos } from "../../context/MedicosContext";
+
 import { useState } from "react";
+
 import CalendarDrawer from "./CalendarDrawer";
 import CirurgiaModal from "../modal/CirurgiaModal";
 
@@ -12,40 +16,71 @@ function CalendarContainer() {
 
     const {
 
-    listaCirurgias,
+        listaCirurgias,
 
-    setListaCirurgias
+        setListaCirurgias
 
-} = useCirurgias();
+    } = useCirurgias();
+
+    const { listaMedicos } = useMedicos();
+
     const [cirurgiaSelecionada, setCirurgiaSelecionada] = useState(null);
+
     const [modalOpen, setModalOpen] = useState(false);
 
     const [cirurgiaEditando, setCirurgiaEditando] = useState(null);
 
-    const eventos = listaCirurgias.map((cirurgia) => {
 
-    let data = cirurgia.data;
+    function obterNomeMedico(cirurgia) {
 
-    // Se estiver em dd/mm/yyyy, converte
-    if (data.includes("/")) {
+        if (cirurgia.medicoId) {
 
-        const [dia, mes, ano] = data.split("/");
+            const medico = listaMedicos.find(
 
-        data = `${ano}-${mes}-${dia}`;
+                medico =>
+                    String(medico.id) ===
+                    String(cirurgia.medicoId)
+
+            );
+
+            if (medico) {
+
+                return medico.nome;
+
+            }
+
+        }
+
+        return cirurgia.medico || "Médico não informado";
 
     }
 
-    return {
 
-        id: cirurgia.id,
+    const eventos = listaCirurgias.map((cirurgia) => {
 
-        title: cirurgia.paciente,
+        let data = cirurgia.data;
 
-        date: data
+        // Se estiver em dd/mm/yyyy, converte
+        if (data && data.includes("/")) {
 
-    };
+            const [dia, mes, ano] = data.split("/");
 
-});
+            data = `${ano}-${mes}-${dia}`;
+
+        }
+
+        return {
+
+            id: cirurgia.id,
+
+            title: `${cirurgia.paciente} - ${obterNomeMedico(cirurgia)}`,
+
+            date: data
+
+        };
+
+    });
+
 
     return (
 
@@ -60,91 +95,135 @@ function CalendarContainer() {
 
             <FullCalendar
 
-    plugins={[
+                plugins={[
 
-        dayGridPlugin,
+                    dayGridPlugin,
 
-        interactionPlugin
+                    interactionPlugin
 
-    ]}
+                ]}
 
-    initialView="dayGridMonth"
+                initialView="dayGridMonth"
 
-    locale={ptBrLocale}
+                locale={ptBrLocale}
 
-    events={eventos}
+                events={eventos}
 
-    height="auto"
+                height="auto"
 
-    eventClick={(info) => {
+                eventClick={(info) => {
 
-    const cirurgia = listaCirurgias.find(
+                    const cirurgia = listaCirurgias.find(
 
-        (c) => c.id == info.event.id
+                        (c) =>
+                            String(c.id) ===
+                            String(info.event.id)
 
-    );
+                    );
 
-    setCirurgiaSelecionada(cirurgia);
+                    setCirurgiaSelecionada(cirurgia);
 
-}}
+                }}
 
-/>
+            />
 
-<CalendarDrawer
 
-    cirurgia={cirurgiaSelecionada}
+            <CalendarDrawer
 
-    onClose={() => setCirurgiaSelecionada(null)}
+                cirurgia={cirurgiaSelecionada}
 
-    onEdit={(cirurgia) => {
+                onClose={() =>
+                    setCirurgiaSelecionada(null)
+                }
 
-        setCirurgiaEditando(cirurgia);
+                onEdit={(cirurgia) => {
 
-        setModalOpen(true);
+                    setCirurgiaEditando(cirurgia);
 
-    }}
+                    setModalOpen(true);
 
-    onDelete={(id) => {
+                }}
 
-        const novaLista = listaCirurgias.filter(
+                onDelete={(id) => {
 
-            (cirurgia) => cirurgia.id !== id
+                    const novaLista =
+                        listaCirurgias.filter(
 
-        );
+                            (cirurgia) =>
+                                cirurgia.id !== id
 
-        setListaCirurgias(novaLista);
+                        );
 
-        setCirurgiaSelecionada(null);
+                    setListaCirurgias(novaLista);
 
-    }}
+                    setCirurgiaSelecionada(null);
 
-/>
+                }}
 
-<CirurgiaModal
+            />
 
-    isOpen={modalOpen}
 
-    onClose={() => {
+            <CirurgiaModal
 
-        setModalOpen(false);
+                isOpen={modalOpen}
 
-        setCirurgiaEditando(null);
+                onClose={() => {
 
-    }}
+                    setModalOpen(false);
 
-    cirurgia={cirurgiaEditando}
+                    setCirurgiaEditando(null);
 
-    onSave={(dados) => {
+                }}
 
-        // por enquanto só fecha
+                cirurgia={cirurgiaEditando}
 
-        setModalOpen(false);
+                onSave={(dados) => {
 
-        setCirurgiaEditando(null);
+                    if (!cirurgiaEditando) {
 
-    }}
+                        return;
 
-/>
+                    }
+
+                    const novaLista =
+                        listaCirurgias.map(
+
+                            (cirurgia) => {
+
+                                if (
+                                    cirurgia.id ===
+                                    cirurgiaEditando.id
+                                ) {
+
+                                    return {
+
+                                        ...cirurgia,
+
+                                        ...dados,
+
+                                        id: cirurgia.id
+
+                                    };
+
+                                }
+
+                                return cirurgia;
+
+                            }
+
+                        );
+
+                    setListaCirurgias(novaLista);
+
+                    setModalOpen(false);
+
+                    setCirurgiaEditando(null);
+
+                    setCirurgiaSelecionada(null);
+
+                }}
+
+            />
 
         </div>
 
