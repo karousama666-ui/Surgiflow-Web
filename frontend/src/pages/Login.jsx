@@ -1,110 +1,78 @@
-import Logo from "../components/layout/Logo";
-import Button from "../components/ui/Button";
-import Input from "../components/ui/Input";
-import Card from '../components/ui/Card';
-import { Mail, Lock } from "lucide-react";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './Login.css'; 
 
-function Login() {
+// Importando a imagem e o vídeo diretamente da pasta assets
+import logoSurgiflow from '../assets/logo_surgiflowdark.png';
+import bgVideo from '../assets/surgiflowbackground.mp4';
+
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  
+  const navigate = useNavigate();
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    // Agora, ao clicar no botão, ele te leva direto para o Dashboard!
+    navigate('/dashboard'); 
+  };
+
   return (
-    <div
-      style={{
-        width: '100vw',
-        height: '100vh',
-        display: 'flex',
-        background: '#F5F7FB',
-      }}
-    >
-      {/* COLUNA ESQUERDA */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: '40px',
-        }}
-      >
-        <Card>
-          <Logo />
+    <div className="login-container">
+      {/* Vídeo de Fundo */}
+      <video autoPlay loop muted playsInline className="background-video">
+        <source src={bgVideo} type="video/mp4" />
+        Seu navegador não suporta vídeos.
+      </video>
 
-          <Input
+      {/* Camada de sobreposição para escurecer o vídeo e dar destaque ao login */}
+      <div className="overlay"></div>
 
-            icon={Mail}
-
-            placeholder="Email"
-
+      {/* Card de Login */}
+      <div className="login-card">
+        <div className="login-header">
+          {/* A sua logo oficial renderizada aqui */}
+          <img 
+            src={logoSurgiflow} 
+            alt="Logo SurgiFlow" 
+            style={{ width: '200px', margin: '0 auto 0.5rem auto', display: 'block' }} 
           />
-
-          <div style={{ height: '18px' }} />
-
-          <Input
-            icon={Lock}
-            placeholder="Senha"
-            type="password"
-          />
-
-          <div style={{ height: '28px' }} />
-
-          <Button>Entrar</Button>
-        </Card>
-      </div>
-
-      {/* COLUNA DIREITA */}
-      <div
-        style={{
-          flex: 1,
-          background: 'linear-gradient(135deg, #5B3FD6 0%, #7C63F2 100%)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          color: 'white',
-          padding: '60px',
-          textAlign: 'center',
-        }}
-      >
-        <div
-          style={{
-            width: '140px',
-            height: '140px',
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,.15)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            fontSize: '56px',
-            marginBottom: '28px',
-            backdropFilter: 'blur(10px)',
-          }}
-        >
-          🏥
+          <p>Acesse sua conta para continuar</p>
         </div>
 
-        <h2
-          style={{
-            fontSize: '40px',
-            fontWeight: '700',
-            marginBottom: '18px',
-            maxWidth: '520px',
-            lineHeight: 1.2,
-          }}
-        >
-          O centro de controle das suas cirurgias
-        </h2>
+        <form onSubmit={handleLogin} className="login-form">
+          <div className="input-group">
+            <label htmlFor="email">E-mail Corporativo</label>
+            <input
+              type="email"
+              id="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-        <p
-          style={{
-            fontSize: '18px',
-            opacity: 0.92,
-            maxWidth: '560px',
-            lineHeight: 1.7,
-          }}
-        >
-          Agenda, autorizações, anexos, relatórios e acompanhamento cirúrgico em uma única plataforma.
-        </p>
+          <div className="input-group">
+            <label htmlFor="password">Senha</label>
+            <input
+              type="password"
+              id="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <button type="submit" className="login-button">
+            Entrar
+          </button>
+        </form>
       </div>
     </div>
   );
-}
+};
 
 export default Login;

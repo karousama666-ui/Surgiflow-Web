@@ -1,0 +1,100 @@
+.calendar-wrapper {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+/* Estilização geral do FullCalendar */
+.fc {
+  font-family: inherit;
+  color: #1e293b;
+}
+
+/* Cabeçalho nativo (Botões e Título do Mês) */
+.fc .fc-toolbar.fc-header-toolbar {
+  margin-bottom: 24px;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* Botões do Calendário (Hoje, Mês, Semana, Setas) */
+.fc .fc-button {
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 8px 14px;
+  border-radius: 10px;
+  box-shadow: none;
+  transition: all 0.2s;
+}
+
+.fc .fc-button:hover {
+  background-color: #e2e8f0;
+  color: #1e293b;
+  border-color: #94a3b8;
+}
+
+.fc .fc-button-active {
+  background-color: #6C63FF !important;
+  border-color: #6C63FF !important;
+  color: #ffffff !important;
+}
+
+/* Dias da Semana (Cabeçalho da Tabela) */
+.fc .fc-col-header-cell {
+  background-color: #f8fafc;
+  padding: 12px 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  border-color: #e2e8f0;
+}
+
+/* Células dos Dias */
+.fc .fc-daygrid-day {
+  border-color: #f1f5f9;
+}
+
+.fc .fc-daygrid-day-number {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  padding: 8px;
+}
+
+/* Dia de Hoje destacado */
+.fc .fc-day-today {
+  background-color: #eef2ff !important;
+}
+
+.fc .fc-day-today .fc-daygrid-day-number {
+  color: #6C63FF;
+  font-weight: 700;
+}
+
+/* Eventos (Cirurgias no Calendário) */
+.fc-event {
+  background-color: #6C63FF;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(108, 99, 255, 0.2);
+  cursor: pointer;
+  margin-bottom: 2px;
+}
+
+.fc-event:hover {
+  opacity: 0.9;
+}

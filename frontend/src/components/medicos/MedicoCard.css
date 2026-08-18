@@ -1,101 +1,103 @@
 .medico-card {
-
-    background: white;
-
-    border-radius: 18px;
-
-    padding: 22px;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 18px;
-
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-
-    transition: 0.25s;
-
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f1f5f9;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .medico-card:hover {
-
-    transform: translateY(-4px);
-
-    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.08);
-
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border-color: #e2e8f0;
 }
 
 .medico-avatar {
-
-    width: 58px;
-
-    height: 58px;
-
-    border-radius: 50%;
-
-    background: var(--primary);
-
-    color: white;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-weight: 700;
-
-    font-size: 18px;
-
-    flex-shrink: 0;
-
+  width: 64px;
+  height: 64px;
+  border-radius: 12px; /* Mudamos para um quadrado mais arredondado, fica mais moderno */
+  background: #ede9fe; /* Roxo bem suave de fundo */
+  color: #6d28d9;      /* Roxo forte para a letra */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 22px;
+  flex-shrink: 0;
 }
 
 .medico-info {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 4px;
-
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .medico-info h3 {
-
-    margin: 0;
-
-    font-size: 18px;
-
-    color: var(--text);
-
+  margin: 0;
+  font-size: 1.1rem;
+  color: #1e293b;
+  font-weight: 700;
 }
 
 .medico-info span {
-
-    font-size: 13px;
-
-    color: var(--text-light);
-
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
 }
 
 .medico-info p {
-
-    margin: 4px 0 0;
-
-    font-size: 14px;
-
-    color: var(--primary);
-
-    font-weight: 600;
-
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+  color: #6366f1; /* Cor da especialidade */
+  font-weight: 600;
+  background: #eef2ff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  width: fit-content;
 }
 
 .medico-info small {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
 
-    font-size: 13px;
+/* Botões de Ação elegantes */
+.medico-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-    color: var(--text-light);
+.medico-actions button {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
 
+.medico-actions button:first-child {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.medico-actions button:first-child:hover {
+  background: #e2e8f0;
+}
+
+.medico-actions button:last-child {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.medico-actions button:last-child:hover {
+  background: #fee2e2;
 }
