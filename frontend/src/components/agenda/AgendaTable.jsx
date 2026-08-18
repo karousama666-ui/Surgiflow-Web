@@ -3,27 +3,21 @@ import { Pencil, Trash2 } from "lucide-react";
 import { useMedicos } from "../../context/MedicosContext";
 
 function AgendaTable({
-
     cirurgias,
-
     onStatusChange,
-
     onDelete,
-
     onEdit
-
 }) {
 
     const { listaMedicos } = useMedicos();
+
 
     function formatarData(data) {
 
         if (!data) return "";
 
         if (data.includes("/")) {
-
             return data;
-
         }
 
         const [ano, mes, dia] = data.split("-");
@@ -32,127 +26,319 @@ function AgendaTable({
 
     }
 
+
     function obterNomeMedico(cirurgia) {
 
         if (cirurgia.medicoId) {
 
             const medico = listaMedicos.find(
-
                 medico =>
-                    String(medico.id) === String(cirurgia.medicoId)
-
+                    String(medico.id) ===
+                    String(cirurgia.medicoId)
             );
 
             if (medico) {
-
                 return medico.nome;
-
             }
 
         }
 
-        return cirurgia.medico || "Médico não informado";
+        return cirurgia.medico ||
+            "Médico não informado";
 
     }
 
+
+    function obterStatusClasse(status) {
+
+        if (status === "Confirmada") {
+            return "status-confirmada";
+        }
+
+        if (status === "Finalizada") {
+            return "status-finalizada";
+        }
+
+        if (status === "Cancelada") {
+            return "status-cancelada";
+        }
+
+        return "status-pendente";
+
+    }
+
+
     return (
 
-        <table
+        <>
 
-            style={{
+            {/* DESKTOP */}
 
-                width: "100%",
+            <div className="agenda-table-wrapper">
 
-                borderCollapse: "collapse",
+                <table className="agenda-table">
 
-                background: "#fff",
+                    <thead>
 
-                borderRadius: "16px",
+                        <tr>
 
-                overflow: "hidden",
+                            <th>Paciente</th>
 
-            }}
+                            <th>Médico</th>
 
-        >
+                            <th>Hospital</th>
 
-            <thead>
+                            <th>Convênio</th>
 
-                <tr
+                            <th>Data</th>
 
-                    style={{
+                            <th>Hora</th>
 
-                        background: "#EEF2FF",
+                            <th>Status</th>
 
-                    }}
+                            <th>Ações</th>
 
-                >
+                        </tr>
 
-                    <th>Paciente</th>
+                    </thead>
 
-                    <th>Médico</th>
 
-                    <th>Hospital</th>
+                    <tbody>
 
-                    <th>Convênio</th>
+                        {cirurgias.map((cirurgia) => (
 
-                    <th>Data</th>
+                            <tr key={cirurgia.id}>
 
-                    <th>Hora</th>
+                                <td>
+                                    {cirurgia.paciente}
+                                </td>
 
-                    <th>Status</th>
+                                <td>
+                                    {obterNomeMedico(cirurgia)}
+                                </td>
 
-                    <th>Ações</th>
+                                <td>
+                                    {cirurgia.hospital}
+                                </td>
 
-                </tr>
+                                <td>
+                                    {cirurgia.convenio}
+                                </td>
 
-            </thead>
+                                <td>
+                                    {formatarData(cirurgia.data)}
+                                </td>
 
-            <tbody>
+                                <td>
+                                    {cirurgia.horario}
+                                </td>
+
+                                <td>
+
+                                    <select
+
+                                        className={`agenda-status-select ${obterStatusClasse(cirurgia.status)}`}
+
+                                        value={cirurgia.status}
+
+                                        onChange={(e) =>
+                                            onStatusChange(
+                                                cirurgia.id,
+                                                e.target.value
+                                            )
+                                        }
+
+                                    >
+
+                                        <option>
+                                            Pendente
+                                        </option>
+
+                                        <option>
+                                            Confirmada
+                                        </option>
+
+                                        <option>
+                                            Finalizada
+                                        </option>
+
+                                        <option>
+                                            Cancelada
+                                        </option>
+
+                                    </select>
+
+                                </td>
+
+
+                                <td>
+
+                                    <div className="agenda-actions">
+
+                                        <button
+
+                                            type="button"
+
+                                            className="edit-button"
+
+                                            onClick={() =>
+                                                onEdit(cirurgia)
+                                            }
+
+                                            title="Editar"
+
+                                        >
+
+                                            <Pencil size={17} />
+
+                                        </button>
+
+
+                                        <button
+
+                                            type="button"
+
+                                            className="delete-button"
+
+                                            onClick={() =>
+                                                onDelete(cirurgia.id)
+                                            }
+
+                                            title="Excluir"
+
+                                        >
+
+                                            <Trash2
+                                                size={17}
+                                            />
+
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        ))}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            {/* MOBILE */}
+
+            <div className="agenda-mobile-list">
 
                 {cirurgias.map((cirurgia) => (
 
-                    <tr key={cirurgia.id}>
+                    <div
+                        className="agenda-mobile-card"
+                        key={cirurgia.id}
+                    >
 
-                        <td>
-                            {cirurgia.paciente}
-                        </td>
+                        <div className="mobile-card-header">
 
-                        <td>
-                            {obterNomeMedico(cirurgia)}
-                        </td>
+                            <div>
 
-                        <td>
-                            {cirurgia.hospital}
-                        </td>
+                                <span className="mobile-paciente">
 
-                        <td>
-                            {cirurgia.convenio}
-                        </td>
+                                    {cirurgia.paciente}
 
-                        <td>
-                            {formatarData(cirurgia.data)}
-                        </td>
+                                </span>
 
-                        <td>
-                            {cirurgia.horario}
-                        </td>
+                                <span className="mobile-horario">
 
-                        <td>
+                                    🕘 {cirurgia.horario}
+
+                                </span>
+
+                            </div>
+
+
+                            <span
+                                className={`mobile-status ${obterStatusClasse(cirurgia.status)}`}
+                            >
+
+                                {cirurgia.status}
+
+                            </span>
+
+                        </div>
+
+
+                        <div className="mobile-card-info">
+
+                            <div>
+
+                                <span className="info-label">
+                                    Médico
+                                </span>
+
+                                <span>
+                                    👨‍⚕️ {obterNomeMedico(cirurgia)}
+                                </span>
+
+                            </div>
+
+
+                            <div>
+
+                                <span className="info-label">
+                                    Hospital
+                                </span>
+
+                                <span>
+                                    🏥 {cirurgia.hospital}
+                                </span>
+
+                            </div>
+
+
+                            <div>
+
+                                <span className="info-label">
+                                    Convênio
+                                </span>
+
+                                <span>
+                                    📄 {cirurgia.convenio}
+                                </span>
+
+                            </div>
+
+
+                            <div>
+
+                                <span className="info-label">
+                                    Data
+                                </span>
+
+                                <span>
+                                    📅 {formatarData(cirurgia.data)}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div className="mobile-card-footer">
 
                             <select
+
+                                className={`agenda-status-select ${obterStatusClasse(cirurgia.status)}`}
 
                                 value={cirurgia.status}
 
                                 onChange={(e) =>
-
                                     onStatusChange(
-
                                         cirurgia.id,
-
                                         e.target.value
-
                                     )
-
                                 }
 
                             >
@@ -175,93 +361,61 @@ function AgendaTable({
 
                             </select>
 
-                        </td>
 
-                        <td>
-
-                            <div
-
-                                style={{
-
-                                    display: "flex",
-
-                                    gap: "10px",
-
-                                    justifyContent: "center"
-
-                                }}
-
-                            >
+                            <div className="agenda-actions">
 
                                 <button
 
-                                    onClick={() => onEdit(cirurgia)}
+                                    type="button"
 
-                                    style={{
+                                    className="edit-button"
 
-                                        background: "#EEF2FF",
-
-                                        border: "none",
-
-                                        padding: "8px",
-
-                                        borderRadius: "8px",
-
-                                        cursor: "pointer"
-
-                                    }}
+                                    onClick={() =>
+                                        onEdit(cirurgia)
+                                    }
 
                                 >
 
-                                    <Pencil
-                                        size={18}
-                                    />
+                                    <Pencil size={17} />
+
+                                    <span>
+                                        Editar
+                                    </span>
 
                                 </button>
 
+
                                 <button
+
+                                    type="button"
+
+                                    className="delete-button"
 
                                     onClick={() =>
                                         onDelete(cirurgia.id)
                                     }
 
-                                    style={{
-
-                                        background: "#FEE2E2",
-
-                                        border: "none",
-
-                                        padding: "8px",
-
-                                        borderRadius: "8px",
-
-                                        cursor: "pointer"
-
-                                    }}
-
                                 >
 
-                                    <Trash2
+                                    <Trash2 size={17} />
 
-                                        size={18}
-
-                                        color="#DC2626"
-
-                                    />
+                                    <span>
+                                        Excluir
+                                    </span>
 
                                 </button>
 
                             </div>
 
-                        </td>
+                        </div>
 
-                    </tr>
+                    </div>
 
                 ))}
 
-            </tbody>
+            </div>
 
-        </table>
+        </>
 
     );
 

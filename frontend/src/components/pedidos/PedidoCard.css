@@ -1,141 +1,297 @@
-.pedido-card{
+.pedido-card {
 
-    background:#fff;
+    background: #fff;
 
-    border-radius:18px;
+    border-radius: 18px;
 
-    padding:24px;
+    padding: 20px;
 
-    box-shadow:0 10px 30px rgba(0,0,0,.08);
+    border: 1px solid #EEEEF5;
 
-    display:flex;
+    box-shadow:
+        0 7px 22px rgba(0, 0, 0, 0.05);
 
-    flex-direction:column;
-
-    gap:20px;
-
-    transition:.25s;
-
-}
-
-.pedido-card:hover{
-
-    transform:translateY(-4px);
-
-    box-shadow:0 16px 40px rgba(0,0,0,.12);
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 
 }
 
-.pedido-header{
 
-    display:flex;
+.pedido-card:hover {
 
-    justify-content:space-between;
+    transform: translateY(-3px);
 
-    align-items:center;
-
-}
-
-.pedido-header h3{
-
-    margin:0;
-
-    font-size:1.2rem;
+    box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.09);
 
 }
 
-.pedido-header span{
 
-    background:#DCFCE7;
+/* CABEÇALHO */
 
-    color:#15803D;
+.pedido-header {
 
-    padding:8px 14px;
+    display: flex;
 
-    border-radius:999px;
+    justify-content: space-between;
 
-    font-size:.8rem;
+    align-items: flex-start;
 
-    font-weight:600;
+    gap: 12px;
 
-}
-
-.pedido-info{
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:12px;
+    margin-bottom: 18px;
 
 }
 
-.pedido-info p{
 
-    display:flex;
+.pedido-label {
 
-    align-items:center;
+    display: block;
 
-    gap:10px;
+    color: #999;
 
-    margin:0;
+    font-size: 10px;
 
-    color:#555;
+    font-weight: 700;
 
-}
+    text-transform: uppercase;
 
-.pedido-info svg{
+    letter-spacing: 0.5px;
 
-    color:#6C63FF;
-
-}
-
-.pedido-actions{
-
-    display:flex;
-
-    gap:12px;
+    margin-bottom: 4px;
 
 }
 
-.pedido-actions button{
 
-    flex:1;
+.pedido-header h3 {
 
-    border:none;
+    margin: 0;
 
-    border-radius:12px;
+    font-size: 18px;
 
-    padding:12px;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    gap:8px;
-
-    cursor:pointer;
-
-    font-weight:600;
-
-    background:#F3F4F6;
-
-    transition:.2s;
+    color: #222;
 
 }
 
-.pedido-actions button:hover{
 
-    transform:translateY(-2px);
+/* STATUS */
+
+.pedido-status {
+
+    padding: 6px 10px;
+
+    border-radius: 20px;
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    white-space: nowrap;
 
 }
 
-.pedido-actions .primary{
 
-    background:#6C63FF;
+.status-pendente {
 
-    color:white;
+    background: #FFF7E6;
+
+    color: #B45309;
+
+}
+
+
+.status-confirmada {
+
+    background: #ECFDF3;
+
+    color: #15803D;
+
+}
+
+
+.status-finalizada {
+
+    background: #EFF6FF;
+
+    color: #2563EB;
+
+}
+
+
+.status-cancelada {
+
+    background: #FEF2F2;
+
+    color: #DC2626;
+
+}
+
+
+/* INFORMAÇÕES */
+
+.pedido-info {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 10px;
+
+    padding: 15px 0;
+
+    border-top: 1px solid #F0F0F5;
+
+    border-bottom: 1px solid #F0F0F5;
+
+}
+
+
+.pedido-info p {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin: 0;
+
+    color: #666;
+
+    font-size: 13px;
+
+    min-width: 0;
+
+}
+
+
+.pedido-info svg {
+
+    flex-shrink: 0;
+
+    color: #6C63FF;
+
+}
+
+
+.pedido-info span {
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+}
+
+
+/* BOTÕES */
+
+.pedido-actions {
+
+    display: flex;
+
+    gap: 9px;
+
+    margin-top: 16px;
+
+}
+
+
+.pedido-actions button {
+
+    flex: 1;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 7px;
+
+    padding: 10px 12px;
+
+    border-radius: 10px;
+
+    border: none;
+
+    background: #EEF2FF;
+
+    color: #6C63FF;
+
+    font-size: 12px;
+
+    font-weight: 650;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        opacity 0.2s ease;
+
+}
+
+
+.pedido-actions button:hover {
+
+    transform: translateY(-2px);
+
+    opacity: 0.9;
+
+}
+
+
+.pedido-actions button.primary {
+
+    background: #6C63FF;
+
+    color: #fff;
+
+}
+
+
+/* CELULAR */
+
+@media (max-width: 500px) {
+
+    .pedido-card {
+
+        padding: 17px;
+
+        border-radius: 16px;
+
+    }
+
+
+    .pedido-header h3 {
+
+        font-size: 16px;
+
+    }
+
+
+    .pedido-info {
+
+        grid-template-columns: 1fr;
+
+        gap: 9px;
+
+    }
+
+
+    .pedido-actions {
+
+        flex-direction: column;
+
+    }
+
+
+    .pedido-actions button {
+
+        width: 100%;
+
+    }
 
 }

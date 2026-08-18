@@ -1,51 +1,473 @@
-table{
+.agenda-table-wrapper {
 
-    width:100%;
+    width: 100%;
 
-    border-collapse:collapse;
+    background: #fff;
 
-    background:white;
+    border-radius: 16px;
 
-    border-radius:18px;
+    overflow-x: auto;
 
-    overflow:hidden;
-
-    box-shadow:0 8px 20px rgba(0,0,0,.05);
-
-}
-
-thead{
-
-    background:#F3F0FF;
+    box-shadow:
+        0 8px 25px rgba(0, 0, 0, 0.05);
 
 }
 
-th{
 
-    text-align:left;
+.agenda-table {
 
-    padding:18px;
+    width: 100%;
 
-    color:var(--primary);
+    border-collapse: collapse;
 
-}
-
-td{
-
-    padding:18px;
-
-    border-top:1px solid #ECECEC;
+    min-width: 850px;
 
 }
 
-tbody tr{
 
-    transition:.2s;
+.agenda-table thead {
+
+    background: #EEF2FF;
 
 }
 
-tbody tr:hover{
 
-    background:#FAFAFA;
+.agenda-table th {
+
+    padding: 15px 14px;
+
+    text-align: left;
+
+    font-size: 13px;
+
+    font-weight: 650;
+
+    color: #555;
+
+    white-space: nowrap;
+
+}
+
+
+.agenda-table td {
+
+    padding: 15px 14px;
+
+    border-bottom:
+        1px solid #F0F0F5;
+
+    font-size: 14px;
+
+    color: #444;
+
+}
+
+
+.agenda-table tbody tr {
+
+    transition:
+        background 0.2s ease;
+
+}
+
+
+.agenda-table tbody tr:hover {
+
+    background: #FAFAFF;
+
+}
+
+
+.agenda-status-select {
+
+    border: none;
+
+    border-radius: 20px;
+
+    padding: 7px 12px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    outline: none;
+
+}
+
+
+/* STATUS */
+
+.status-pendente {
+
+    background: #FFF7E6;
+
+    color: #B45309;
+
+}
+
+
+.status-confirmada {
+
+    background: #ECFDF3;
+
+    color: #15803D;
+
+}
+
+
+.status-finalizada {
+
+    background: #EFF6FF;
+
+    color: #2563EB;
+
+}
+
+
+.status-cancelada {
+
+    background: #FEF2F2;
+
+    color: #DC2626;
+
+}
+
+
+/* AÇÕES */
+
+.agenda-actions {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+}
+
+
+.edit-button,
+.delete-button {
+
+    border: none;
+
+    width: 34px;
+
+    height: 34px;
+
+    border-radius: 9px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        opacity 0.2s ease;
+
+}
+
+
+.edit-button {
+
+    background: #EEF2FF;
+
+    color: #6C63FF;
+
+}
+
+
+.delete-button {
+
+    background: #FEE2E2;
+
+    color: #DC2626;
+
+}
+
+
+.edit-button:hover,
+.delete-button:hover {
+
+    transform: translateY(-2px);
+
+    opacity: 0.85;
+
+}
+
+
+/* MOBILE ESCONDIDO NO DESKTOP */
+
+.agenda-mobile-list {
+
+    display: none;
+
+}
+
+
+/* ========================= */
+/* TABLET */
+/* ========================= */
+
+@media (max-width: 900px) {
+
+    .agenda-table {
+
+        min-width: 760px;
+
+    }
+
+}
+
+
+/* ========================= */
+/* CELULAR */
+/* ========================= */
+
+@media (max-width: 650px) {
+
+    .agenda-table-wrapper {
+
+        display: none;
+
+    }
+
+
+    .agenda-mobile-list {
+
+        display: flex;
+
+        flex-direction: column;
+
+        gap: 14px;
+
+    }
+
+
+    .agenda-mobile-card {
+
+        background: #fff;
+
+        border-radius: 17px;
+
+        padding: 18px;
+
+        box-shadow:
+            0 6px 20px rgba(0, 0, 0, 0.06);
+
+        border:
+            1px solid #EEEEF5;
+
+    }
+
+
+    .mobile-card-header {
+
+        display: flex;
+
+        justify-content: space-between;
+
+        align-items: flex-start;
+
+        gap: 10px;
+
+        margin-bottom: 16px;
+
+    }
+
+
+    .mobile-paciente {
+
+        display: block;
+
+        font-size: 17px;
+
+        font-weight: 700;
+
+        color: #222;
+
+        margin-bottom: 5px;
+
+    }
+
+
+    .mobile-horario {
+
+        display: block;
+
+        font-size: 13px;
+
+        color: #6C63FF;
+
+        font-weight: 600;
+
+    }
+
+
+    .mobile-status {
+
+        padding: 6px 10px;
+
+        border-radius: 20px;
+
+        font-size: 11px;
+
+        font-weight: 600;
+
+        white-space: nowrap;
+
+    }
+
+
+    .mobile-card-info {
+
+        display: grid;
+
+        grid-template-columns: 1fr 1fr;
+
+        gap: 13px;
+
+        padding: 14px 0;
+
+        border-top:
+            1px solid #F0F0F5;
+
+        border-bottom:
+            1px solid #F0F0F5;
+
+    }
+
+
+    .mobile-card-info > div {
+
+        display: flex;
+
+        flex-direction: column;
+
+        gap: 4px;
+
+        min-width: 0;
+
+    }
+
+
+    .mobile-card-info span {
+
+        font-size: 12px;
+
+        color: #555;
+
+        word-break: break-word;
+
+    }
+
+
+    .mobile-card-info .info-label {
+
+        font-size: 10px;
+
+        color: #999;
+
+        text-transform: uppercase;
+
+        font-weight: 700;
+
+        letter-spacing: 0.4px;
+
+    }
+
+
+    .mobile-card-footer {
+
+        display: flex;
+
+        justify-content: space-between;
+
+        align-items: center;
+
+        gap: 12px;
+
+        padding-top: 14px;
+
+    }
+
+
+    .mobile-card-footer .agenda-actions {
+
+        gap: 7px;
+
+    }
+
+
+    .mobile-card-footer .edit-button,
+    .mobile-card-footer .delete-button {
+
+        width: auto;
+
+        height: 34px;
+
+        padding: 0 10px;
+
+        gap: 5px;
+
+        font-size: 11px;
+
+        font-weight: 600;
+
+    }
+
+}
+
+
+/* CELULARES PEQUENOS */
+
+@media (max-width: 400px) {
+
+    .mobile-card-info {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .mobile-card-footer {
+
+        flex-direction: column;
+
+        align-items: stretch;
+
+    }
+
+
+    .mobile-card-footer .agenda-status-select {
+
+        width: 100%;
+
+    }
+
+
+    .mobile-card-footer .agenda-actions {
+
+        justify-content: stretch;
+
+    }
+
+
+    .mobile-card-footer .edit-button,
+    .mobile-card-footer .delete-button {
+
+        flex: 1;
+
+        justify-content: center;
+
+    }
 
 }

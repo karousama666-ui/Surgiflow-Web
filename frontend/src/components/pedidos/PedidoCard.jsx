@@ -1,16 +1,53 @@
-import { FileText, Eye, Building2, CalendarDays } from "lucide-react";
+import {
+    FileText,
+    Eye,
+    Building2,
+    CalendarDays,
+    UserRound,
+    Clock
+} from "lucide-react";
 
 import "./PedidoCard.css";
 
 
-
 function PedidoCard({
-
     cirurgia,
-
     onPreview
-
 }) {
+
+    function formatarData(data) {
+
+        if (!data) return "Data não informada";
+
+        if (data.includes("/")) {
+            return data;
+        }
+
+        const [ano, mes, dia] = data.split("-");
+
+        return `${dia}/${mes}/${ano}`;
+
+    }
+
+
+    function obterStatusClasse(status) {
+
+        if (status === "Confirmada") {
+            return "status-confirmada";
+        }
+
+        if (status === "Finalizada") {
+            return "status-finalizada";
+        }
+
+        if (status === "Cancelada") {
+            return "status-cancelada";
+        }
+
+        return "status-pendente";
+
+    }
+
 
     return (
 
@@ -18,49 +55,101 @@ function PedidoCard({
 
             <div className="pedido-header">
 
-                <h3>{cirurgia.paciente}</h3>
+                <div>
 
-                <span>{cirurgia.status}</span>
+                    <span className="pedido-label">
+                        Paciente
+                    </span>
+
+                    <h3>
+                        {cirurgia.paciente}
+                    </h3>
+
+                </div>
+
+
+                <span
+                    className={`pedido-status ${obterStatusClasse(cirurgia.status)}`}
+                >
+
+                    {cirurgia.status}
+
+                </span>
 
             </div>
+
 
             <div className="pedido-info">
 
                 <p>
 
-                    <Building2 size={16}/>
+                    <UserRound size={16} />
 
-                    {cirurgia.hospital}
+                    <span>
+                        {cirurgia.medico ||
+                            "Médico não informado"}
+                    </span>
 
                 </p>
 
+
                 <p>
 
-                    <CalendarDays size={16}/>
+                    <Building2 size={16} />
 
-                    {cirurgia.data}
+                    <span>
+                        {cirurgia.hospital ||
+                            "Hospital não informado"}
+                    </span>
+
+                </p>
+
+
+                <p>
+
+                    <CalendarDays size={16} />
+
+                    <span>
+                        {formatarData(cirurgia.data)}
+                    </span>
+
+                </p>
+
+
+                <p>
+
+                    <Clock size={16} />
+
+                    <span>
+                        {cirurgia.horario ||
+                            "Horário não informado"}
+                    </span>
 
                 </p>
 
             </div>
 
+
             <div className="pedido-actions">
 
                 <button
+                    type="button"
+                    onClick={() => onPreview(cirurgia)}
+                >
 
-    onClick={() => onPreview(cirurgia)}
+                    <Eye size={17} />
 
->
+                    Visualizar
 
-    <Eye size={18}/>
+                </button>
 
-    Visualizar
 
-</button>
+                <button
+                    type="button"
+                    className="primary"
+                >
 
-                <button className="primary">
-
-                    <FileText size={18}/>
+                    <FileText size={17} />
 
                     Gerar PDF
 
