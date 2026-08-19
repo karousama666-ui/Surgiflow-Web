@@ -54,7 +54,7 @@ const LayoutApp = ({ children }) => {
 
 function App() {
   return (
-    <BrowserRouter basename="/Surgiflow-Web">
+    <BrowserRouter>
       <AuthProvider>
         <CirurgiasProvider>
           <MedicosProvider>
