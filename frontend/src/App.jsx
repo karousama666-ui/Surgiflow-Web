@@ -1,75 +1,86 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// 1. Importando os Contextos (Nossos "Cérebros")
+// Importação dos Contextos (Os nossos "Cérebros")
 import { AuthProvider } from "./context/AuthContext";
-import { MedicosProvider } from "./context/MedicosContext";
 import { CirurgiasProvider } from "./context/CirurgiasContext";
+import { MedicosProvider } from "./context/MedicosContext";
 import { PedidosProvider } from "./context/PedidosContext";
 
-// 2. Importando as Páginas
+// Importação do Segurança da Rota e Componentes Visuais
+import RotaProtegida from "./components/RotaProtegida";
+import Sidebar from "./components/layout/Sidebar"; 
+import Header from "./components/layout/Header";   
+
+// ==========================================
+// IMPORTAÇÃO DE TODAS AS TELAS DO SISTEMA
+// ==========================================
 import Login from "./pages/Login";
+import Cadastro from "./pages/Cadastro";
 import Dashboard from "./pages/Dashboard";
 import Agenda from "./pages/Agenda";
 import Calendario from "./pages/Calendario";
 import Medicos from "./pages/Medicos";
 import Pedidos from "./pages/Pedidos";
-import Relatorios from "./pages/Relatorios"; // <-- Adicionado!
-import Configuracoes from "./pages/Configuracoes"; // <-- Adicionado!
+import Relatorios from "./pages/Relatorios";
+import Configuracoes from "./pages/Configuracoes";
 
-// 3. Importando a Proteção de Rota e Layout
-import RotaProtegida from "./components/RotaProtegida";
-import Sidebar from "./components/layout/Sidebar";
-import Header from "./components/layout/Header";
+// ==========================================
+// O "MOLDE" DA PLATAFORMA (Menu, Topo e Fonte)
+// ==========================================
+const LayoutApp = ({ children }) => {
+    return (
+        <div style={{ 
+            display: "flex", 
+            width: "100vw", 
+            height: "100vh", 
+            overflow: "hidden", 
+            fontFamily: "'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            background: "#f8fafc" 
+        }}>
+            {/* Menu Lateral */}
+            <Sidebar />
+            
+            {/* Painel Direito */}
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+                <Header />
+                <main style={{ flex: 1, overflowY: "auto", padding: "24px", background: "#f1f5f9" }}>
+                    {children}
+                </main>
+            </div>
+        </div>
+    );
+};
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter basename="/Surgiflow-Web">
       <AuthProvider>
-        <MedicosProvider>
-          <CirurgiasProvider>
-            <PedidosProvider> 
+        <CirurgiasProvider>
+          <MedicosProvider>
+            <PedidosProvider>
               
               <Routes>
-                {/* Rota Pública (Tela de Login) */}
+                {/* 🔴 ROTAS PÚBLICAS (Telas Cheias) */}
                 <Route path="/" element={<Login />} />
+                <Route path="/cadastro" element={<Cadastro />} />
 
-                {/* Rotas Privadas (Dentro do SurgiFlow) */}
-                <Route
-                  path="/*"
-                  element={
-                    <RotaProtegida>
-                      <div style={{ display: "flex", height: "100vh", backgroundColor: "#f8fafc" }}>
-                        <Sidebar />
-                        
-                        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-                          <Header />
-                          
-                          {/* CORREÇÃO DO LAYOUT: padding de 30px devolve o respiro da tela! */}
-                          <main style={{ flex: 1, overflowY: "auto", padding: "30px" }}>
-                            <Routes>
-                              <Route path="/dashboard" element={<Dashboard />} />
-                              <Route path="/agenda" element={<Agenda />} />
-                              <Route path="/calendario" element={<Calendario />} />
-                              <Route path="/medicos" element={<Medicos />} />
-                              <Route path="/pedidos" element={<Pedidos />} />
-                              
-                              {/* CORREÇÃO DAS TELAS VAZIAS: Rotas adicionadas de volta! */}
-                              <Route path="/relatorios" element={<Relatorios />} />
-                              <Route path="/configuracoes" element={<Configuracoes />} />
-                            </Routes>
-                          </main>
-                        </div>
-                      </div>
-                    </RotaProtegida>
-                  }
-                />
+                {/* 🟢 ROTAS PROTEGIDAS (Com o Molde Aplicado) */}
+                <Route path="/dashboard" element={<RotaProtegida><LayoutApp><Dashboard /></LayoutApp></RotaProtegida>} />
+                <Route path="/agenda" element={<RotaProtegida><LayoutApp><Agenda /></LayoutApp></RotaProtegida>} />
+                <Route path="/calendario" element={<RotaProtegida><LayoutApp><Calendario /></LayoutApp></RotaProtegida>} />
+                <Route path="/medicos" element={<RotaProtegida><LayoutApp><Medicos /></LayoutApp></RotaProtegida>} />
+                <Route path="/pedidos" element={<RotaProtegida><LayoutApp><Pedidos /></LayoutApp></RotaProtegida>} />
+                <Route path="/relatorios" element={<RotaProtegida><LayoutApp><Relatorios /></LayoutApp></RotaProtegida>} />
+                <Route path="/configuracoes" element={<RotaProtegida><LayoutApp><Configuracoes /></LayoutApp></RotaProtegida>} />
+                
               </Routes>
 
             </PedidosProvider>
-          </CirurgiasProvider>
-        </MedicosProvider>
+          </MedicosProvider>
+        </CirurgiasProvider>
       </AuthProvider>
-    </Router>
+    </BrowserRouter>
   );
 }
 

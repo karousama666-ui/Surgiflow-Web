@@ -4,28 +4,57 @@ import { supabase } from "../services/supabase";
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(null);
-    const [loadingAuth, setLoadingAuth] = useState(true); // Controla o "carregando" inicial
+    const [usuario, setUsuario] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // 1. Verifica se já tem uma sessão ativa ao abrir a página
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setUser(session?.user ?? null);
-            setLoadingAuth(false);
-        });
+        // 1. Checa se já existe uma sessão segura ativa quando o app abre
+        const checarSessao = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            setUsuario(session?.user || null);
+            setLoading(false);
+        };
+        
+        checarSessao();
 
-        // 2. Fica escutando mudanças (quando faz login ou logout)
+        // 2. Fica "escutando" as mudanças (ex: se o token expirar ou o usuário deslogar)
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user ?? null);
-            setLoadingAuth(false);
+            setUsuario(session?.user || null);
         });
 
         return () => subscription.unsubscribe();
     }, []);
 
+    // Função REAL de Login conectada ao Supabase
+    const login = async (email, senha) => {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: senha,
+        });
+        
+        if (error) {
+            throw error; // Repassa o erro para a tela de login mostrar (ex: "Senha incorreta")
+        }
+        return data;
+    };
+
+    // Função REAL de Logout
+    const logout = async () => {
+        const { error } = await supabase.auth.signOut();
+        if (error) console.error("Erro ao sair:", error.message);
+    };
+
+    // 👇 INSERIDO COM PINÇA: Só essa função nova, sem mexer na sua lógica original!
+    const recuperarSenha = async (email) => {
+        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        if (error) throw error;
+    };
+
     return (
-        <AuthContext.Provider value={{ user, loadingAuth }}>
-            {children}
+        // 👇 Inserimos o recuperarSenha aqui para o Login poder usar
+        <AuthContext.Provider value={{ usuario, login, logout, recuperarSenha, loading }}>
+            {/* Só carrega o sistema depois de verificar a segurança */}
+            {!loading && children} 
         </AuthContext.Provider>
     );
 }

@@ -1,211 +1,184 @@
-import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { supabase } from "../../services/supabase"; 
+import { useState, useMemo } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { useCirurgias } from "../../context/CirurgiasContext";
+import { usePedidos } from "../../context/PedidosContext";
+import { useLocation } from "react-router-dom";
+import { Bell, LogOut, AlertCircle, PackageSearch, CheckCircle2 } from "lucide-react";
 
 function Header() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { user } = useAuth(); // Puxa o usuário atual logado
-  
-  // Estados para as notificações e perfil
-  const [notificacoes, setNotificacoes] = useState([]);
-  const [mostrarNotificacoes, setMostrarNotificacoes] = useState(false);
-  const [nomeUsuario, setNomeUsuario] = useState("Carregando...");
-  const [cargoUsuario, setCargoUsuario] = useState("Carregando...");
-
-  // Busca Notificações e Perfil ao carregar a tela
-  useEffect(() => {
-    async function buscarDadosGlobais() {
-      // 1. Busca as notificações não lidas
-      const { data: dadosNotif, error: erroNotif } = await supabase
-        .from('notificacoes')
-        .select('*')
-        .eq('lida', false)
-        .order('created_at', { ascending: false });
-
-      if (!erroNotif && dadosNotif) {
-        setNotificacoes(dadosNotif);
-      }
-
-      // 2. Busca o nome real na tabela "perfis"
-      if (user?.id) {
-        const { data: dadosPerfil, error: erroPerfil } = await supabase
-          .from('perfis')
-          .select('nome, cargo')
-          .eq('id', user.id)
-          .single();
-
-        if (!erroPerfil && dadosPerfil) {
-          setNomeUsuario(dadosPerfil.nome);
-          setCargoUsuario(dadosPerfil.cargo || "Biomédica");
-        } else {
-          // Caso a tabela perfil ainda não tenha o dado, usa esse fallback elegante
-          setNomeUsuario("Carolina Ramos"); 
-          setCargoUsuario("Biomédica");
-        }
-      }
-    }
+    const { logout } = useAuth(); 
+    const location = useLocation();
     
-    buscarDadosGlobais();
-  }, [user]);
+    // Garantindo que mesmo se o Context demorar, o sistema não quebre (array vazio por padrão)
+    const { listaCirurgias = [] } = useCirurgias() || {};
+    const { listaPedidos = [] } = usePedidos() || {};
 
-  // Pega a primeira letra do nome para o Avatar
-  const inicial = nomeUsuario !== "Carregando..." ? nomeUsuario.charAt(0).toUpperCase() : "C";
+    const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
 
-  // Função para deslogar
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      navigate("/");
-    } catch (error) {
-      console.error("Erro ao sair:", error.message);
-    }
-  };
+    const formatarTitulo = () => {
+        const path = location.pathname.replace("/", "");
+        if (!path) return "Painel de Controle";
+        return path.charAt(0).toUpperCase() + path.slice(1);
+    };
 
-  // Função para marcar uma notificação como lida
-  const marcarComoLida = async (id) => {
-    await supabase.from('notificacoes').update({ lida: true }).eq('id', id);
-    setNotificacoes(notificacoes.filter(notif => notif.id !== id)); // Remove da tela na mesma hora
-  };
+    const nomeExibicao = "Carolina Ramos";
+    const cargoExibicao = "Biomédica";
 
-  // Identifica a página atual pela URL para o Breadcrumb
-  const titulos = {
-    "/dashboard": "Painel de Controle",
-    "/agenda": "Agenda de Cirurgias",
-    "/medicos": "Corpo Clínico",
-    "/calendario": "Calendário",
-    "/pedidos": "Pedidos Cirúrgicos",
-    "/relatorios": "Relatórios",
-    "/configuracoes": "Configurações do Sistema"
-  };
-  const tituloAtual = titulos[location.pathname] || "SurgiFlow";
+    // Lógica Flexível para não depender de acentos ou espaços no banco de dados
+    const notificacoesReais = useMemo(() => {
+        const alertas = [];
+        let idCounter = 1;
 
-  return (
-    <header style={{
-      display: "flex", alignItems: "center", justifyContent: "space-between",
-      height: "70px", minHeight: "70px", padding: "0 30px",
-      backgroundColor: "#ffffff", borderBottom: "1px solid #e2e8f0",
-      boxShadow: "0 1px 2px rgba(0,0,0,0.02)", position: "relative"
-    }}>
-      
-      {/* LADO ESQUERDO: Caminho da Tela (Breadcrumb) */}
-      <div style={{ color: "#64748b", fontSize: "0.95rem", fontWeight: "500" }}>
-        Menu Principal <span style={{ margin: "0 8px", color: "#cbd5e1" }}>/</span> 
-        <span style={{ color: "#1e293b", fontWeight: "600" }}>{tituloAtual}</span>
-      </div>
-
-      {/* LADO DIREITO: Notificações, Perfil e Sair */}
-      <div style={{ display: "flex", alignItems: "center", gap: "25px" }}>
+        // 1. Procurar por OPMEs (busca flexível pelas palavras-chave)
+        const opmesPendentes = listaPedidos.filter(p => {
+            const status = p.status ? p.status.toLowerCase() : "";
+            return status.includes("aguardando") || status.includes("aprovação") || status.includes("aprovacao");
+        });
         
-        {/* Status Online */}
-        <div style={{ 
-          fontSize: "0.75rem", color: "#059669", background: "#d1fae5", 
-          padding: "4px 10px", borderRadius: "20px", fontWeight: "600",
-          display: "flex", alignItems: "center", gap: "6px"
-        }}>
-          <span style={{ width: "6px", height: "6px", backgroundColor: "#059669", borderRadius: "50%", display: "inline-block" }}></span>
-          Online
-        </div>
-
-        {/* Ícone de Notificações com Dropdown */}
-        <div style={{ position: "relative" }}>
-          <button 
-            onClick={() => setMostrarNotificacoes(!mostrarNotificacoes)}
-            style={{ 
-              background: "none", border: "none", cursor: "pointer", 
-              display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b"
-            }} 
-            title="Notificações"
-          >
-            <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-            </svg>
+        opmesPendentes.forEach(opme => {
+            const cirurgia = listaCirurgias.find(c => String(c.id) === String(opme.cirurgia_id));
+            const nomePaciente = cirurgia ? cirurgia.paciente : "Paciente não identificado";
             
-            {/* Bolinha vermelha só aparece se tiver notificação */}
-            {notificacoes.length > 0 && (
-              <span style={{
-                position: "absolute", top: "0", right: "2px", width: "8px", height: "8px",
-                backgroundColor: "#ef4444", borderRadius: "50%", border: "2px solid #fff"
-              }}></span>
-            )}
-          </button>
+            alertas.push({
+                id: idCounter++,
+                tipo: "opme",
+                texto: `OPME ${opme.status}: ${nomePaciente}`,
+                tempo: "Requer atenção"
+            });
+        });
 
-          {/* CAIXA FLUTUANTE DE NOTIFICAÇÕES */}
-          {mostrarNotificacoes && (
-            <div style={{
-              position: "absolute", top: "40px", right: "-50px", width: "300px",
-              backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px",
-              boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)", zIndex: 1000, overflow: "hidden"
-            }}>
-              <div style={{ padding: "12px 15px", backgroundColor: "#f8fafc", borderBottom: "1px solid #e2e8f0", fontWeight: "600", color: "#1e293b", fontSize: "0.9rem" }}>
-                Notificações ({notificacoes.length})
-              </div>
-              
-              <div style={{ maxHeight: "300px", overflowY: "auto" }}>
-                {notificacoes.length === 0 ? (
-                  <div style={{ padding: "20px", textAlign: "center", color: "#94a3b8", fontSize: "0.85rem" }}>
-                    Nenhuma notificação nova.
-                  </div>
-                ) : (
-                  notificacoes.map((notif) => (
-                    <div key={notif.id} style={{ padding: "12px 15px", borderBottom: "1px solid #f1f5f9" }}>
-                      <div style={{ fontWeight: "600", fontSize: "0.85rem", color: "#0f172a" }}>{notif.titulo}</div>
-                      <div style={{ fontSize: "0.8rem", color: "#64748b", marginTop: "4px" }}>{notif.mensagem}</div>
-                      <button 
-                        onClick={() => marcarComoLida(notif.id)}
-                        style={{ marginTop: "8px", fontSize: "0.75rem", color: "#4f46e5", background: "none", border: "none", cursor: "pointer", padding: 0, fontWeight: "500" }}
-                      >
-                        Marcar como lida
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
+        // 2. Procurar por Cirurgias Pendentes
+        const cirurgiasPendentes = listaCirurgias.filter(c => {
+            const status = c.status ? c.status.toLowerCase().trim() : "";
+            return status === "pendente";
+        });
+        
+        cirurgiasPendentes.forEach(cirurgia => {
+            let dataFormatada = "Data a definir";
+            if (cirurgia.data_cirurgia) {
+                const partes = cirurgia.data_cirurgia.split(" ")[0].split("-");
+                if (partes.length === 3) dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+            }
+
+            alertas.push({
+                id: idCounter++,
+                tipo: "cirurgia",
+                texto: `Cirurgia pendente de confirmação: ${cirurgia.paciente}`,
+                tempo: `Para: ${dataFormatada}`
+            });
+        });
+
+        return alertas.slice(0, 5); // Mostra no máximo 5 para não quebrar o layout
+    }, [listaCirurgias, listaPedidos]);
+
+    const temAlerta = notificacoesReais.length > 0;
+
+    return (
+        <header style={{ 
+            display: "flex", justifyContent: "space-between", alignItems: "center", 
+            padding: "20px 30px", background: "#fff", borderBottom: "1px solid #e2e8f0" 
+        }}>
+            <div style={{ color: "#64748b", fontSize: "0.95rem" }}>
+                Menu Principal / <strong style={{ color: "#1e293b" }}>{formatarTitulo()}</strong>
             </div>
-          )}
-        </div>
 
-        {/* Divisor vertical */}
-        <div style={{ height: "30px", width: "1px", backgroundColor: "#e2e8f0" }}></div>
+            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+                
+                <span style={{ 
+                    display: "flex", alignItems: "center", gap: "6px", background: "#dcfce7", color: "#15803d", 
+                    padding: "4px 12px", borderRadius: "20px", fontSize: "0.8rem", fontWeight: "600" 
+                }}>
+                    <span style={{ width: "6px", height: "6px", background: "#15803d", borderRadius: "50%", display: "inline-block" }}></span>
+                    Online
+                </span>
 
-        {/* ÁREA DO USUÁRIO (Adeus e-mail otaku!) */}
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{ textAlign: "right" }}>
-            <p style={{ margin: 0, fontSize: "0.85rem", fontWeight: "600", color: "#1e293b" }}>{nomeUsuario}</p>
-            <p style={{ margin: 0, fontSize: "0.75rem", color: "#64748b" }}>{cargoUsuario}</p>
-          </div>
-          {/* Avatar Dinâmico com a inicial do nome */}
-          <div style={{ 
-            width: "38px", height: "38px", borderRadius: "50%", 
-            backgroundColor: "#4f46e5", color: "#ffffff", 
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontWeight: "bold", fontSize: "1.1rem"
-          }}>
-            {inicial}
-          </div>
-        </div>
+                <div style={{ position: "relative" }}>
+                    <button 
+                        onClick={() => setNotificacoesAbertas(!notificacoesAbertas)}
+                        style={{ 
+                            background: notificacoesAbertas ? "#f1f5f9" : "none", 
+                            border: "none", cursor: "pointer", color: temAlerta ? "#1e293b" : "#64748b", 
+                            padding: "8px", borderRadius: "50%", transition: "0.2s",
+                            display: "flex", alignItems: "center", justifyContent: "center"
+                        }}
+                    >
+                        <Bell size={22} />
+                        {temAlerta && (
+                            <span style={{ position: "absolute", top: "5px", right: "6px", background: "#ef4444", width: "10px", height: "10px", borderRadius: "50%", border: "2px solid #fff" }}></span>
+                        )}
+                    </button>
 
-        {/* Botão de Sair */}
-        <button 
-          onClick={handleLogout}
-          style={{ 
-            display: "flex", alignItems: "center", gap: "6px", background: "transparent", border: "1px solid #e2e8f0", 
-            padding: "8px 14px", borderRadius: "8px", cursor: "pointer", color: "#ef4444", fontWeight: "500", fontSize: "0.85rem",
-          }}
-        >
-          Sair
-          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
-        </button>
+                    {/* AJUSTE DE LAYOUT AQUI: right: 0 para não cortar na tela! */}
+                    {notificacoesAbertas && (
+                        <div style={{ 
+                            position: "absolute", top: "45px", right: "0", width: "340px", 
+                            background: "#fff", borderRadius: "12px", boxShadow: "0 10px 25px rgba(0,0,0,0.1)", 
+                            border: "1px solid #e2e8f0", zIndex: 9999, overflow: "hidden" 
+                        }}>
+                            <div style={{ background: "#f8fafc", padding: "12px 16px", borderBottom: "1px solid #e2e8f0", fontWeight: "700", color: "#1e293b", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                Alertas do Sistema
+                                <span style={{ fontSize: "0.75rem", background: "#e2e8f0", color: "#475569", padding: "2px 8px", borderRadius: "10px" }}>{notificacoesReais.length}</span>
+                            </div>
+                            
+                            <div style={{ maxHeight: "320px", overflowY: "auto" }}>
+                                {temAlerta ? (
+                                    notificacoesReais.map(notif => (
+                                        <div key={notif.id} style={{ 
+                                            padding: "15px 16px", borderBottom: "1px solid #f1f5f9", 
+                                            display: "flex", gap: "12px", alignItems: "flex-start" 
+                                        }}>
+                                            {notif.tipo === "opme" && <PackageSearch size={18} color="#f59e0b" style={{ marginTop: "2px", flexShrink: 0 }} />}
+                                            {notif.tipo === "cirurgia" && <AlertCircle size={18} color="#ef4444" style={{ marginTop: "2px", flexShrink: 0 }} />}
+                                            
+                                            <div>
+                                                <p style={{ margin: "0 0 4px 0", fontSize: "0.85rem", color: "#334155", lineHeight: "1.4", fontWeight: "500" }}>
+                                                    {notif.texto}
+                                                </p>
+                                                <span style={{ fontSize: "0.75rem", color: "#ef4444", fontWeight: "600" }}>{notif.tempo}</span>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div style={{ padding: "30px 20px", textAlign: "center", color: "#94a3b8" }}>
+                                        <CheckCircle2 size={30} color="#10b981" style={{ margin: "0 auto 10px auto", opacity: 0.5 }} />
+                                        <p style={{ margin: 0, fontSize: "0.9rem" }}>Nenhuma pendência!<br/>O fluxo cirúrgico está em dia.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
 
-      </div>
-    </header>
-  );
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", borderLeft: "1px solid #e2e8f0", paddingLeft: "20px" }}>
+                    <div style={{ textAlign: "right" }}>
+                        <strong style={{ display: "block", color: "#1e293b", fontSize: "0.9rem" }}>{nomeExibicao}</strong>
+                        <span style={{ color: "#64748b", fontSize: "0.8rem" }}>{cargoExibicao}</span>
+                    </div>
+                    <div style={{ 
+                        width: "38px", height: "38px", background: "#6C63FF", color: "white", 
+                        borderRadius: "50%", display: "flex", justifyContent: "center", alignItems: "center", 
+                        fontWeight: "700", fontSize: "1.1rem" 
+                    }}>
+                        {nomeExibicao.charAt(0)}
+                    </div>
+                </div>
+
+                <button 
+                    onClick={logout} 
+                    style={{ 
+                        display: "flex", alignItems: "center", gap: "6px", background: "none", 
+                        border: "1px solid #e2e8f0", padding: "8px 12px", borderRadius: "8px", 
+                        color: "#ef4444", cursor: "pointer", fontSize: "0.85rem", fontWeight: "600", transition: "0.2s" 
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.background = "#fef2f2"}
+                    onMouseOut={(e) => e.currentTarget.style.background = "none"}
+                >
+                    Sair <LogOut size={16} />
+                </button>
+
+            </div>
+        </header>
+    );
 }
 
 export default Header;
