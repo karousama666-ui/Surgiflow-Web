@@ -1,127 +1,200 @@
-import React from 'react';
+import { useState, useMemo } from "react";
 import { useCirurgias } from "../context/CirurgiasContext";
-import { ClipboardList, CheckCircle2, Clock, CheckCheck, Building2, FileText } from "lucide-react";
-import "./Relatorios.css";
+import { usePedidos } from "../context/PedidosContext";
+import { 
+    TrendingUp, 
+    AlertCircle, 
+    CheckCircle2, 
+    XCircle, 
+    PackageSearch, 
+    Activity 
+} from "lucide-react";
 
 function Relatorios() {
-  const { listaCirurgias } = useCirurgias();
+    const { listaCirurgias } = useCirurgias();
+    const { listaPedidos } = usePedidos();
 
-  // Cálculos dinâmicos
-  const totalCirurgias = listaCirurgias.length;
-  const confirmadas = listaCirurgias.filter(c => c.status === "Confirmada").length;
-  const pendentes = listaCirurgias.filter(c => c.status === "Pendente").length;
-  const finalizadas = listaCirurgias.filter(c => c.status === "Finalizada").length;
+    // Filtro de Mês/Ano (Começa no mês atual - Ajuste para o formato YYYY-MM)
+    const [mesFiltro, setMesFiltro] = useState(new Date().toISOString().slice(0, 7));
 
-  // Agrupando hospitais
-  const hospitaisContagem = listaCirurgias.reduce((acc, curr) => {
-    if (curr.hospital) {
-      acc[curr.hospital] = (acc[curr.hospital] || 0) + 1;
-    }
-    return acc;
-  }, {});
+    // 1. CÁLCULO DOS DADOS (Reage automaticamente quando o mês ou os dados mudam)
+    const metricas = useMemo(() => {
+        // Filtra cirurgias do mês selecionado
+        const cirurgiasDoMes = listaCirurgias.filter(c => {
+            if (!c.data_cirurgia) return false;
+            return c.data_cirurgia.startsWith(mesFiltro);
+        });
 
-  // Agrupando convênios
-  const conveniosContagem = listaCirurgias.reduce((acc, curr) => {
-    if (curr.convenio) {
-      acc[curr.convenio] = (acc[curr.convenio] || 0) + 1;
-    }
-    return acc;
-  }, {});
+        const total = cirurgiasDoMes.length;
+        const confirmadas = cirurgiasDoMes.filter(c => c.status === "Confirmada" || c.status === "Finalizada").length;
+        const canceladas = cirurgiasDoMes.filter(c => c.status === "Cancelada").length;
+        const pendentes = cirurgiasDoMes.filter(c => c.status === "Pendente").length;
 
-  return (
-    <div className="relatorios-container">
-      <div className="relatorios-header">
-        <h1>Relatórios e Indicadores</h1>
-        <p>Visão analítica do fluxo cirúrgico e conformidade operacional.</p>
-      </div>
+        // Filtra OPMEs das cirurgias desse mês
+        const opmesDoMes = listaPedidos.filter(p => 
+            cirurgiasDoMes.some(c => String(c.id) === String(p.cirurgia_id))
+        );
 
-      {/* Cards de Métricas Principais */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: "#eef2ff", color: "#6C63FF" }}>
-            <ClipboardList size={26} />
-          </div>
-          <div className="stat-info">
-            <span>Total Cadastradas</span>
-            <h2>{totalCirurgias}</h2>
-          </div>
-        </div>
+        const opmeAprovados = opmesDoMes.filter(p => p.status === "Aprovado" || p.status === "Material Entregue").length;
+        const opmePendentes = opmesDoMes.filter(p => p.status === "Aguardando Orçamento" || p.status === "Em Aprovação (Convênio)").length;
 
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: "#dcfce7", color: "#15803d" }}>
-            <CheckCircle2 size={26} />
-          </div>
-          <div className="stat-info">
-            <span>Confirmadas</span>
-            <h2 style={{ color: "#15803d" }}>{confirmadas}</h2>
-          </div>
-        </div>
+        return {
+            total,
+            confirmadas,
+            canceladas,
+            pendentes,
+            taxaCancelamento: total > 0 ? Math.round((canceladas / total) * 100) : 0,
+            opmeTotal: opmesDoMes.length,
+            opmeAprovados,
+            opmePendentes
+        };
+    }, [listaCirurgias, listaPedidos, mesFiltro]);
 
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: "#fef3c7", color: "#b45309" }}>
-            <Clock size={26} />
-          </div>
-          <div className="stat-info">
-            <span>Pendentes</span>
-            <h2 style={{ color: "#b45309" }}>{pendentes}</h2>
-          </div>
-        </div>
+    // 2. ESTILOS REUTILIZÁVEIS (Para manter o código limpo)
+    const cardStyle = {
+        background: "#fff", padding: "20px", borderRadius: "16px",
+        boxShadow: "0 4px 6px rgba(0,0,0,0.02)", border: "1px solid #f1f5f9",
+        display: "flex", flexDirection: "column", gap: "10px"
+    };
 
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: "#dbeafe", color: "#1d4ed8" }}>
-            <CheckCheck size={26} />
-          </div>
-          <div className="stat-info">
-            <span>Finalizadas</span>
-            <h2 style={{ color: "#1d4ed8" }}>{finalizadas}</h2>
-          </div>
-        </div>
-      </div>
+    const headerCardStyle = {
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+        color: "#64748b", fontSize: "0.95rem", fontWeight: "600"
+    };
 
-      {/* Seção de Análises Detalhadas */}
-      <div className="analytics-grid">
-        {/* Hospitais Frequentes */}
-        <div className="analytics-card">
-          <h3>
-            <Building2 size={20} color="#6C63FF" />
-            Cirurgias por Hospital
-          </h3>
-          {Object.keys(hospitaisContagem).length > 0 ? (
-            <div className="analytics-list">
-              {Object.entries(hospitaisContagem).map(([hospital, qtd]) => (
-                <div key={hospital} className="analytics-item">
-                  <span>{hospital}</span>
-                  <span className="analytics-badge">{qtd} {qtd === 1 ? 'cirurgia' : 'cirurgias'}</span>
+    const valueStyle = {
+        fontSize: "2rem", fontWeight: "700", color: "#1e293b", margin: 0
+    };
+
+    return (
+        <div style={{ paddingBottom: "40px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
+                <div>
+                    <h1 style={{ fontSize: "1.8rem", color: "#1e293b", margin: "0 0 4px 0", fontWeight: "700" }}>
+                        Relatórios Gerenciais
+                    </h1>
+                    <p style={{ color: "#64748b", fontSize: "0.95rem", margin: 0 }}>
+                        Visão analítica e indicadores de performance (KPIs).
+                    </p>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="empty-analytics">Nenhum hospital registrado ainda.</p>
-          )}
-        </div>
 
-        {/* Convênios Utilizados */}
-        <div className="analytics-card">
-          <h3>
-            <FileText size={20} color="#6C63FF" />
-            Distribuição por Convênio
-          </h3>
-          {Object.keys(conveniosContagem).length > 0 ? (
-            <div className="analytics-list">
-              {Object.entries(conveniosContagem).map(([convenio, qtd]) => (
-                <div key={convenio} className="analytics-item">
-                  <span>{convenio}</span>
-                  <span className="analytics-badge">{qtd} {qtd === 1 ? 'pedido' : 'pedidos'}</span>
-                </div>
-              ))}
+                {/* Filtro de Mês */}
+                <input 
+                    type="month" 
+                    value={mesFiltro}
+                    onChange={(e) => setMesFiltro(e.target.value)}
+                    style={{ 
+                        padding: "12px 16px", borderRadius: "10px", border: "1px solid #cbd5e1", 
+                        fontSize: "1rem", outline: "none", color: "#1e293b", background: "#fff", cursor: "pointer"
+                    }}
+                />
             </div>
-          ) : (
-            <p className="empty-analytics">Nenhum convênio registrado ainda.</p>
-          )}
+
+            {/* LINHA 1: KPIs Principais (4 cards) */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "20px" }}>
+                <div style={cardStyle}>
+                    <div style={headerCardStyle}>
+                        <span>Total de Cirurgias</span>
+                        <Activity size={20} color="#6C63FF" />
+                    </div>
+                    <h2 style={valueStyle}>{metricas.total}</h2>
+                    <span style={{ fontSize: "0.85rem", color: "#10b981", fontWeight: "600" }}>Neste período</span>
+                </div>
+
+                <div style={cardStyle}>
+                    <div style={headerCardStyle}>
+                        <span>Confirmadas / Finais</span>
+                        <CheckCircle2 size={20} color="#10b981" />
+                    </div>
+                    <h2 style={valueStyle}>{metricas.confirmadas}</h2>
+                    <span style={{ fontSize: "0.85rem", color: "#64748b" }}>Agendamentos seguros</span>
+                </div>
+
+                <div style={cardStyle}>
+                    <div style={headerCardStyle}>
+                        <span>Taxa de Cancelamento</span>
+                        <TrendingUp size={20} color="#ef4444" />
+                    </div>
+                    <h2 style={valueStyle}>{metricas.taxaCancelamento}%</h2>
+                    <span style={{ fontSize: "0.85rem", color: "#ef4444", fontWeight: "600" }}>{metricas.canceladas} canceladas</span>
+                </div>
+
+                <div style={cardStyle}>
+                    <div style={headerCardStyle}>
+                        <span>OPMEs Pendentes</span>
+                        <AlertCircle size={20} color="#f59e0b" />
+                    </div>
+                    <h2 style={valueStyle}>{metricas.opmePendentes}</h2>
+                    <span style={{ fontSize: "0.85rem", color: "#f59e0b", fontWeight: "600" }}>Requer atenção</span>
+                </div>
+            </div>
+
+            {/* LINHA 2: Gráficos de Barra (CSS Nativo) */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                
+                {/* Painel de Status das Cirurgias */}
+                <div style={cardStyle}>
+                    <h3 style={{ margin: "0 0 15px 0", color: "#1e293b", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                        <CheckCircle2 size={18} color="#6C63FF"/> 
+                        Status das Cirurgias
+                    </h3>
+                    
+                    {/* Barra Pendentes */}
+                    <div style={{ marginBottom: "12px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "5px", fontWeight: "600", color: "#475569" }}>
+                            <span>Pendentes ({metricas.pendentes})</span>
+                            <span>{metricas.total > 0 ? Math.round((metricas.pendentes/metricas.total)*100) : 0}%</span>
+                        </div>
+                        <div style={{ width: "100%", height: "8px", background: "#f1f5f9", borderRadius: "4px", overflow: "hidden" }}>
+                            <div style={{ width: `${metricas.total > 0 ? (metricas.pendentes/metricas.total)*100 : 0}%`, height: "100%", background: "#f59e0b", transition: "width 0.5s" }}></div>
+                        </div>
+                    </div>
+
+                    {/* Barra Canceladas */}
+                    <div>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "5px", fontWeight: "600", color: "#475569" }}>
+                            <span>Canceladas ({metricas.canceladas})</span>
+                            <span>{metricas.total > 0 ? Math.round((metricas.canceladas/metricas.total)*100) : 0}%</span>
+                        </div>
+                        <div style={{ width: "100%", height: "8px", background: "#f1f5f9", borderRadius: "4px", overflow: "hidden" }}>
+                            <div style={{ width: `${metricas.total > 0 ? (metricas.canceladas/metricas.total)*100 : 0}%`, height: "100%", background: "#ef4444", transition: "width 0.5s" }}></div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Painel de Funil de OPME */}
+                <div style={cardStyle}>
+                    <h3 style={{ margin: "0 0 15px 0", color: "#1e293b", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                        <PackageSearch size={18} color="#6C63FF"/> 
+                        Funil de OPME
+                    </h3>
+
+                    {/* Barra Aprovados */}
+                    <div style={{ marginBottom: "12px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "5px", fontWeight: "600", color: "#475569" }}>
+                            <span>Liberados / Entregues ({metricas.opmeAprovados})</span>
+                            <span>{metricas.opmeTotal > 0 ? Math.round((metricas.opmeAprovados/metricas.opmeTotal)*100) : 0}%</span>
+                        </div>
+                        <div style={{ width: "100%", height: "8px", background: "#f1f5f9", borderRadius: "4px", overflow: "hidden" }}>
+                            <div style={{ width: `${metricas.opmeTotal > 0 ? (metricas.opmeAprovados/metricas.opmeTotal)*100 : 0}%`, height: "100%", background: "#10b981", transition: "width 0.5s" }}></div>
+                        </div>
+                    </div>
+
+                    {/* Barra Em Análise */}
+                    <div>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "5px", fontWeight: "600", color: "#475569" }}>
+                            <span>Em Análise / Orçamento ({metricas.opmePendentes})</span>
+                            <span>{metricas.opmeTotal > 0 ? Math.round((metricas.opmePendentes/metricas.opmeTotal)*100) : 0}%</span>
+                        </div>
+                        <div style={{ width: "100%", height: "8px", background: "#f1f5f9", borderRadius: "4px", overflow: "hidden" }}>
+                            <div style={{ width: `${metricas.opmeTotal > 0 ? (metricas.opmePendentes/metricas.opmeTotal)*100 : 0}%`, height: "100%", background: "#f59e0b", transition: "width 0.5s" }}></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 export default Relatorios;

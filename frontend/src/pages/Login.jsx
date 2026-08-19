@@ -1,38 +1,74 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../services/supabase';
 import './Login.css'; 
 
-// Importando a imagem e o vídeo diretamente da pasta assets
 import logoSurgiflow from '../assets/logo_surgiflowdark.png';
 import bgVideo from '../assets/surgiflowbackground.mp4';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState(null);
+  const [sucesso, setSucesso] = useState(null); // Novo estado para mensagem de sucesso
   
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  // Função original de ENTRAR
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Agora, ao clicar no botão, ele te leva direto para o Dashboard!
-    navigate('/dashboard'); 
+    setLoading(true);
+    setErro(null);
+    setSucesso(null);
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setErro("E-mail ou senha incorretos. Tente novamente.");
+    } else {
+      navigate("/dashboard"); // Redireciona para o Dashboard após login bem-sucedido
+    }
+  };
+
+  // NOVA Função de CADASTRAR (Plano B)
+  const handleSignUp = async () => {
+    if (!email || password.length < 6) {
+      setErro("Preencha o e-mail e use uma senha de no mínimo 6 caracteres.");
+      return;
+    }
+    setLoading(true);
+    setErro(null);
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setErro("Erro ao criar conta: " + error.message);
+    } else {
+      setSucesso("Conta criada com sucesso! Você já pode clicar em Entrar.");
+    }
   };
 
   return (
     <div className="login-container">
-      {/* Vídeo de Fundo */}
       <video autoPlay loop muted playsInline className="background-video">
         <source src={bgVideo} type="video/mp4" />
-        Seu navegador não suporta vídeos.
       </video>
 
-      {/* Camada de sobreposição para escurecer o vídeo e dar destaque ao login */}
       <div className="overlay"></div>
 
-      {/* Card de Login */}
       <div className="login-card">
         <div className="login-header">
-          {/* A sua logo oficial renderizada aqui */}
           <img 
             src={logoSurgiflow} 
             alt="Logo SurgiFlow" 
@@ -42,6 +78,18 @@ const Login = () => {
         </div>
 
         <form onSubmit={handleLogin} className="login-form">
+          {erro && (
+            <div style={{ background: "#fee2e2", color: "#b91c1c", padding: "10px", borderRadius: "8px", fontSize: "0.85rem", marginBottom: "15px", textAlign: "center", fontWeight: "600" }}>
+              {erro}
+            </div>
+          )}
+          
+          {sucesso && (
+            <div style={{ background: "#dcfce7", color: "#166534", padding: "10px", borderRadius: "8px", fontSize: "0.85rem", marginBottom: "15px", textAlign: "center", fontWeight: "600" }}>
+              {sucesso}
+            </div>
+          )}
+
           <div className="input-group">
             <label htmlFor="email">E-mail Corporativo</label>
             <input
@@ -55,7 +103,7 @@ const Login = () => {
           </div>
 
           <div className="input-group">
-            <label htmlFor="password">Senha</label>
+            <label htmlFor="password">Senha (mín. 6 caracteres)</label>
             <input
               type="password"
               id="password"
@@ -66,9 +114,16 @@ const Login = () => {
             />
           </div>
 
-          <button type="submit" className="login-button">
-            Entrar
-          </button>
+          <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+            <button type="submit" className="login-button" disabled={loading} style={{ flex: 1 }}>
+              {loading ? 'Aguarde...' : 'Entrar'}
+            </button>
+            
+            {/* NOVO BOTÃO DE CADASTRAR */}
+            <button type="button" onClick={handleSignUp} className="login-button" disabled={loading} style={{ flex: 1, background: "#475569" }}>
+              Cadastrar
+            </button>
+          </div>
         </form>
       </div>
     </div>

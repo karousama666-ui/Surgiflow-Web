@@ -6,7 +6,6 @@ function NovaCirurgiaForm({ onSave, dados }) {
 
     const [form, setForm] = useState({
         paciente: "",
-        medico: "",
         medicoId: "",
         hospital: "",
         convenio: "",
@@ -17,9 +16,23 @@ function NovaCirurgiaForm({ onSave, dados }) {
 
     useEffect(() => {
         if (dados) {
+            // Se estiver editando, quebra o "data_cirurgia" do banco em Data e Hora para a tela
+            let dataSeparada = "";
+            let horaSeparada = "";
+            if (dados.data_cirurgia) {
+                const partes = dados.data_cirurgia.split(" ");
+                dataSeparada = partes[0] || "";
+                horaSeparada = partes[1] || "";
+            }
+
             setForm({
-                ...dados,
-                medicoId: dados.medicoId || ""
+                paciente: dados.paciente || "",
+                medicoId: dados.medico_id || "", // Puxa com underline do banco
+                hospital: dados.hospital || "",
+                convenio: dados.convenio || "",
+                data: dataSeparada,
+                horario: horaSeparada,
+                anexo: null
             });
         }
     }, [dados]);
@@ -33,63 +46,33 @@ function NovaCirurgiaForm({ onSave, dados }) {
     }
 
     function handleMedicoChange(e) {
-        const medicoId = e.target.value;
-        const medicoSelecionado = listaMedicos.find(
-            medico => String(medico.id) === medicoId
-        );
-
         setForm({
             ...form,
-            medicoId: medicoId,
-            medico: medicoSelecionado ? medicoSelecionado.nome : ""
+            medicoId: e.target.value
         });
     }
 
     const inputStyle = {
-        width: "100%",
-        padding: "12px 16px",
-        border: "1px solid #cbd5e1",
-        borderRadius: "10px",
-        fontSize: "14px",
-        outline: "none",
-        backgroundColor: "#fff",
-        color: "#1e293b",
-        boxSizing: "border-box",
-        marginBottom: "16px"
+        width: "100%", padding: "12px 16px", border: "1px solid #cbd5e1",
+        borderRadius: "10px", fontSize: "14px", outline: "none",
+        backgroundColor: "#fff", color: "#1e293b", boxSizing: "border-box", marginBottom: "16px"
     };
 
     const labelStyle = {
-        display: "block",
-        fontSize: "0.85rem",
-        fontWeight: "600",
-        color: "#475569",
-        marginBottom: "6px",
-        textTransform: "uppercase",
-        letterSpacing: "0.4px"
+        display: "block", fontSize: "0.85rem", fontWeight: "600",
+        color: "#475569", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.4px"
     };
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
             <div>
                 <label style={labelStyle}>Paciente</label>
-                <input
-                    type="text"
-                    name="paciente"
-                    placeholder="Nome completo do paciente"
-                    value={form.paciente}
-                    onChange={handleChange}
-                    style={inputStyle}
-                />
+                <input type="text" name="paciente" placeholder="Nome completo do paciente" value={form.paciente} onChange={handleChange} style={inputStyle} />
             </div>
 
             <div>
                 <label style={labelStyle}>Médico Responsável</label>
-                <select
-                    name="medicoId"
-                    value={form.medicoId}
-                    onChange={handleMedicoChange}
-                    style={{ ...inputStyle, cursor: "pointer" }}
-                >
+                <select name="medicoId" value={form.medicoId} onChange={handleMedicoChange} style={{ ...inputStyle, cursor: "pointer" }}>
                     <option value="">Selecione um médico</option>
                     {listaMedicos.map(medico => (
                         <option key={medico.id} value={medico.id}>
@@ -101,48 +84,22 @@ function NovaCirurgiaForm({ onSave, dados }) {
 
             <div>
                 <label style={labelStyle}>Hospital</label>
-                <input
-                    type="text"
-                    name="hospital"
-                    placeholder="Hospital principal"
-                    value={form.hospital}
-                    onChange={handleChange}
-                    style={inputStyle}
-                />
+                <input type="text" name="hospital" placeholder="Hospital principal" value={form.hospital} onChange={handleChange} style={inputStyle} />
             </div>
 
             <div>
                 <label style={labelStyle}>Convênio</label>
-                <input
-                    type="text"
-                    name="convenio"
-                    placeholder="Convênio médico"
-                    value={form.convenio}
-                    onChange={handleChange}
-                    style={inputStyle}
-                />
+                <input type="text" name="convenio" placeholder="Convênio médico" value={form.convenio} onChange={handleChange} style={inputStyle} />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
                 <div>
                     <label style={labelStyle}>Data da Cirurgia</label>
-                    <input
-                        type="date"
-                        name="data"
-                        value={form.data}
-                        onChange={handleChange}
-                        style={inputStyle}
-                    />
+                    <input type="date" name="data" value={form.data} onChange={handleChange} style={inputStyle} />
                 </div>
                 <div>
                     <label style={labelStyle}>Horário</label>
-                    <input
-                        type="time"
-                        name="horario"
-                        value={form.horario}
-                        onChange={handleChange}
-                        style={inputStyle}
-                    />
+                    <input type="time" name="horario" value={form.horario} onChange={handleChange} style={inputStyle} />
                 </div>
             </div>
 
@@ -151,17 +108,9 @@ function NovaCirurgiaForm({ onSave, dados }) {
                 <input
                     type="file"
                     onChange={(e) => {
-                        setForm({
-                            ...form,
-                            anexo: e.target.files[0]
-                        });
+                        setForm({ ...form, anexo: e.target.files[0] });
                     }}
-                    style={{
-                        ...inputStyle,
-                        padding: "10px",
-                        background: "#f8fafc",
-                        cursor: "pointer"
-                    }}
+                    style={{ ...inputStyle, padding: "10px", background: "#f8fafc", cursor: "pointer" }}
                 />
                 {form.anexo && (
                     <p style={{ marginTop: "-8px", marginBottom: "12px", color: "#6C63FF", fontSize: "0.85rem", fontWeight: "600" }}>
@@ -173,29 +122,26 @@ function NovaCirurgiaForm({ onSave, dados }) {
             <button
                 type="button"
                 onClick={() => {
-                    onSave(form);
-                    setForm({
-                        paciente: "",
-                        medico: "",
-                        medicoId: "",
-                        hospital: "",
-                        convenio: "",
-                        data: "",
-                        horario: "",
-                        anexo: null
-                    });
+                    // 1. TRADUZ OS DADOS PARA O FORMATO EXATO DO SUPABASE
+                    const dadosFormatadosParaSupabase = {
+                        paciente: form.paciente,
+                        medico_id: form.medicoId ? Number(form.medicoId) : null, // Banco espera número (int8)
+                        hospital: form.hospital,
+                        convenio: form.convenio,
+                        data_cirurgia: (form.data && form.horario) ? `${form.data} ${form.horario}` : null,
+                        status: dados ? dados.status : "Pendente" // Mantém status se editando, ou Pendente se nova
+                    };
+
+                    // 2. ENVIA PARA A AGENDA SALVAR
+                    onSave(dadosFormatadosParaSupabase);
+
+                    // 3. LIMPA O FORMULÁRIO DEPOIS DE SALVAR
+                    setForm({ paciente: "", medicoId: "", hospital: "", convenio: "", data: "", horario: "", anexo: null });
                 }}
                 style={{
-                    background: "#6C63FF",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "10px",
-                    padding: "14px",
-                    fontWeight: "600",
-                    fontSize: "0.95rem",
-                    cursor: "pointer",
-                    marginTop: "10px",
-                    transition: "opacity 0.2s"
+                    background: "#6C63FF", color: "white", border: "none", borderRadius: "10px",
+                    padding: "14px", fontWeight: "600", fontSize: "0.95rem", cursor: "pointer",
+                    marginTop: "10px", transition: "opacity 0.2s"
                 }}
             >
                 Salvar Cirurgia

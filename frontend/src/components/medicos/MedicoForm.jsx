@@ -3,7 +3,9 @@ import { useMedicos } from "../../context/MedicosContext";
 import "./MedicoForm.css";
 
 function MedicoForm({ medicoEditando, setMedicoEditando }) {
-  const { listaMedicos, setListaMedicos } = useMedicos();
+  // 1. Aqui nós puxamos as funções corretas do Contexto que salvam no Supabase!
+  const { adicionarMedico, editarMedico } = useMedicos();
+  
   const [form, setForm] = useState({ nome: "", crm: "", especialidade: "", telefone: "", email: "", hospital: "" });
 
   useEffect(() => {
@@ -14,13 +16,19 @@ function MedicoForm({ medicoEditando, setMedicoEditando }) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
-  function handleSave() {
+  // 2. Transformamos o handleSave em assíncrono (async) para esperar o banco de dados
+  async function handleSave() {
     if (!form.nome || !form.crm) return alert("Preencha Nome e CRM.");
+    
     if (medicoEditando) {
-      setListaMedicos(listaMedicos.map(m => m.id === medicoEditando.id ? { ...m, ...form } : m));
+      // Usa a função de editar do Contexto
+      await editarMedico(medicoEditando.id, form);
     } else {
-      setListaMedicos([...listaMedicos, { ...form, id: Date.now() }]);
+      // Usa a função de adicionar do Contexto
+      await adicionarMedico(form);
     }
+    
+    // Limpa o formulário depois de salvar
     setForm({ nome: "", crm: "", especialidade: "", telefone: "", email: "", hospital: "" });
     setMedicoEditando(null);
   }
@@ -37,7 +45,9 @@ function MedicoForm({ medicoEditando, setMedicoEditando }) {
         <input name="hospital" placeholder="Hospital principal" value={form.hospital} onChange={handleChange} className="modern-input" />
       </div>
       <div style={{ display: "flex", gap: "10px" }}>
-        <button className="btn-save" onClick={handleSave}>{medicoEditando ? "Salvar Alterações" : "Cadastrar"}</button>
+        <button className="btn-save" onClick={handleSave}>
+          {medicoEditando ? "Salvar Alterações" : "Cadastrar"}
+        </button>
         {medicoEditando && (
           <button className="btn-cancel" onClick={() => { setForm({ nome: "", crm: "", especialidade: "", telefone: "", email: "", hospital: "" }); setMedicoEditando(null); }}>
             Cancelar

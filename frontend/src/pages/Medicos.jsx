@@ -6,24 +6,19 @@ import MedicoCard from "../components/medicos/MedicoCard";
 function Medicos() {
     const {
         listaMedicos,
-        setListaMedicos
+        excluirMedico // <-- Puxamos a função do contexto que deleta no Supabase
     } = useMedicos();
 
     const [medicoEditando, setMedicoEditando] = useState(null);
 
-    function handleDelete(id) {
-        if (window.confirm("Tem certeza que deseja excluir este médico?")) {
-            setListaMedicos(
-                listaMedicos.filter(
-                    medico => medico.id !== id
-                )
-            );
+    async function handleDelete(id) {
+        if (window.confirm("Tem certeza que deseja excluir este médico do banco de dados?")) {
+            await excluirMedico(id); // <-- Executa a exclusão real na nuvem
         }
     }
 
     function handleEdit(medico) {
         setMedicoEditando(medico);
-        // Opcional: faz a página subir para o formulário aparecer no foco
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -61,8 +56,6 @@ function Medicos() {
             <div
                 style={{
                     display: "grid",
-                    /* Grid inteligente: se a tela for grande, coloca 2 ou 3 cards lado a lado. 
-                       Se for pequena, ele ajusta automaticamente. */
                     gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
                     gap: "20px"
                 }}

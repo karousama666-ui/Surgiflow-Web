@@ -12,24 +12,22 @@ import CirurgiaModal from "../modal/CirurgiaModal";
 import "./CalendarContainer.css";
 
 function CalendarContainer() {
-    const { listaCirurgias } = useCirurgias();
+    const { listaCirurgias, editarCirurgia, excluirCirurgia } = useCirurgias();
     const { listaMedicos } = useMedicos();
 
     const [cirurgiaSelecionada, setCirurgiaSelecionada] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [cirurgiaEditando, setCirurgiaEditando] = useState(null);
 
+    // Busca o nome do médico já formatado pelo Supabase
     function obterNomeMedico(cirurgia) {
-        if (cirurgia.medicoId) {
-            const medico = listaMedicos.find(
-                medico => String(medico.id) === String(cirurgia.medicoId)
-            );
-            if (medico) return medico.nome;
+        if (cirurgia.medicos && cirurgia.medicos.nome) {
+            return cirurgia.medicos.nome;
         }
-        return cirurgia.medico || "Médico não informado";
+        return "Médico não informado";
     }
 
-    // Função para definir a cor do evento com base no status da cirurgia
+    // Define a cor do evento com base no status da cirurgia
     function obterCorPorStatus(status) {
         switch (status) {
             case "Confirmada":
@@ -46,11 +44,12 @@ function CalendarContainer() {
         }
     }
 
+    // Formata os eventos para o calendário ler certinho
     const eventos = listaCirurgias.map((cirurgia) => {
-        let data = cirurgia.data;
-        if (data && data.includes("/")) {
-            const [dia, mes, ano] = data.split("/");
-            data = `${ano}-${mes}-${dia}`;
+        // Pega a data exata do Supabase (que vem como "2026-08-19 19:00") e recorta só o dia
+        let dataFormatada = "";
+        if (cirurgia.data_cirurgia) {
+            dataFormatada = cirurgia.data_cirurgia.split(" ")[0]; 
         }
 
         const cores = obterCorPorStatus(cirurgia.status);
@@ -58,7 +57,7 @@ function CalendarContainer() {
         return {
             id: cirurgia.id,
             title: `${cirurgia.paciente} - ${obterNomeMedico(cirurgia)}`,
-            date: data,
+            date: dataFormatada,
             backgroundColor: cores.background,
             borderColor: cores.border
         };
@@ -71,7 +70,11 @@ function CalendarContainer() {
                 initialView="dayGridMonth"
                 locale={ptBrLocale}
                 events={eventos}
-                height="auto"
+                
+                // AS REGRAS QUE SALVAM O LAYOUT!
+                height="75vh"
+                dayMaxEvents={3} 
+                
                 headerToolbar={{
                     left: 'prev,next today',
                     center: 'title',
@@ -93,6 +96,8 @@ function CalendarContainer() {
                     setModalOpen(true);
                 }}
                 onDelete={(id) => {
+                    // Exclui no banco!
+                    excluirCirurgia(id);
                     setCirurgiaSelecionada(null);
                 }}
             />
@@ -105,9 +110,13 @@ function CalendarContainer() {
                 }}
                 cirurgia={cirurgiaEditando}
                 onSave={(dados) => {
+                    // Edita no banco!
+                    if (cirurgiaEditando) {
+                        editarCirurgia(cirurgiaEditando.id, dados);
+                    }
                     setModalOpen(false);
                     setCirurgiaEditando(null);
-                    setCirurgiaSelecionada(null);
+                    setCirurgiaSelecionada(null); 
                 }}
             />
         </div>

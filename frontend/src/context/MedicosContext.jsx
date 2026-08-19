@@ -12,52 +12,39 @@ export function MedicosProvider({ children }) {
 
     async function carregarMedicos() {
         const { data, error } = await supabase.from("medicos").select("*");
-        if (error) {
-            console.error("Erro ao carregar médicos:", error.message);
-        } else {
-            setListaMedicos(data || []);
+        if (error) console.error("Erro ao carregar:", error.message);
+        else setListaMedicos(data || []);
+    }
+
+    // ADICIONAR
+    async function adicionarMedico(novoMedico) {
+        const { id, ...dados } = novoMedico; // Remove ID temporário
+        const { data, error } = await supabase.from("medicos").insert([dados]).select();
+        if (error) alert("Erro ao salvar: " + error.message);
+        else setListaMedicos([...listaMedicos, data[0]]);
+    }
+
+    // EDITAR
+    async function editarMedico(id, dadosAtualizados) {
+        const { error } = await supabase.from("medicos").update(dadosAtualizados).eq("id", id);
+        if (error) alert("Erro ao editar: " + error.message);
+        else {
+            setListaMedicos(listaMedicos.map(m => m.id === id ? { ...m, ...dadosAtualizados } : m));
         }
     }
 
-    // Função customizada para lidar com inserção ou substituição da lista
-    async function handleSetListaMedicos(novaListaOuFuncao) {
-        const novaLista = typeof novaListaOuFuncao === "function" 
-            ? novaListaOuFuncao(listaMedicos) 
-            : novaListaOuFuncao;
-
-        // Se o usuário adicionou um item novo (tamanho maior que o anterior)
-        if (novaLista.length > listaMedicos.length) {
-            const ultimoItem = novaLista[novaLista.length - 1];
-            // Remove o id local gerado por Date.now() para o Supabase gerar o ID correto (se for UUID ou auto-incremento)
-            const { id, ...dadosParaSalvar } = ultimoItem;
-
-            const { data, error } = await supabase.from("medicos").insert([dadosParaSalvar]).select();
-            if (error) {
-                console.error("Erro ao salvar médico no Supabase:", error.message);
-                alert("Erro ao salvar no banco de dados: " + error.message);
-            } else if (data) {
-                // Atualiza com o registro oficial vindo do banco
-                setListaMedicos(novaLista.map(m => m.id === id ? data[0] : m));
-                return;
-            }
-        }
-
-        setListaMedicos(novaLista);
+    // EXCLUIR
+    async function excluirMedico(id) {
+        const { error } = await supabase.from("medicos").delete().eq("id", id);
+        if (error) alert("Erro ao excluir: " + error.message);
+        else setListaMedicos(listaMedicos.filter(m => m.id !== id));
     }
 
     return (
-        <MedicosContext.Provider
-            value={{
-                listaMedicos,
-                setListaMedicos: handleSetListaMedicos,
-                carregarMedicos
-            }}
-        >
+        <MedicosContext.Provider value={{ listaMedicos, adicionarMedico, editarMedico, excluirMedico }}>
             {children}
         </MedicosContext.Provider>
     );
 }
 
-export function useMedicos() {
-    return useContext(MedicosContext);
-}
+export const useMedicos = () => useContext(MedicosContext);

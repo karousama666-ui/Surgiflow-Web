@@ -1,7 +1,7 @@
 import React from 'react';
 import { useCirurgias } from "../context/CirurgiasContext";
 import { ClipboardList, CalendarCheck, Clock, CheckCircle, Calendar } from "lucide-react";
-import Lembretes from "../components/dashboard/Lembretes"; // Ajuste o caminho caso esteja em outra pasta, ex: "../components/Lembretes"
+import Lembretes from "../components/dashboard/Lembretes"; 
 import "./Dashboard.css";
 
 function Dashboard() {
@@ -13,10 +13,27 @@ function Dashboard() {
   const pendentes = listaCirurgias.filter(c => c.status === "Pendente").length;
   const autorizadas = listaCirurgias.filter(c => c.status === "Finalizada" || c.status === "Confirmada").length;
 
-  // Filtrando cirurgias de hoje
-  const hojeStr = new Date().toISOString().split('T')[0];
+  // 1. DATA DINÂMICA PARA O CABEÇALHO (Adeus data chumbada no código!)
+  const dataAtual = new Date();
+  const opcoesData = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+  let dataHeader = dataAtual.toLocaleDateString('pt-BR', opcoesData);
+  dataHeader = dataHeader.charAt(0).toUpperCase() + dataHeader.slice(1);
+
+  // 2. DATA FORMATADA PARA BUSCAR NO SUPABASE (YYYY-MM-DD)
+  const ano = dataAtual.getFullYear();
+  const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
+  const dia = String(dataAtual.getDate()).padStart(2, '0');
+  const hojeStr = `${ano}-${mes}-${dia}`;
+
+  // 3. FILTRANDO AS CIRURGIAS DE HOJE CORRETAMENTE
   const cirurgiasHoje = listaCirurgias.filter(c => {
-    return c.data && c.data.includes(hojeStr);
+    // Usa o campo data_cirurgia do Supabase!
+    return c.data_cirurgia && c.data_cirurgia.startsWith(hojeStr);
+  }).sort((a, b) => {
+    // Ordena as cirurgias do dia pelo horário
+    const timeA = a.data_cirurgia ? a.data_cirurgia.split(" ")[1] : "00:00";
+    const timeB = b.data_cirurgia ? b.data_cirurgia.split(" ")[1] : "00:00";
+    return timeA.localeCompare(timeB);
   });
 
   return (
@@ -28,7 +45,7 @@ function Dashboard() {
           <p>Visão geral das atividades e monitoramento do fluxo cirúrgico.</p>
         </div>
         <div className="dashboard-date">
-          Terça-feira, 18 de Agosto de 2026
+          {dataHeader}
         </div>
       </div>
 
@@ -75,7 +92,7 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Grid Inferior: Agenda do Dia e Componente de Lembretes */}
+      {/* Grid Inferior */}
       <div className="dashboard-grid-bottom">
         {/* Agenda de Hoje */}
         <div className="dashboard-card">
@@ -85,17 +102,27 @@ function Dashboard() {
           </h3>
           {cirurgiasHoje.length > 0 ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "12px" }}>
-              {cirurgiasHoje.map(c => (
-                <div key={c.id} style={{ padding: "12px 16px", background: "#f8fafc", borderRadius: "12px", border: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div>
-                    <strong style={{ display: "block", color: "#1e293b", fontSize: "0.95rem" }}>{c.paciente}</strong>
-                    <span style={{ color: "#64748b", fontSize: "0.85rem" }}>{c.hospital} • {c.horario}</span>
+              {cirurgiasHoje.map(c => {
+                // Separa o horário que vem grudadinho na data do Supabase
+                const horario = c.data_cirurgia ? c.data_cirurgia.split(" ")[1] : "Não informado";
+                
+                // Cores dinâmicas para as pílulas de status
+                let corFundo = "#dcfce7"; let corTexto = "#15803d";
+                if (c.status === "Cancelada") { corFundo = "#fee2e2"; corTexto = "#991b1b"; }
+                else if (c.status === "Pendente") { corFundo = "#fef3c7"; corTexto = "#b45309"; }
+
+                return (
+                  <div key={c.id} style={{ padding: "12px 16px", background: "#f8fafc", borderRadius: "12px", border: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <strong style={{ display: "block", color: "#1e293b", fontSize: "0.95rem" }}>{c.paciente}</strong>
+                      <span style={{ color: "#64748b", fontSize: "0.85rem" }}>{c.hospital} • {horario}</span>
+                    </div>
+                    <span style={{ background: corFundo, color: corTexto, padding: "4px 10px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "600" }}>
+                      {c.status}
+                    </span>
                   </div>
-                  <span style={{ background: "#dcfce7", color: "#15803d", padding: "4px 10px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "600" }}>
-                    {c.status}
-                  </span>
-                </div>
-              ))}
+                )
+              })}
             </div>
           ) : (
             <div style={{ textAlign: "center", padding: "30px 0", color: "#94a3b8", fontSize: "0.9rem" }}>
@@ -104,7 +131,6 @@ function Dashboard() {
           )}
         </div>
 
-        {/* Aqui entra o seu componente Lembretes isolado e perfeito */}
         <Lembretes />
       </div>
     </div>

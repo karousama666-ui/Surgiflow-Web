@@ -10,50 +10,73 @@ export function CirurgiasProvider({ children }) {
         carregarCirurgias();
     }, []);
 
+    // 1. CARREGAR
     async function carregarCirurgias() {
-        const { data, error } = await supabase.from("cirurgias").select("*");
+        const { data, error } = await supabase
+            .from("cirurgias")
+            .select(`
+                *,
+                medicos ( nome )
+            `)
+            .order('id', { ascending: false });
+
+        if (error) console.error("Erro ao carregar cirurgias:", error.message);
+        else setListaCirurgias(data || []);
+    }
+
+    // 2. ADICIONAR
+    async function adicionarCirurgia(novaCirurgia) {
+        const { id, medicos, ...dados } = novaCirurgia; 
+        
+        const { data, error } = await supabase
+            .from("cirurgias")
+            .insert([dados])
+            .select(`*, medicos ( nome )`); 
+            
+        if (error) alert("Erro ao agendar cirurgia: " + error.message);
+        else setListaCirurgias([data[0], ...listaCirurgias]); // Adiciona no começo da lista
+    }
+
+    // 3. EDITAR GERAL (Agora atualiza a tela na hora!)
+    async function editarCirurgia(id, dadosAtualizados) {
+        // Atualiza no Banco
+        const { data, error } = await supabase
+            .from("cirurgias")
+            .update(dadosAtualizados)
+            .eq("id", id)
+            .select(`*, medicos ( nome )`); // Pede a cirurgia atualizada de volta
+
         if (error) {
-            console.error("Erro ao carregar cirurgias:", error.message);
-        } else {
-            setListaCirurgias(data || []);
+            alert("Erro ao editar: " + error.message);
+        } else if (data && data.length > 0) {
+            // Atualiza na Tela imediatamente!
+            setListaCirurgias(listaAtual => 
+                listaAtual.map(cirurgia => 
+                    cirurgia.id === id ? data[0] : cirurgia
+                )
+            );
         }
     }
 
-    async function handleSetListaCirurgias(novaListaOuFuncao) {
-        const novaLista = typeof novaListaOuFuncao === "function" 
-            ? novaListaOuFuncao(listaCirurgias) 
-            : novaListaOuFuncao;
-
-        if (novaLista.length > listaCirurgias.length) {
-            const ultimoItem = novaLista[novaLista.length - 1];
-            const { id, anexo, ...dadosParaSalvar } = ultimoItem; // Ignora o arquivo local e o id temporário por enquanto
-
-            const { data, error } = await supabase.from("cirurgias").insert([dadosParaSalvar]).select();
-            if (error) {
-                console.error("Erro ao salvar cirurgia no Supabase:", error.message);
-                alert("Erro ao salvar cirurgia no banco: " + error.message);
-            } else if (data) {
-                setListaCirurgias(novaLista.map(c => c.id === id ? data[0] : c));
-                return;
-            }
-        }
-
-        setListaCirurgias(novaLista);
+    // 4. EXCLUIR
+    async function excluirCirurgia(id) {
+        const { error } = await supabase.from("cirurgias").delete().eq("id", id);
+        
+        if (error) alert("Erro ao excluir: " + error.message);
+        else setListaCirurgias(listaCirurgias.filter(c => c.id !== id));
     }
 
     return (
-        <CirurgiasContext.Provider
-            value={{
-                listaCirurgias,
-                setListaCirurgias: handleSetListaCirurgias,
-                carregarCirurgias
-            }}
-        >
+        <CirurgiasContext.Provider value={{ 
+            listaCirurgias, 
+            carregarCirurgias, 
+            adicionarCirurgia, 
+            editarCirurgia, 
+            excluirCirurgia 
+        }}>
             {children}
         </CirurgiasContext.Provider>
     );
 }
 
-export function useCirurgias() {
-    return useContext(CirurgiasContext);
-}
+export const useCirurgias = () => useContext(CirurgiasContext);
