@@ -1,0 +1,41 @@
+[33ma910eb9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/gh-pages[m[33m)[m HEAD@{0}: reset: moving to a910eb9
+[33m9e7e69b[m HEAD@{1}: reset: moving to 9e7e69b
+[33m436f134[m[33m ([m[1;32mbackup-atual[m[33m)[m HEAD@{2}: commit: fix: organizar estrutura definitiva com o server na raiz e frontend separado
+[33mb79b269[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{3}: commit: refactor: mover surgiflow-server para a raiz do projeto
+[33m0ebd1bb[m HEAD@{4}: commit: Server.js
+[33m17aae5d[m HEAD@{5}: commit: fix: organizacao final do git e gitignore
+[33ma910eb9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/gh-pages[m[33m)[m HEAD@{6}: checkout: moving from gh-pages to main
+[33m55accf1[m[33m ([m[1;32mgh-pages[m[33m)[m HEAD@{7}: commit: Add supabase db
+[33m9e7e69b[m HEAD@{8}: commit: Add supabase db
+[33ma910eb9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/gh-pages[m[33m)[m HEAD@{9}: checkout: moving from main to gh-pages
+[33ma910eb9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/gh-pages[m[33m)[m HEAD@{10}: commit: Responsividade
+[33md87ffb5[m HEAD@{11}: commit: Dashboard
+[33m28e49ec[m HEAD@{12}: commit: Filtro pedidos
+[33m60e24b0[m HEAD@{13}: commit: CHAT TA DE SACANAGEM
+[33m0217ef8[m HEAD@{14}: commit: Médicos ID
+[33m57b6e05[m HEAD@{15}: commit: Page Médicos cadastradar ok
+[33m99b2e9d[m HEAD@{16}: commit: Page Médicos
+[33m21a79ef[m HEAD@{17}: commit: Dashboard Inteligente
+[33m4f200a4[m HEAD@{18}: commit: Tentando gerar PDF
+[33mc7d9233[m HEAD@{19}: commit: Ajeitando o label convênio
+[33m0e71d33[m HEAD@{20}: commit: Pedidos
+[33m53a65fb[m HEAD@{21}: commit: Modal
+[33m37e1ce6[m HEAD@{22}: commit (merge): Resolve merge conflict
+[33md49ad31[m HEAD@{23}: commit: Page
+[33m90f1409[m HEAD@{24}: commit: Index
+[33m98f3043[m HEAD@{25}: pull: Fast-forward
+[33m59821bc[m HEAD@{26}: commit: Calendário com sidebar
+[33mfa9d970[m HEAD@{27}: commit: Calendar
+[33m37e85aa[m HEAD@{28}: commit: Sidebar Navigation
+[33m812e33f[m HEAD@{29}: commit: Editar e Excluir Cirurgia
+[33ma261a67[m HEAD@{30}: commit: Cansada
+[33m6a4ef9a[m HEAD@{31}: commit: Search Bar
+[33m4f7fdb1[m HEAD@{32}: commit: Agenda
+[33ma322e41[m HEAD@{33}: commit: Adicionado Dashboard
+[33m381dd83[m HEAD@{34}: commit: React e Node.js
+[33m27a0566[m HEAD@{35}: commit: Paciencia
+[33m6db1acd[m HEAD@{36}: commit: Refazendo
+[33m5dd140d[m HEAD@{37}: commit: Adicionado pastas e arquivos jsx
+[33m617fdb5[m HEAD@{38}: Branch: renamed refs/heads/main to refs/heads/main
+[33m617fdb5[m HEAD@{40}: Branch: renamed refs/heads/master to refs/heads/main
+[33m617fdb5[m HEAD@{42}: commit (initial): Inicialização do SurgiFlow Web com React + Vite
