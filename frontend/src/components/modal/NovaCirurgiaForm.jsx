@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMedicos } from "../../context/MedicosContext";
-import { User, Hospital, FileText, Calendar, Clock, UploadCloud } from "lucide-react";
+import { User, Hospital, FileText, Calendar, Clock, UploadCloud, FileCheck, X } from "lucide-react";
 
 function NovaCirurgiaForm({ onSave, dados }) {
     const { listaMedicos } = useMedicos();
@@ -17,7 +17,6 @@ function NovaCirurgiaForm({ onSave, dados }) {
 
     useEffect(() => {
         if (dados) {
-            // Se estiver editando, quebra o "data_cirurgia" do banco em Data e Hora para a tela
             let dataSeparada = "";
             let horaSeparada = "";
             if (dados.data_cirurgia) {
@@ -28,7 +27,7 @@ function NovaCirurgiaForm({ onSave, dados }) {
 
             setForm({
                 paciente: dados.paciente || "",
-                medicoId: dados.medico_id || "", // Puxa com underline do banco
+                medicoId: dados.medico_id || "", 
                 hospital: dados.hospital || "",
                 convenio: dados.convenio || "",
                 data: dataSeparada,
@@ -53,7 +52,6 @@ function NovaCirurgiaForm({ onSave, dados }) {
         });
     }
 
-    // Estilos padrão do visual Premium
     const labelStyle = { 
         display: "block", fontSize: "0.85rem", fontWeight: "600", 
         color: "#64748b", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.5px" 
@@ -82,11 +80,10 @@ function NovaCirurgiaForm({ onSave, dados }) {
                 </div>
             </div>
 
-            {/* Médico Responsável (Dinâmico do Banco) */}
+            {/* Médico Responsável */}
             <div>
                 <label style={labelStyle}>Médico Responsável</label>
                 <div style={{ position: "relative" }}>
-                    {/* O select tem padding diferente pq não tem ícone dentro, então sobrescrevemos o padding */}
                     <select name="medicoId" value={form.medicoId} onChange={handleMedicoChange}
                         style={{ ...inputPremiumStyle, padding: "12px 14px", cursor: "pointer", appearance: "none" }}
                         onFocus={(e) => e.target.style.border = "1px solid #6C63FF"}
@@ -102,7 +99,7 @@ function NovaCirurgiaForm({ onSave, dados }) {
                 </div>
             </div>
 
-            {/* Hospital e Convênio (Lado a Lado) */}
+            {/* Hospital e Convênio */}
             <div style={{ display: "flex", gap: "15px" }}>
                 <div style={{ flex: 1 }}>
                     <label style={labelStyle}>Hospital</label>
@@ -128,7 +125,7 @@ function NovaCirurgiaForm({ onSave, dados }) {
                 </div>
             </div>
 
-            {/* Data e Hora (Lado a Lado) */}
+            {/* Data e Hora */}
             <div style={{ display: "flex", gap: "15px" }}>
                 <div style={{ flex: 1 }}>
                     <label style={labelStyle}>Data da Cirurgia</label>
@@ -154,48 +151,100 @@ function NovaCirurgiaForm({ onSave, dados }) {
                 </div>
             </div>
 
-            {/* Anexo de Documentos Moderno */}
+            {/* Anexo de Documentos Moderno (A MÁGICA ACONTECE AQUI ✨) */}
             <div>
                 <label style={labelStyle}>Anexo de Documentos / Pedido</label>
                 <div style={{
-                    position: "relative", border: "1.5px dashed #cbd5e1", borderRadius: "12px", padding: "20px",
-                    textAlign: "center", background: "#f8fafc", cursor: "pointer", transition: "0.2s"
+                    position: "relative", 
+                    border: form.anexo ? "1.5px solid #10b981" : "1.5px dashed #cbd5e1", 
+                    borderRadius: "12px", 
+                    padding: form.anexo ? "15px" : "20px", // Dá uma encolhidinha elegante quando preenche
+                    textAlign: "center", 
+                    background: form.anexo ? "#ecfdf5" : "#f8fafc", 
+                    transition: "all 0.2s ease"
                 }}
-                onMouseOver={(e) => { e.currentTarget.style.borderColor = "#6C63FF"; e.currentTarget.style.background = "#eff6ff"; }}
-                onMouseOut={(e) => { e.currentTarget.style.borderColor = "#cbd5e1"; e.currentTarget.style.background = "#f8fafc"; }}
+                onMouseOver={(e) => { 
+                    if(!form.anexo) {
+                        e.currentTarget.style.borderColor = "#6C63FF"; 
+                        e.currentTarget.style.background = "#eff6ff"; 
+                    }
+                }}
+                onMouseOut={(e) => { 
+                    if(!form.anexo) {
+                        e.currentTarget.style.borderColor = "#cbd5e1"; 
+                        e.currentTarget.style.background = "#f8fafc"; 
+                    }
+                }}
                 >
-                    <UploadCloud size={24} color="#6C63FF" style={{ marginBottom: "8px" }} />
-                    <p style={{ margin: "0", fontSize: "0.9rem", color: "#475569", fontWeight: "500" }}>
-                        {form.anexo ? form.anexo.name : "Clique para selecionar o PDF/Imagem"}
-                    </p>
-                    <input 
-                        type="file" 
-                        id="file-upload" 
-                        style={{ display: "none" }} 
-                        onChange={(e) => setForm({ ...form, anexo: e.target.files[0] })}
-                    />
-                    <label htmlFor="file-upload" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", cursor: "pointer" }}></label>
+                    {!form.anexo ? (
+                        // ESTADO 1: CAIXA VAZIA
+                        <>
+                            <UploadCloud size={24} color="#6C63FF" style={{ marginBottom: "8px" }} />
+                            <p style={{ margin: "0", fontSize: "0.9rem", color: "#475569", fontWeight: "500" }}>
+                                Clique para selecionar o PDF/Imagem
+                            </p>
+                            <input 
+                                type="file" 
+                                id="file-upload" 
+                                accept=".pdf,image/*" // Trava para só aceitar PDF ou imagens
+                                style={{ display: "none" }} 
+                                onChange={(e) => {
+                                    if (e.target.files && e.target.files[0]) {
+                                        setForm({ ...form, anexo: e.target.files[0] });
+                                    }
+                                }}
+                            />
+                            {/* Label cobre a caixa toda só quando está vazia */}
+                            <label htmlFor="file-upload" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", cursor: "pointer" }}></label>
+                        </>
+                    ) : (
+                        // ESTADO 2: ARQUIVO SELECIONADO
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", zIndex: 10 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "10px", overflow: "hidden" }}>
+                                <FileCheck size={24} color="#10b981" />
+                                <span style={{ fontSize: "0.95rem", color: "#065f46", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "250px" }}>
+                                    {form.anexo.name}
+                                </span>
+                            </div>
+                            
+                            {/* Botão de Remover Arquivo */}
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setForm({ ...form, anexo: null }); // Limpa a memória do arquivo
+                                }}
+                                style={{
+                                    background: "white", border: "1px solid #fca5a5", cursor: "pointer", color: "#ef4444",
+                                    display: "flex", alignItems: "center", justifyContent: "center", padding: "6px", borderRadius: "50%",
+                                    transition: "0.2s"
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.background = "#fee2e2"}
+                                onMouseOut={(e) => e.currentTarget.style.background = "white"}
+                                title="Remover anexo"
+                            >
+                                <X size={16} strokeWidth={3} />
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Botão Salvar (Mantém a sua lógica original intacta) */}
+            {/* Botão Salvar */}
             <button
                 type="button"
                 onClick={() => {
-                    // 1. TRADUZ OS DADOS PARA O FORMATO EXATO DO SUPABASE
                     const dadosFormatadosParaSupabase = {
                         paciente: form.paciente,
-                        medico_id: form.medicoId ? Number(form.medicoId) : null, // Banco espera número (int8)
+                        medico_id: form.medicoId ? Number(form.medicoId) : null, 
                         hospital: form.hospital,
                         convenio: form.convenio,
                         data_cirurgia: (form.data && form.horario) ? `${form.data} ${form.horario}` : null,
-                        status: dados ? dados.status : "Pendente" // Mantém status se editando, ou Pendente se nova
+                        status: dados ? dados.status : "Pendente" 
                     };
 
-                    // 2. ENVIA PARA A AGENDA SALVAR
                     onSave(dadosFormatadosParaSupabase);
-
-                    // 3. LIMPA O FORMULÁRIO DEPOIS DE SALVAR
                     setForm({ paciente: "", medicoId: "", hospital: "", convenio: "", data: "", horario: "", anexo: null });
                 }}
                 style={{
