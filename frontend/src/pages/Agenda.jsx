@@ -1,4 +1,6 @@
 import { useState } from "react";
+// Se quiser fazer o redirecionamento para a tela de pagamento depois, descomente a linha abaixo:
+// import { useNavigate } from "react-router-dom"; 
 import { useCirurgias } from "../context/CirurgiasContext";
 import AgendaTable from "../components/agenda/AgendaTable";
 import SearchBar from "../components/agenda/SearchBar";
@@ -9,6 +11,8 @@ function Agenda() {
     const [modalOpen, setModalOpen] = useState(false);
     const [cirurgiaEditando, setCirurgiaEditando] = useState(null);
     
+    // const navigate = useNavigate(); // Descomente quando for criar a tela de Planos
+
     // Puxamos as novas funções poderosas do nosso Contexto!
     const { listaCirurgias, adicionarCirurgia, editarCirurgia, excluirCirurgia } = useCirurgias();
 
@@ -30,6 +34,19 @@ function Agenda() {
             <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "20px" }}>
                 <button
                     onClick={() => {
+                        // 🛑 A BARREIRA (PAYWALL) COMEÇA AQUI 🛑
+                        // Se o plano for grátis e ele já tiver 10 cirurgias, barra!
+                        // No futuro, você checará algo como: if (usuario.plano === 'free' && listaCirurgias.length >= 10)
+                        if (listaCirurgias.length >= 10) {
+                            alert("🔒 Limite do Plano Grátis atingido!\n\nVocê já possui 10 cirurgias cadastradas. Assine o plano Premium para cadastros ilimitados.");
+                            
+                            // Quando você tiver a tela de checkout/planos criada, você usa isso:
+                            // navigate('/planos'); 
+                            
+                            return; // O 'return' expulsa o usuário da função. O modal não vai abrir!
+                        }
+                        // 🟢 SE PASSOU DA BARREIRA, CONTINUA NORMALMENTE 🟢
+
                         setCirurgiaEditando(null); // Garante que o modal abra vazio
                         setModalOpen(true);
                     }}
@@ -46,12 +63,10 @@ function Agenda() {
             <AgendaTable
                 cirurgias={cirurgiasFiltradas}
                 
-                // MUDAR STATUS AGORA VAI DIRETO PRO BANCO
                 onStatusChange={(id, novoStatus) => {
                     editarCirurgia(id, { status: novoStatus });
                 }}
                 
-                // DELETAR AGORA VAI DIRETO PRO BANCO
                 onDelete={(id) => {
                     excluirCirurgia(id);
                 }}
@@ -70,7 +85,6 @@ function Agenda() {
                 }}
                 cirurgia={cirurgiaEditando}
                 
-                // SALVAR OU EDITAR AGORA VAI DIRETO PRO BANCO
                 onSave={(dados) => {
                     if (cirurgiaEditando) {
                         editarCirurgia(cirurgiaEditando.id, dados);
