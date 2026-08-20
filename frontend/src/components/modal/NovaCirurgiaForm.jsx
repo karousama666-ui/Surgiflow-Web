@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useMedicos } from "../../context/MedicosContext";
-import { supabase } from "../../services/supabase"; // 👈 IMPORTANTE: Adicionado para o upload
-import { User, Hospital, FileText, Calendar, Clock, UploadCloud, FileCheck, X, Eye, Trash2 } from "lucide-react"; // 👈 Adicionado Eye e Trash2
+import { supabase } from "../../services/supabase"; 
+import { User, Hospital, FileText, Calendar, Clock, UploadCloud, FileCheck, X, Eye, Trash2 } from "lucide-react"; 
 
 function NovaCirurgiaForm({ onSave, dados }) {
     const { listaMedicos } = useMedicos();
-    const [isUploading, setIsUploading] = useState(false); // 👈 Adicionado para mostrar "Salvando..."
+    const [isUploading, setIsUploading] = useState(false); 
 
     const [form, setForm] = useState({
         paciente: "",
@@ -14,8 +14,8 @@ function NovaCirurgiaForm({ onSave, dados }) {
         convenio: "",
         data: "",
         horario: "",
-        anexo_url: null,     // 👈 Guarda o link se já existir no banco
-        novo_arquivo: null   // 👈 Guarda o arquivo novo que o usuário acabou de selecionar
+        anexo_url: null,     
+        novo_arquivo: null   
     });
 
     useEffect(() => {
@@ -35,7 +35,7 @@ function NovaCirurgiaForm({ onSave, dados }) {
                 convenio: dados.convenio || "",
                 data: dataSeparada,
                 horario: horaSeparada,
-                anexo_url: dados.anexo_url || null, // 👈 Puxa o anexo antigo se tiver
+                anexo_url: dados.anexo_url || null, 
                 novo_arquivo: null
             });
         }
@@ -56,27 +56,32 @@ function NovaCirurgiaForm({ onSave, dados }) {
         });
     }
 
-    // 👇 A FUNÇÃO QUE FAZ A MÁGICA DE SALVAR TUDO
+    // 👇 A MÁGICA: Agora salva dentro da subpasta do usuário logado!
     const handleSalvar = async () => {
         setIsUploading(true);
         try {
             let linkFinalDoAnexo = form.anexo_url;
 
-            // Se o usuário selecionou um arquivo NOVO na tela, faz o upload!
-            if (form.novo_arquivo) {
+            // 1. DESCOBRE QUEM ESTÁ LOGADO AGORA
+            const { data: { user } } = await supabase.auth.getUser();
+
+            // Se o usuário selecionou um arquivo NOVO e está logado, fazemos o upload
+            if (form.novo_arquivo && user) {
                 const extensao = form.novo_arquivo.name.split('.').pop();
-                const nomeArquivoUnico = `${Date.now()}_${Math.random().toString(36).substring(7)}.${extensao}`;
+                
+                // 2. CRIA O CAMINHO BLINDADO: "ID_DO_USUARIO/nome_do_arquivo.pdf"
+                const caminhoDoArquivo = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${extensao}`;
                 
                 const { error: uploadError } = await supabase.storage
                     .from('anexos_cirurgias')
-                    .upload(nomeArquivoUnico, form.novo_arquivo);
+                    .upload(caminhoDoArquivo, form.novo_arquivo);
 
                 if (uploadError) throw uploadError;
 
-                // Pega o link público do arquivo
+                // Pega o link público do arquivo usando o novo caminho
                 const { data: publicUrl } = supabase.storage
                     .from('anexos_cirurgias')
-                    .getPublicUrl(nomeArquivoUnico);
+                    .getPublicUrl(caminhoDoArquivo);
                 
                 linkFinalDoAnexo = publicUrl.publicUrl;
             }
@@ -89,7 +94,7 @@ function NovaCirurgiaForm({ onSave, dados }) {
                 convenio: form.convenio,
                 data_cirurgia: (form.data && form.horario) ? `${form.data} ${form.horario}` : null,
                 status: dados ? dados.status : "Pendente",
-                anexo_url: linkFinalDoAnexo // 👈 Salva a URL na tabela
+                anexo_url: linkFinalDoAnexo 
             };
 
             await onSave(dadosFormatadosParaSupabase);
@@ -100,7 +105,7 @@ function NovaCirurgiaForm({ onSave, dados }) {
             }
         } catch (error) {
             console.error("Erro ao salvar:", error);
-            alert("❌ Erro ao salvar arquivo. O bucket 'anexos_cirurgias' existe no Supabase?");
+            alert("❌ Erro ao salvar arquivo. O bucket 'anexos_cirurgias' existe no Supabase e permite uploads?");
         } finally {
             setIsUploading(false);
         }
@@ -205,7 +210,7 @@ function NovaCirurgiaForm({ onSave, dados }) {
                 </div>
             </div>
 
-            {/* 👇 Anexo de Documentos Moderno (COM PERSISTÊNCIA) */}
+            {/* Anexo de Documentos Moderno (COM PERSISTÊNCIA) */}
             <div>
                 <label style={labelStyle}>Anexo de Documentos / Pedido</label>
                 <div style={{
@@ -298,7 +303,7 @@ function NovaCirurgiaForm({ onSave, dados }) {
                 </div>
             </div>
 
-            {/* 👇 Botão Salvar conectado ao Loader */}
+            {/* Botão Salvar conectado ao Loader */}
             <button
                 type="button"
                 onClick={handleSalvar}
