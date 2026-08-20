@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useMedicos } from "../../context/MedicosContext";
-import { User, Hospital, FileText, Calendar, Clock, UploadCloud, FileCheck, X } from "lucide-react";
+import { supabase } from "../../services/supabase"; // 👈 IMPORTANTE: Adicionado para o upload
+import { User, Hospital, FileText, Calendar, Clock, UploadCloud, FileCheck, X, Eye, Trash2 } from "lucide-react"; // 👈 Adicionado Eye e Trash2
 
 function NovaCirurgiaForm({ onSave, dados }) {
     const { listaMedicos } = useMedicos();
+    const [isUploading, setIsUploading] = useState(false); // 👈 Adicionado para mostrar "Salvando..."
 
     const [form, setForm] = useState({
         paciente: "",
@@ -12,7 +14,8 @@ function NovaCirurgiaForm({ onSave, dados }) {
         convenio: "",
         data: "",
         horario: "",
-        anexo: null
+        anexo_url: null,     // 👈 Guarda o link se já existir no banco
+        novo_arquivo: null   // 👈 Guarda o arquivo novo que o usuário acabou de selecionar
     });
 
     useEffect(() => {
@@ -32,7 +35,8 @@ function NovaCirurgiaForm({ onSave, dados }) {
                 convenio: dados.convenio || "",
                 data: dataSeparada,
                 horario: horaSeparada,
-                anexo: null
+                anexo_url: dados.anexo_url || null, // 👈 Puxa o anexo antigo se tiver
+                novo_arquivo: null
             });
         }
     }, [dados]);
@@ -51,6 +55,56 @@ function NovaCirurgiaForm({ onSave, dados }) {
             medicoId: e.target.value
         });
     }
+
+    // 👇 A FUNÇÃO QUE FAZ A MÁGICA DE SALVAR TUDO
+    const handleSalvar = async () => {
+        setIsUploading(true);
+        try {
+            let linkFinalDoAnexo = form.anexo_url;
+
+            // Se o usuário selecionou um arquivo NOVO na tela, faz o upload!
+            if (form.novo_arquivo) {
+                const extensao = form.novo_arquivo.name.split('.').pop();
+                const nomeArquivoUnico = `${Date.now()}_${Math.random().toString(36).substring(7)}.${extensao}`;
+                
+                const { error: uploadError } = await supabase.storage
+                    .from('anexos_cirurgias')
+                    .upload(nomeArquivoUnico, form.novo_arquivo);
+
+                if (uploadError) throw uploadError;
+
+                // Pega o link público do arquivo
+                const { data: publicUrl } = supabase.storage
+                    .from('anexos_cirurgias')
+                    .getPublicUrl(nomeArquivoUnico);
+                
+                linkFinalDoAnexo = publicUrl.publicUrl;
+            }
+
+            // Monta os dados para o banco
+            const dadosFormatadosParaSupabase = {
+                paciente: form.paciente,
+                medico_id: form.medicoId ? Number(form.medicoId) : null,
+                hospital: form.hospital,
+                convenio: form.convenio,
+                data_cirurgia: (form.data && form.horario) ? `${form.data} ${form.horario}` : null,
+                status: dados ? dados.status : "Pendente",
+                anexo_url: linkFinalDoAnexo // 👈 Salva a URL na tabela
+            };
+
+            await onSave(dadosFormatadosParaSupabase);
+
+            // Limpa o formulário após salvar cirurgia nova
+            if (!dados) {
+                setForm({ paciente: "", medicoId: "", hospital: "", convenio: "", data: "", horario: "", anexo_url: null, novo_arquivo: null });
+            }
+        } catch (error) {
+            console.error("Erro ao salvar:", error);
+            alert("❌ Erro ao salvar arquivo. O bucket 'anexos_cirurgias' existe no Supabase?");
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     const labelStyle = { 
         display: "block", fontSize: "0.85rem", fontWeight: "600", 
@@ -151,33 +205,77 @@ function NovaCirurgiaForm({ onSave, dados }) {
                 </div>
             </div>
 
-            {/* Anexo de Documentos Moderno (A MÁGICA ACONTECE AQUI ✨) */}
+            {/* 👇 Anexo de Documentos Moderno (COM PERSISTÊNCIA) */}
             <div>
                 <label style={labelStyle}>Anexo de Documentos / Pedido</label>
                 <div style={{
                     position: "relative", 
-                    border: form.anexo ? "1.5px solid #10b981" : "1.5px dashed #cbd5e1", 
+                    border: (form.novo_arquivo || form.anexo_url) ? "1.5px solid #10b981" : "1.5px dashed #cbd5e1", 
                     borderRadius: "12px", 
-                    padding: form.anexo ? "15px" : "20px", // Dá uma encolhidinha elegante quando preenche
+                    padding: (form.novo_arquivo || form.anexo_url) ? "15px" : "20px", 
                     textAlign: "center", 
-                    background: form.anexo ? "#ecfdf5" : "#f8fafc", 
+                    background: (form.novo_arquivo || form.anexo_url) ? "#ecfdf5" : "#f8fafc", 
                     transition: "all 0.2s ease"
                 }}
                 onMouseOver={(e) => { 
-                    if(!form.anexo) {
+                    if(!form.novo_arquivo && !form.anexo_url) {
                         e.currentTarget.style.borderColor = "#6C63FF"; 
                         e.currentTarget.style.background = "#eff6ff"; 
                     }
                 }}
                 onMouseOut={(e) => { 
-                    if(!form.anexo) {
+                    if(!form.novo_arquivo && !form.anexo_url) {
                         e.currentTarget.style.borderColor = "#cbd5e1"; 
                         e.currentTarget.style.background = "#f8fafc"; 
                     }
                 }}
                 >
-                    {!form.anexo ? (
-                        // ESTADO 1: CAIXA VAZIA
+                    {/* ESTADO 1: Tem arquivo salvo no banco (Cirurgia Antiga) */}
+                    {form.anexo_url && !form.novo_arquivo && (
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", zIndex: 10 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                <FileCheck size={24} color="#10b981" />
+                                <span style={{ fontSize: "0.95rem", color: "#065f46", fontWeight: "600" }}>Documento Salvo</span>
+                            </div>
+                            <div style={{ display: "flex", gap: "8px" }}>
+                                <button type="button" onClick={() => window.open(form.anexo_url, "_blank")} title="Visualizar" style={{ background: "white", border: "1px solid #10b981", color: "#10b981", display: "flex", padding: "8px", borderRadius: "8px", cursor: "pointer", transition: "0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = "#dcfce7"} onMouseOut={(e) => e.currentTarget.style.background = "white"}>
+                                    <Eye size={16} />
+                                </button>
+                                <button type="button" onClick={() => setForm({ ...form, anexo_url: null })} title="Remover" style={{ background: "white", border: "1px solid #fca5a5", color: "#ef4444", display: "flex", padding: "8px", borderRadius: "8px", cursor: "pointer", transition: "0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = "#fee2e2"} onMouseOut={(e) => e.currentTarget.style.background = "white"}>
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ESTADO 2: Acabou de selecionar um arquivo (Cirurgia Nova ou Atualização) */}
+                    {form.novo_arquivo && (
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", zIndex: 10 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "10px", overflow: "hidden" }}>
+                                <FileCheck size={24} color="#10b981" />
+                                <span style={{ fontSize: "0.95rem", color: "#065f46", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "250px" }}>
+                                    {form.novo_arquivo.name}
+                                </span>
+                            </div>
+                            
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setForm({ ...form, novo_arquivo: null }); 
+                                }}
+                                style={{ background: "white", border: "1px solid #fca5a5", cursor: "pointer", color: "#ef4444", display: "flex", alignItems: "center", justifyContent: "center", padding: "6px", borderRadius: "50%", transition: "0.2s" }}
+                                onMouseOver={(e) => e.currentTarget.style.background = "#fee2e2"}
+                                onMouseOut={(e) => e.currentTarget.style.background = "white"}
+                            >
+                                <X size={16} strokeWidth={3} />
+                            </button>
+                        </div>
+                    )}
+
+                    {/* ESTADO 3: Caixa Vazia esperando clique */}
+                    {!form.anexo_url && !form.novo_arquivo && (
                         <>
                             <UploadCloud size={24} color="#6C63FF" style={{ marginBottom: "8px" }} />
                             <p style={{ margin: "0", fontSize: "0.9rem", color: "#475569", fontWeight: "500" }}>
@@ -186,76 +284,34 @@ function NovaCirurgiaForm({ onSave, dados }) {
                             <input 
                                 type="file" 
                                 id="file-upload" 
-                                accept=".pdf,image/*" // Trava para só aceitar PDF ou imagens
+                                accept=".pdf,image/*" 
                                 style={{ display: "none" }} 
                                 onChange={(e) => {
                                     if (e.target.files && e.target.files[0]) {
-                                        setForm({ ...form, anexo: e.target.files[0] });
+                                        setForm({ ...form, novo_arquivo: e.target.files[0] });
                                     }
                                 }}
                             />
-                            {/* Label cobre a caixa toda só quando está vazia */}
                             <label htmlFor="file-upload" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", cursor: "pointer" }}></label>
                         </>
-                    ) : (
-                        // ESTADO 2: ARQUIVO SELECIONADO
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", zIndex: 10 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "10px", overflow: "hidden" }}>
-                                <FileCheck size={24} color="#10b981" />
-                                <span style={{ fontSize: "0.95rem", color: "#065f46", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "250px" }}>
-                                    {form.anexo.name}
-                                </span>
-                            </div>
-                            
-                            {/* Botão de Remover Arquivo */}
-                            <button
-                                type="button"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setForm({ ...form, anexo: null }); // Limpa a memória do arquivo
-                                }}
-                                style={{
-                                    background: "white", border: "1px solid #fca5a5", cursor: "pointer", color: "#ef4444",
-                                    display: "flex", alignItems: "center", justifyContent: "center", padding: "6px", borderRadius: "50%",
-                                    transition: "0.2s"
-                                }}
-                                onMouseOver={(e) => e.currentTarget.style.background = "#fee2e2"}
-                                onMouseOut={(e) => e.currentTarget.style.background = "white"}
-                                title="Remover anexo"
-                            >
-                                <X size={16} strokeWidth={3} />
-                            </button>
-                        </div>
                     )}
                 </div>
             </div>
 
-            {/* Botão Salvar */}
+            {/* 👇 Botão Salvar conectado ao Loader */}
             <button
                 type="button"
-                onClick={() => {
-                    const dadosFormatadosParaSupabase = {
-                        paciente: form.paciente,
-                        medico_id: form.medicoId ? Number(form.medicoId) : null, 
-                        hospital: form.hospital,
-                        convenio: form.convenio,
-                        data_cirurgia: (form.data && form.horario) ? `${form.data} ${form.horario}` : null,
-                        status: dados ? dados.status : "Pendente" 
-                    };
-
-                    onSave(dadosFormatadosParaSupabase);
-                    setForm({ paciente: "", medicoId: "", hospital: "", convenio: "", data: "", horario: "", anexo: null });
-                }}
+                onClick={handleSalvar}
+                disabled={isUploading}
                 style={{
-                    background: "#6C63FF", color: "white", border: "none", borderRadius: "10px",
-                    padding: "14px", fontWeight: "700", fontSize: "1rem", cursor: "pointer",
-                    marginTop: "10px", transition: "0.2s", boxShadow: "0 4px 14px rgba(108, 99, 255, 0.4)", fontFamily: "inherit"
+                    background: isUploading ? "#94a3b8" : "#6C63FF", color: "white", border: "none", borderRadius: "10px",
+                    padding: "14px", fontWeight: "700", fontSize: "1rem", cursor: isUploading ? "wait" : "pointer",
+                    marginTop: "10px", transition: "0.2s", boxShadow: isUploading ? "none" : "0 4px 14px rgba(108, 99, 255, 0.4)", fontFamily: "inherit"
                 }}
-                onMouseOver={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
-                onMouseOut={(e) => e.currentTarget.style.transform = "translateY(0)"}
+                onMouseOver={(e) => { if (!isUploading) e.currentTarget.style.transform = "translateY(-2px)" }}
+                onMouseOut={(e) => { if (!isUploading) e.currentTarget.style.transform = "translateY(0)" }}
             >
-                {dados ? "Salvar Alterações" : "Cadastrar Cirurgia"}
+                {isUploading ? "Salvando Anexo..." : (dados ? "Salvar Alterações" : "Cadastrar Cirurgia")}
             </button>
         </form>
     );
