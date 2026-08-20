@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import Modal from "./Modal";
 import NovaCirurgiaForm from "./NovaCirurgiaForm";
-import { supabase } from "../../services/supabase"; // Cuidado com o caminho!
-import { History, FileEdit, Clock } from "lucide-react";
+import { supabase } from "../../services/supabase"; 
+import { FileEdit, Clock } from "lucide-react"; // 👈 Ajuste de ícones
 
 function CirurgiaModal({ isOpen, onClose, cirurgia, onSave }) {
     // Estado para controlar qual aba está aberta
@@ -102,7 +102,8 @@ function CirurgiaModal({ isOpen, onClose, cirurgia, onSave }) {
                             <FileEdit size={18} /> Dados da Cirurgia
                         </div>
                         <div style={tabStyle(abaAtiva === "historico")} onClick={() => setAbaAtiva("historico")}>
-                            <History size={18} /> Trilha de Auditoria
+                            {/* 👇 NOME MUDADO 👇 */}
+                            <Clock size={18} /> Log de Alterações
                         </div>
                     </div>
                 )}
@@ -111,12 +112,18 @@ function CirurgiaModal({ isOpen, onClose, cirurgia, onSave }) {
                 <div style={{ display: abaAtiva === "dados" ? "block" : "none" }}>
                     <NovaCirurgiaForm
                         dados={cirurgia}
-                        onSave={handleSalvarComAuditoria} // Passa pela nossa função que "espiona" a ação
+                        onSave={handleSalvarComAuditoria} 
                     />
                 </div>
 
                 {/* --- CONTEÚDO DA ABA: HISTÓRICO --- */}
-                <div style={{ display: abaAtiva === "historico" ? "block" : "none", maxHeight: "60vh", overflowY: "auto", paddingRight: "10px" }}>
+                {/* 👇 ADICIONADO HEIGHT FIXO PARA GARANTIR A SCROLLBAR 👇 */}
+                <div style={{ 
+                    display: abaAtiva === "historico" ? "block" : "none", 
+                    height: "400px", // Trava a altura para forçar o scroll
+                    overflowY: "auto", 
+                    paddingRight: "10px" 
+                }}>
                     {carregandoHistorico ? (
                         <p style={{ textAlign: "center", color: "#64748b" }}>Buscando registros...</p>
                     ) : historico.length === 0 ? (
@@ -126,7 +133,7 @@ function CirurgiaModal({ isOpen, onClose, cirurgia, onSave }) {
                             <p style={{ margin: "5px 0 0 0", fontSize: "0.85rem", color: "#94a3b8" }}>As próximas alterações aparecerão aqui.</p>
                         </div>
                     ) : (
-                        <div style={{ position: "relative", paddingLeft: "15px" }}>
+                        <div style={{ position: "relative", paddingLeft: "15px", paddingTop: "5px", paddingBottom: "5px" }}>
                             {/* Linha vertical conectora */}
                             <div style={{ position: "absolute", left: "22px", top: "10px", bottom: "10px", width: "2px", background: "#e2e8f0", zIndex: 0 }}></div>
 
