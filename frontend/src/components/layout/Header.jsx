@@ -1,36 +1,34 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react"; // 👈 Adicionamos o useRef aqui!
 import { useAuth } from "../../context/AuthContext";
 import { useCirurgias } from "../../context/CirurgiasContext";
 import { usePedidos } from "../../context/PedidosContext";
 import { useLocation } from "react-router-dom";
 import { Bell, LogOut, AlertCircle, PackageSearch, CheckCircle2 } from "lucide-react";
-import { supabase } from "../../services/supabase.js"; // <- IMPORT DO BANCO AQUI!
+import { supabase } from "../../services/supabase.js"; 
 
 function Header() {
     const { logout } = useAuth(); 
     const location = useLocation();
     
-    // Garantindo que mesmo se o Context demorar, o sistema não quebre
     const { listaCirurgias = [] } = useCirurgias() || {};
     const { listaPedidos = [] } = usePedidos() || {};
 
     const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
     
-    // ESTADOS DINÂMICOS DO USUÁRIO 👤
+    // 👇 REF: É como se fosse uma "etiqueta de rastreamento" para a caixa de notificação
+    const notificacaoRef = useRef(null);
+    
     const [nomeExibicao, setNomeExibicao] = useState("Carregando...");
     const [cargoExibicao, setCargoExibicao] = useState("Profissional de Saúde");
 
-    // BUSCA O USUÁRIO LOGADO ASSIM QUE A TELA ABRE 🔄
     useEffect(() => {
         async function buscarUsuarioLogado() {
             try {
                 const { data: { user } } = await supabase.auth.getUser();
                 
                 if (user && user.user_metadata && user.user_metadata.nome) {
-                    // Pega só o primeiro e o segundo nome para o layout ficar perfeito
                     const nomeCompleto = user.user_metadata.nome.split(" ");
                     const nomeCurto = `${nomeCompleto[0]} ${nomeCompleto[1] || ""}`;
-                    
                     setNomeExibicao(nomeCurto);
                 } else {
                     setNomeExibicao("Usuário");
@@ -43,13 +41,32 @@ function Header() {
         buscarUsuarioLogado();
     }, []);
 
+    // 👇 O DETETIVE DE CLIQUES: Ele vigia o mouse quando as notificações estão abertas
+    useEffect(() => {
+        function lidarComCliqueFora(event) {
+            // Se o clique foi numa área que NÃO pertence à div da notificação, ele fecha!
+            if (notificacaoRef.current && !notificacaoRef.current.contains(event.target)) {
+                setNotificacoesAbertas(false);
+            }
+        }
+
+        if (notificacoesAbertas) {
+            document.addEventListener("mousedown", lidarComCliqueFora);
+        } else {
+            document.removeEventListener("mousedown", lidarComCliqueFora);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", lidarComCliqueFora);
+        };
+    }, [notificacoesAbertas]);
+
     const formatarTitulo = () => {
         const path = location.pathname.replace("/", "");
         if (!path) return "Painel de Controle";
         return path.charAt(0).toUpperCase() + path.slice(1);
     };
 
-    // Lógica Flexível para notificações
     const notificacoesReais = useMemo(() => {
         const alertas = [];
         let idCounter = 1;
@@ -115,7 +132,8 @@ function Header() {
                     Online
                 </span>
 
-                <div style={{ position: "relative" }}>
+                {/* 👇 ADICIONAMOS A REF NESTA DIV PARA RASTREAR ELA E SEUS FILHOS 👇 */}
+                <div ref={notificacaoRef} style={{ position: "relative" }}>
                     <button 
                         onClick={() => setNotificacoesAbertas(!notificacoesAbertas)}
                         style={{ 
@@ -171,7 +189,6 @@ function Header() {
                     )}
                 </div>
 
-                {/* BLOCO DO USUÁRIO DINÂMICO AQUI */}
                 <div style={{ display: "flex", alignItems: "center", gap: "12px", borderLeft: "1px solid #e2e8f0", paddingLeft: "20px" }}>
                     <div style={{ textAlign: "right" }}>
                         <strong style={{ display: "block", color: "#1e293b", fontSize: "0.9rem" }}>{nomeExibicao}</strong>
@@ -182,7 +199,6 @@ function Header() {
                         borderRadius: "50%", display: "flex", justifyContent: "center", alignItems: "center", 
                         fontWeight: "700", fontSize: "1.1rem", textTransform: "uppercase" 
                     }}>
-                        {/* Pega a primeira letra do nome de forma segura */}
                         {nomeExibicao ? nomeExibicao.charAt(0) : "U"}
                     </div>
                 </div>

@@ -10,8 +10,8 @@ import {
     Users,
     Building2,
     Trophy,
-    ShieldPlus, // 👈 Ícone para Convênios
-    Truck       // 👈 Ícone para Fornecedores
+    ShieldPlus, 
+    Truck       
 } from "lucide-react";
 
 function Relatorios() {
@@ -41,8 +41,14 @@ function Relatorios() {
         const canceladas = cirurgiasDoMes.filter(c => c.status === "Cancelada").length;
         const pendentes = cirurgiasDoMes.filter(c => c.status === "Pendente").length;
 
-        const opmesDoMes = listaPedidos.filter(p => 
+        // Puxa todos os pedidos que batem com as cirurgias do mês (Bruto)
+        const opmesDoMesBrutos = listaPedidos.filter(p => 
             cirurgiasDoMes.some(c => String(c.id) === String(p.cirurgia_id))
+        );
+
+        // 🛡️ BLINDAGEM DE AUDITORIA: Remove duplicatas (previne erro de clique duplo no cadastro)
+        const opmesDoMes = opmesDoMesBrutos.filter((pedido, index, self) =>
+            index === self.findIndex((p) => p.cirurgia_id === pedido.cirurgia_id)
         );
 
         const opmeAprovados = opmesDoMes.filter(p => p.status === "Aprovado" || p.status === "Material Entregue").length;

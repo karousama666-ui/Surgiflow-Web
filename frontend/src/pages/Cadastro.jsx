@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { User, Mail, Lock, FileText, ArrowRight, ShieldCheck } from "lucide-react";
+import { User, Mail, Lock, FileText, ArrowRight, ShieldCheck, Eye, EyeOff } from "lucide-react"; // 👈 Ícones adicionados
 import logoSurgiFlow from "../assets/logopdf.png"; 
 
 // O CAMINHO CORRIGIDO E DEFINITIVO PARA O SUPABASE! 🎯
@@ -14,6 +14,9 @@ function Cadastro() {
         senha: ""
     });
     
+    // 👇 ESTADO: Controla a visibilidade da senha
+    const [mostrarSenha, setMostrarSenha] = useState(false); 
+
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -129,15 +132,39 @@ function Cadastro() {
                         />
                     </div>
 
+                    {/* 👇 CAIXA DE SENHA COM O OLHINHO 👇 */}
                     <div style={{ position: "relative" }}>
                         <Lock size={20} color="#94a3b8" style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)" }} />
-                        <input type="password" name="senha" placeholder="Crie uma senha forte" value={form.senha} onChange={handleChange} required minLength="6"
+                        
+                        <input 
+                            type={mostrarSenha ? "text" : "password"} 
+                            name="senha" 
+                            placeholder="Crie uma senha forte" 
+                            value={form.senha} 
+                            onChange={handleChange} 
+                            required 
+                            minLength="6"
                             style={{ 
-                                width: "100%", padding: "14px 14px 14px 45px", borderRadius: "12px", 
+                                width: "100%", padding: "14px 45px 14px 45px", borderRadius: "12px", // 👈 Ajuste de padding
                                 border: "1px solid #cbd5e1", fontSize: "0.95rem", outline: "none", boxSizing: "border-box", 
                                 background: "#f8fafc", color: "#1e293b", fontFamily: "inherit" 
                             }}
                         />
+                        
+                        {/* Botão invisível do olhinho */}
+                        <button
+                            type="button"
+                            onClick={() => setMostrarSenha(!mostrarSenha)}
+                            style={{
+                                position: "absolute", right: "15px", top: "50%", transform: "translateY(-50%)",
+                                background: "none", border: "none", cursor: "pointer", padding: "5px", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", transition: "0.2s"
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.color = "#6C63FF"}
+                            onMouseOut={(e) => e.currentTarget.style.color = "#94a3b8"}
+                            title={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+                        >
+                            {mostrarSenha ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
                     </div>
 
                     <button type="submit" 
