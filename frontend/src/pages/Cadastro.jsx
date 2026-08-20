@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { User, Mail, Lock, FileText, ArrowRight, ShieldCheck } from "lucide-react";
 import logoSurgiFlow from "../assets/logopdf.png"; 
+// Importando o Supabase para fazer a conexão real! 
+// (Se o seu arquivo supabase.js estiver em outra pasta, ajuste o caminho "../supabase")
+import { supabase } from "../supabase"; 
 
 function Cadastro() {
     const [form, setForm] = useState({
@@ -35,9 +38,33 @@ function Cadastro() {
             return;
         }
 
-        console.log("Dados prontos para o cofre:", form);
-        alert("Cadastro simulado com sucesso! Em breve, isso vai direto pro banco de dados.");
-        navigate("/"); 
+        try {
+            // 1. Chamada oficial para o banco de dados criar o usuário
+            const { data, error } = await supabase.auth.signUp({
+                email: form.email,
+                password: form.senha,
+                options: {
+                    data: {
+                        nome: form.nome,
+                        cpf: form.cpf
+                    }
+                }
+            });
+
+            // 2. Se o Supabase recusar (ex: e-mail já existe ou senha muito curta)
+            if (error) {
+                alert("Ops! Erro ao criar conta: " + error.message);
+                return;
+            }
+
+            // 3. Sucesso!
+            alert("Conta criada com sucesso! Bem-vindo(a) ao SurgiFlow.");
+            navigate("/"); // Redireciona para a tela de Login
+            
+        } catch (err) {
+            console.error("Erro inesperado no cadastro:", err);
+            alert("Ocorreu um erro no servidor. Tente novamente.");
+        }
     };
 
     return (
