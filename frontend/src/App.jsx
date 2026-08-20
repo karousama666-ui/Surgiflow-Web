@@ -17,6 +17,7 @@ import Header from "./components/layout/Header";
 // ==========================================
 import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
+import NovaSenha from "./pages/NovaSenha"; // 👈 NOSSA TELA NOVA AQUI!
 import Dashboard from "./pages/Dashboard";
 import Agenda from "./pages/Agenda";
 import Calendario from "./pages/Calendario";
@@ -64,6 +65,7 @@ function App() {
                 {/* 🔴 ROTAS PÚBLICAS (Telas Cheias) */}
                 <Route path="/" element={<Login />} />
                 <Route path="/cadastro" element={<Cadastro />} />
+                <Route path="/nova-senha" element={<NovaSenha />} /> {/* 👈 NOSSA ROTA NOVA AQUI! */}
 
                 {/* 🟢 ROTAS PROTEGIDAS (Com o Molde Aplicado) */}
                 <Route path="/dashboard" element={<RotaProtegida><LayoutApp><Dashboard /></LayoutApp></RotaProtegida>} />

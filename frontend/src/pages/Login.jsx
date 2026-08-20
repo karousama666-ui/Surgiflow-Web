@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../services/supabase"; 
-import { Mail, Lock, ArrowRight, ShieldCheck, CheckCircle2, ArrowLeft, Send, Eye, EyeOff } from "lucide-react"; // 👈 Adicionamos Eye e EyeOff
+import { Mail, Lock, ArrowRight, ShieldCheck, CheckCircle2, ArrowLeft, Send, Eye, EyeOff } from "lucide-react"; 
 
 import logoSurgiFlow from "../assets/logo_surgiflowdark.png"; 
 import videoFundo from "../assets/surgiflowbackground.mp4"; 
@@ -48,8 +48,9 @@ function Login() {
 
         setLoading(true);
         try {
+            // 👇 AQUI ESTÁ A MÁGICA: Redirecionando para a nova tela de senha!
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/`, 
+                redirectTo: `${window.location.origin}/nova-senha`, 
             });
             
             if (error) throw error;
@@ -68,7 +69,7 @@ function Login() {
 
     // Estilo padrão para os inputs (Note que aumentei um pouco o padding-right para caber o olhinho sem encostar no texto)
     const inputPremiumStyle = { 
-        width: "100%", padding: "16px 45px 16px 45px", borderRadius: "12px", // 👈 Ajuste de padding
+        width: "100%", padding: "16px 45px 16px 45px", borderRadius: "12px", 
         border: "1px solid #cbd5e1", fontSize: "1rem", outline: "none", boxSizing: "border-box", 
         background: "#f8fafc", color: "#1e293b", fontFamily: "inherit", transition: "border 0.2s"
     };
