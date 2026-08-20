@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from "../services/supabase"; 
-import { User, Building, ShieldCheck, CreditCard, Award, Save, Check, Users, UserPlus, Trash2 } from "lucide-react"; // 👈 Ícones novos para a equipe
+import { User, Building, ShieldCheck, CreditCard, Award, Save, Check, Users, UserPlus, Trash2 } from "lucide-react";
 import "./Configuracoes.css";
 
 // ==========================================
@@ -33,9 +33,11 @@ const CustomCheckbox = ({ label, name, checked, onChange }) => {
 // ==========================================
 function Configuracoes() {
   const [loading, setLoading] = useState(false);
-  const [userId, setUserId] = useState(null); // Guarda o ID do dono da conta
-  const [membrosEquipe, setMembrosEquipe] = useState([]); // Lista de funcionários
-  const [novoMembro, setNovoMembro] = useState({ nome: "", email: "", cargo: "" }); // Formulário do funcionário
+  const [userId, setUserId] = useState(null); 
+  const [membrosEquipe, setMembrosEquipe] = useState([]); 
+  
+  // 👇 ADICIONADO CAMPO DE SENHA AQUI
+  const [novoMembro, setNovoMembro] = useState({ nome: "", email: "", cargo: "", senha: "" }); 
 
   const [form, setForm] = useState({
     nome: "", cargo: "", registro: "", email: "", telefone: "", empresa: "", cnpj: "",
@@ -67,7 +69,6 @@ function Configuracoes() {
                   auditoriaOpme: user.user_metadata?.auditoriaOpme ?? true,
               }));
 
-              // 🌟 CARREGA A EQUIPE DA TABELA 'equipe' 🌟
               const { data: equipeData } = await supabase
                 .from('equipe')
                 .select('*')
@@ -85,17 +86,15 @@ function Configuracoes() {
   }
 
   // ==========================================
-  // LÓGICA DA EQUIPE (ADICIONAR E REMOVER)
+  // LÓGICA DA EQUIPE (CRIAR LOGIN NO SUPABASE + SALVAR NA TABELA)
   // ==========================================
   async function handleAdicionarMembro() {
-      if (!novoMembro.nome || !novoMembro.email) {
-          alert("Preencha pelo menos o Nome e o E-mail do membro.");
+      if (!novoMembro.nome || !novoMembro.email || !novoMembro.senha || novoMembro.senha.length < 6) {
+          alert("Preencha Nome, E-mail e uma Senha Inicial (mínimo 6 caracteres).");
           return;
       }
       
-      // 🛑 A BARREIRA (PAYWALL) 🛑
-      // Exemplo simples: Se for plano free, trava. No futuro conectaremos ao Asaas!
-      const planoAtivo = true; // Simulação: mude para 'false' para testar o bloqueio
+      const planoAtivo = true; 
       if (!planoAtivo) {
           alert("🔒 Recurso Premium!\n\nAssine o plano Corporate para adicionar usuários ilimitados à sua equipe.");
           return;
@@ -103,19 +102,44 @@ function Configuracoes() {
 
       setLoading(true);
       try {
+          // 1. CRIA O LOGIN REAL NA PORTARIA DO SUPABASE (Auth)
+          // Isso permite que o funcionário acesse o sistema pela tela de login!
+          const { data: authData, error: authError } = await supabase.auth.signUp({
+              email: novoMembro.email,
+              password: novoMembro.senha,
+              options: {
+                  data: {
+                      nome: novoMembro.nome,
+                      cargo: novoMembro.cargo,
+                      conta_chefe_id: userId // Marca ele como "subordinado" ao ID da chefe
+                  }
+              }
+          });
+
+          if (authError) {
+              if (authError.message.includes("already registered")) {
+                  alert("❌ Este e-mail já está cadastrado no sistema.");
+              } else {
+                  throw authError;
+              }
+              return;
+          }
+
+          // 2. SALVA O FUNCIONÁRIO NA TABELA 'equipe'
           const novoFuncionario = {
               nome: novoMembro.nome,
               email: novoMembro.email,
               cargo: novoMembro.cargo,
-              conta_principal_id: userId // Amarra à conta do "chefe"
+              conta_principal_id: userId 
           };
 
           const { data, error } = await supabase.from('equipe').insert([novoFuncionario]).select();
           if (error) throw error;
 
           setMembrosEquipe([...membrosEquipe, data[0]]);
-          setNovoMembro({ nome: "", email: "", cargo: "" }); // Limpa o mini-form
-          alert("✅ Membro adicionado com sucesso!\nUm e-mail será enviado para ele (configuração futura).");
+          setNovoMembro({ nome: "", email: "", cargo: "", senha: "" }); // Limpa o mini-form
+          
+          alert(`✅ Membro adicionado com sucesso!\n\nEnvie o acesso para o funcionário:\nLogin: ${novoFuncionario.email}\nSenha: (A senha que você acabou de criar)`);
       } catch (error) {
           console.error("Erro ao adicionar:", error);
           alert("❌ Erro ao salvar membro da equipe.");
@@ -125,7 +149,7 @@ function Configuracoes() {
   }
 
   async function handleRemoverMembro(membroId) {
-      if(window.confirm("Deseja realmente remover o acesso deste funcionário?")) {
+      if(window.confirm("Deseja realmente remover o acesso deste funcionário? Ele não conseguirá mais ver os dados da clínica.")) {
           const { error } = await supabase.from('equipe').delete().eq('id', membroId);
           if(!error) setMembrosEquipe(membrosEquipe.filter(m => m.id !== membroId));
       }
@@ -219,30 +243,34 @@ function Configuracoes() {
           </div>
         </div>
 
-        {/* 🌟 NOVA SEÇÃO: EQUIPE E ACESSOS 🌟 */}
+        {/* 🌟 SEÇÃO: EQUIPE E ACESSOS 🌟 */}
         <div className="config-section" style={sectionStyle}>
           <div style={headerStyle}><Users size={22} color="#10b981" /> Equipe e Acessos</div>
           <p style={{ fontSize: "0.95rem", color: "#64748b", marginBottom: "20px", fontWeight: "500" }}>
             Adicione membros para gerenciarem a agenda e pedidos com você. Ações ficarão registradas na auditoria.
           </p>
 
-          {/* Adicionar Membro */}
-          <div style={{ display: "flex", gap: "15px", marginBottom: "25px", alignItems: "flex-end", flexWrap: "wrap" }}>
-              <div style={{ flex: 1, minWidth: "200px" }}>
+          {/* Adicionar Membro (Agora com Senha!) */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: "15px", marginBottom: "25px", alignItems: "flex-end" }}>
+              <div>
                   <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "#475569" }}>Nome do Membro</label>
                   <input type="text" placeholder="Ex: João Silva" value={novoMembro.nome} onChange={(e) => setNovoMembro({...novoMembro, nome: e.target.value})} style={inputStyle} />
               </div>
-              <div style={{ flex: 1, minWidth: "200px" }}>
+              <div>
                   <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "#475569" }}>E-mail (Login)</label>
                   <input type="email" placeholder="joao@clinica.com" value={novoMembro.email} onChange={(e) => setNovoMembro({...novoMembro, email: e.target.value})} style={inputStyle} />
               </div>
-              <div style={{ flex: 1, minWidth: "200px" }}>
+              <div>
                   <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "#475569" }}>Cargo</label>
-                  <input type="text" placeholder="Enfermeiro, Recepção..." value={novoMembro.cargo} onChange={(e) => setNovoMembro({...novoMembro, cargo: e.target.value})} style={inputStyle} />
+                  <input type="text" placeholder="Ex: Recepção" value={novoMembro.cargo} onChange={(e) => setNovoMembro({...novoMembro, cargo: e.target.value})} style={inputStyle} />
+              </div>
+              <div>
+                  <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "#475569" }}>Senha Inicial</label>
+                  <input type="text" placeholder="Mínimo 6 letras/números" value={novoMembro.senha} onChange={(e) => setNovoMembro({...novoMembro, senha: e.target.value})} style={inputStyle} />
               </div>
               <button 
                   type="button" onClick={handleAdicionarMembro} disabled={loading}
-                  style={{ background: "#f8fafc", color: "#6C63FF", border: "1px solid #6C63FF", borderRadius: "8px", padding: "12px 20px", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", transition: "0.2s" }}
+                  style={{ background: "#f8fafc", color: "#6C63FF", border: "1px solid #6C63FF", borderRadius: "8px", padding: "12px 20px", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", transition: "0.2s", height: "45px" }}
                   onMouseOver={(e) => { e.currentTarget.style.background = "#eff6ff" }}
                   onMouseOut={(e) => { e.currentTarget.style.background = "#f8fafc" }}
               >
