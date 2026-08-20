@@ -9,18 +9,26 @@ import {
     Activity,
     Users,
     Building2,
-    Trophy // 👈 Novo ícone para os cards de ranking
+    Trophy,
+    ShieldPlus, // 👈 Ícone para Convênios
+    Truck       // 👈 Ícone para Fornecedores
 } from "lucide-react";
 
 function Relatorios() {
     const { listaCirurgias } = useCirurgias();
     const { listaPedidos } = usePedidos();
 
-    // Filtro de Mês/Ano (Começa no mês atual - Ajuste para o formato YYYY-MM)
+    // Filtro de Mês/Ano
     const [mesFiltro, setMesFiltro] = useState(new Date().toISOString().slice(0, 7));
 
     // 1. CÁLCULO DOS DADOS
-    const { metricas, rankingMedicos, rankingHospitais } = useMemo(() => {
+    const { 
+        metricas, 
+        rankingMedicos, 
+        rankingHospitais, 
+        rankingConvenios, 
+        rankingFornecedores 
+    } = useMemo(() => {
         // --- FILTRO GERAL ---
         const cirurgiasDoMes = listaCirurgias.filter(c => {
             if (!c.data_cirurgia) return false;
@@ -40,25 +48,17 @@ function Relatorios() {
         const opmeAprovados = opmesDoMes.filter(p => p.status === "Aprovado" || p.status === "Material Entregue").length;
         const opmePendentes = opmesDoMes.filter(p => p.status === "Aguardando Orçamento" || p.status === "Em Aprovação (Convênio)").length;
 
-        // --- RANKING DE MÉDICOS ---
-        const contagemMedicos = {};
-        cirurgiasDoMes.forEach(c => {
-            const nomeMedico = c.medicos?.nome || "Não informado";
-            contagemMedicos[nomeMedico] = (contagemMedicos[nomeMedico] || 0) + 1;
-        });
-        const medicosRankeados = Object.entries(contagemMedicos)
-            .sort((a, b) => b[1] - a[1]) // Ordena do maior para o menor
-            .slice(0, 5); // Pega o Top 5
-
-        // --- RANKING DE HOSPITAIS ---
-        const contagemHospitais = {};
-        cirurgiasDoMes.forEach(c => {
-            const nomeHospital = c.hospital || "Não informado";
-            contagemHospitais[nomeHospital] = (contagemHospitais[nomeHospital] || 0) + 1;
-        });
-        const hospitaisRankeados = Object.entries(contagemHospitais)
-            .sort((a, b) => b[1] - a[1]) // Ordena do maior para o menor
-            .slice(0, 5); // Pega o Top 5
+        // --- FUNÇÃO AUXILIAR PARA RANKINGS ---
+        const gerarRanking = (array, extrator) => {
+            const contagem = {};
+            array.forEach(item => {
+                const chave = extrator(item) || "Não informado";
+                contagem[chave] = (contagem[chave] || 0) + 1;
+            });
+            return Object.entries(contagem)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5); // Top 5
+        };
 
         return {
             metricas: {
@@ -66,8 +66,10 @@ function Relatorios() {
                 taxaCancelamento: total > 0 ? Math.round((canceladas / total) * 100) : 0,
                 opmeTotal: opmesDoMes.length, opmeAprovados, opmePendentes
             },
-            rankingMedicos: medicosRankeados,
-            rankingHospitais: hospitaisRankeados
+            rankingMedicos: gerarRanking(cirurgiasDoMes, c => c.medicos?.nome),
+            rankingHospitais: gerarRanking(cirurgiasDoMes, c => c.hospital),
+            rankingConvenios: gerarRanking(cirurgiasDoMes, c => c.convenio),
+            rankingFornecedores: gerarRanking(opmesDoMes, p => p.fornecedor)
         };
     }, [listaCirurgias, listaPedidos, mesFiltro]);
 
@@ -90,6 +92,30 @@ function Relatorios() {
     const rankItemStyle = {
         display: "flex", justifyContent: "space-between", alignItems: "center",
         padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: "0.95rem", color: "#334155"
+    };
+
+    // Componente interno para não repetir código visual dos rankings
+    const RankingList = ({ dados, sufixo, iconePrimeiroLugar = <Trophy size={16} color="#f59e0b" /> }) => {
+        if (dados.length === 0) {
+            return <p style={{ color: "#94a3b8", fontSize: "0.9rem", fontStyle: "italic", textAlign: "center", marginTop: "20px" }}>Sem dados no período.</p>;
+        }
+        return (
+            <div style={{ display: "flex", flexDirection: "column" }}>
+                {dados.map((item, index) => (
+                    <div key={index} style={rankItemStyle}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px", overflow: "hidden" }}>
+                            {index === 0 ? iconePrimeiroLugar : <span style={{ width: "16px", color: "#94a3b8", fontSize: "0.8rem", fontWeight: "700" }}>{index + 1}º</span>}
+                            <span style={{ fontWeight: index === 0 ? "700" : "500", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "200px" }}>
+                                {item[0]}
+                            </span>
+                        </div>
+                        <div style={{ background: "#f1f5f9", padding: "4px 10px", borderRadius: "12px", fontSize: "0.85rem", fontWeight: "700", color: "#6C63FF", whiteSpace: "nowrap" }}>
+                            {item[1]} {sufixo}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
     };
 
     return (
@@ -154,7 +180,7 @@ function Relatorios() {
                 </div>
             </div>
 
-            {/* LINHA 2: Gráficos de Barra (CSS Nativo) */}
+            {/* LINHA 2: Gráficos de Barra */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
                 
                 <div style={cardStyle}>
@@ -210,59 +236,38 @@ function Relatorios() {
                 </div>
             </div>
 
-            {/* 👇 LINHA 3: TOP RANKINGS */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-                
-                {/* Ranking de Médicos */}
+            {/* LINHA 3: TOP RANKINGS (MÉDICOS E HOSPITAIS) */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
                 <div style={cardStyle}>
                     <h3 style={{ margin: "0 0 10px 0", color: "#1e293b", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
                         <Users size={18} color="#10b981"/> Top Produtividade (Médicos)
                     </h3>
-                    
-                    {rankingMedicos.length === 0 ? (
-                        <p style={{ color: "#94a3b8", fontSize: "0.9rem", fontStyle: "italic", textAlign: "center", marginTop: "20px" }}>Nenhuma cirurgia neste mês.</p>
-                    ) : (
-                        <div style={{ display: "flex", flexDirection: "column" }}>
-                            {rankingMedicos.map((medico, index) => (
-                                <div key={index} style={rankItemStyle}>
-                                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                                        {/* Coloca um troféu no primeiro lugar */}
-                                        {index === 0 ? <Trophy size={16} color="#f59e0b" /> : <span style={{ width: "16px", color: "#94a3b8", fontSize: "0.8rem", fontWeight: "700" }}>{index + 1}º</span>}
-                                        <span style={{ fontWeight: index === 0 ? "700" : "500" }}>{medico[0]}</span>
-                                    </div>
-                                    <div style={{ background: "#f1f5f9", padding: "4px 10px", borderRadius: "12px", fontSize: "0.85rem", fontWeight: "700", color: "#6C63FF" }}>
-                                        {medico[1]} cirurgia(s)
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                    <RankingList dados={rankingMedicos} sufixo="cirurgia(s)" />
                 </div>
 
-                {/* Ranking de Hospitais */}
                 <div style={cardStyle}>
                     <h3 style={{ margin: "0 0 10px 0", color: "#1e293b", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
                         <Building2 size={18} color="#f59e0b"/> Locais mais atuantes (Hospitais)
                     </h3>
-                    
-                    {rankingHospitais.length === 0 ? (
-                        <p style={{ color: "#94a3b8", fontSize: "0.9rem", fontStyle: "italic", textAlign: "center", marginTop: "20px" }}>Nenhuma cirurgia neste mês.</p>
-                    ) : (
-                        <div style={{ display: "flex", flexDirection: "column" }}>
-                            {rankingHospitais.map((hospital, index) => (
-                                <div key={index} style={rankItemStyle}>
-                                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                                        <span style={{ fontWeight: "500" }}>{hospital[0]}</span>
-                                    </div>
-                                    <div style={{ background: "#f1f5f9", padding: "4px 10px", borderRadius: "12px", fontSize: "0.85rem", fontWeight: "700", color: "#10b981" }}>
-                                        {hospital[1]} vol.
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                    <RankingList dados={rankingHospitais} sufixo="vol." />
+                </div>
+            </div>
+
+            {/* 👇 LINHA 4: NOVOS RANKINGS (CONVÊNIOS E OPME) */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                <div style={cardStyle}>
+                    <h3 style={{ margin: "0 0 10px 0", color: "#1e293b", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                        <ShieldPlus size={18} color="#3b82f6"/> Top Convênios
+                    </h3>
+                    <RankingList dados={rankingConvenios} sufixo="vol." />
                 </div>
 
+                <div style={cardStyle}>
+                    <h3 style={{ margin: "0 0 10px 0", color: "#1e293b", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                        <Truck size={18} color="#8b5cf6"/> Top Fornecedores de OPME
+                    </h3>
+                    <RankingList dados={rankingFornecedores} sufixo="pedido(s)" />
+                </div>
             </div>
             
         </div>
