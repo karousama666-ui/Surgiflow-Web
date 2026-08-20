@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { supabase } from "../services/supabase"; // 👈 Importamos o Supabase direto aqui!
-import { Mail, Lock, ArrowRight, ShieldCheck, CheckCircle2, ArrowLeft, Send } from "lucide-react"; // 👈 Novos ícones adicionados
+import { supabase } from "../services/supabase"; 
+import { Mail, Lock, ArrowRight, ShieldCheck, CheckCircle2, ArrowLeft, Send } from "lucide-react"; 
 
 import logoSurgiFlow from "../assets/logo_surgiflowdark.png"; 
 import videoFundo from "../assets/surgiflowbackground.mp4"; 
@@ -10,14 +10,14 @@ import videoFundo from "../assets/surgiflowbackground.mp4";
 function Login() {
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
-    const [isRecovering, setIsRecovering] = useState(false); // 👈 Controla se mostra o Login ou a Recuperação
-    const [loading, setLoading] = useState(false); // 👈 Evita duplo clique no botão
+    const [isRecovering, setIsRecovering] = useState(false); 
+    const [loading, setLoading] = useState(false); 
 
     const navigate = useNavigate(); 
     const { login } = useAuth(); 
 
     // ==========================================
-    // FUNÇÃO 1: LOGIN NORMAL
+    // FUNÇÃO 1: LOGIN NORMAL COM DETECÇÃO DE ERRO
     // ==========================================
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -28,8 +28,14 @@ function Login() {
             }
             navigate("/dashboard");
         } catch (error) {
-            console.error("Erro ao fazer login", error);
-            alert("❌ Credenciais incorretas ou conta não encontrada.");
+            console.error("Erro detalhado ao fazer login:", error);
+            
+            // O alerta inteligente que identifica queda de rede vs erro de senha
+            if (error.message && (error.message.includes("Failed to fetch") || error.message.includes("TIMED_OUT"))) {
+                alert("❌ Erro de conexão: O sistema não conseguiu alcançar o servidor. Verifique sua internet, VPN ou bloqueadores de rede.");
+            } else {
+                alert("❌ Credenciais incorretas ou conta não encontrada.");
+            }
         } finally {
             setLoading(false);
         }
@@ -47,16 +53,15 @@ function Login() {
 
         setLoading(true);
         try {
-            // Dispara o e-mail oficial de recuperação do Supabase
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/`, // Redireciona de volta para o seu app após clicar no link
+                redirectTo: `${window.location.origin}/`, 
             });
             
             if (error) throw error;
             
             alert(`✅ Sucesso! As instruções de recuperação foram enviadas para: ${email}.\n\nVerifique sua caixa de entrada (e o spam).`);
-            setIsRecovering(false); // Volta para a tela de login
-            setSenha(""); // Limpa o campo de senha por segurança
+            setIsRecovering(false); 
+            setSenha(""); 
             
         } catch (error) {
             console.error("Erro ao enviar e-mail de recuperação", error);
@@ -150,10 +155,6 @@ function Login() {
                     </p>
                 </div>
 
-                {/* =========================================
-                    RENDERIZAÇÃO CONDICIONAL: LOGIN OU RECUPERAÇÃO
-                    ========================================= */}
-                
                 {!isRecovering ? (
                     // 🟢 ESTADO 1: FORMULÁRIO DE LOGIN NORMAL
                     <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
