@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from "../services/supabase"; // Cuidado com o caminho! Ajuste os pontinhos se precisar
-import { User, Building, ShieldCheck, CreditCard, Award, Save, Check } from "lucide-react";
+import { supabase } from "../services/supabase"; 
+import { User, Building, ShieldCheck, CreditCard, Award, Save, Check, Users, UserPlus, Trash2 } from "lucide-react"; // 👈 Ícones novos para a equipe
 import "./Configuracoes.css";
 
 // ==========================================
@@ -10,11 +10,8 @@ const CustomCheckbox = ({ label, name, checked, onChange }) => {
     return (
         <label style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer", marginBottom: "16px", userSelect: "none" }}>
             <input 
-                type="checkbox" 
-                name={name} 
-                checked={checked} 
-                onChange={onChange} 
-                style={{ display: "none" }} 
+                type="checkbox" name={name} checked={checked} 
+                onChange={onChange} style={{ display: "none" }} 
             />
             <div style={{
                 width: "22px", height: "22px", borderRadius: "6px",
@@ -26,9 +23,7 @@ const CustomCheckbox = ({ label, name, checked, onChange }) => {
             }}>
                 {checked && <Check size={16} color="white" strokeWidth={3} />}
             </div>
-            <span style={{ color: "#334155", fontSize: "0.95rem", fontWeight: "600" }}>
-                {label}
-            </span>
+            <span style={{ color: "#334155", fontSize: "0.95rem", fontWeight: "600" }}>{label}</span>
         </label>
     );
 };
@@ -38,19 +33,13 @@ const CustomCheckbox = ({ label, name, checked, onChange }) => {
 // ==========================================
 function Configuracoes() {
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState(null); // Guarda o ID do dono da conta
+  const [membrosEquipe, setMembrosEquipe] = useState([]); // Lista de funcionários
+  const [novoMembro, setNovoMembro] = useState({ nome: "", email: "", cargo: "" }); // Formulário do funcionário
+
   const [form, setForm] = useState({
-    nome: "",
-    cargo: "",
-    registro: "",
-    email: "",
-    telefone: "",
-    empresa: "",
-    cnpj: "",
-    notificacoesEmail: true,
-    notificacoesSistema: true,
-    rdc16: true,
-    rdc665: true,
-    auditoriaOpme: true
+    nome: "", cargo: "", registro: "", email: "", telefone: "", empresa: "", cnpj: "",
+    notificacoesEmail: true, notificacoesSistema: true, rdc16: true, rdc665: true, auditoriaOpme: true
   });
 
   // ==========================================
@@ -61,41 +50,89 @@ function Configuracoes() {
           const { data: { user } } = await supabase.auth.getUser();
           
           if (user) {
+              setUserId(user.id);
               setForm(prevForm => ({
-                  ...prevForm, // Mantém os checkboxes padrão, caso o cara nunca tenha salvo
+                  ...prevForm,
                   email: user.email || "",
                   nome: user.user_metadata?.nome || "",
                   cargo: user.user_metadata?.cargo || "",
                   registro: user.user_metadata?.registro || "",
                   telefone: user.user_metadata?.telefone || "",
-                  empresa: user.user_metadata?.organizacao || "", // Mapeando para 'empresa' que é o seu original
+                  empresa: user.user_metadata?.organizacao || "", 
                   cnpj: user.user_metadata?.cnpj || "",
-                  
-                  // Se ele já tiver salvo as opções antes, puxa também
                   notificacoesEmail: user.user_metadata?.notificacoesEmail ?? true,
                   notificacoesSistema: user.user_metadata?.notificacoesSistema ?? true,
                   rdc16: user.user_metadata?.rdc16 ?? true,
                   rdc665: user.user_metadata?.rdc665 ?? true,
                   auditoriaOpme: user.user_metadata?.auditoriaOpme ?? true,
               }));
+
+              // 🌟 CARREGA A EQUIPE DA TABELA 'equipe' 🌟
+              const { data: equipeData } = await supabase
+                .from('equipe')
+                .select('*')
+                .eq('conta_principal_id', user.id);
+              
+              if (equipeData) setMembrosEquipe(equipeData);
           }
       }
       carregarPerfil();
   }, []);
 
-  // ==========================================
-  // 2. ATUALIZAR FORMULÁRIO ENQUANTO DIGITA
-  // ==========================================
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
-    setForm({
-      ...form,
-      [name]: type === 'checkbox' ? checked : value
-    });
+    setForm({ ...form, [name]: type === 'checkbox' ? checked : value });
   }
 
   // ==========================================
-  // 3. SALVAR TUDO NO SUPABASE
+  // LÓGICA DA EQUIPE (ADICIONAR E REMOVER)
+  // ==========================================
+  async function handleAdicionarMembro() {
+      if (!novoMembro.nome || !novoMembro.email) {
+          alert("Preencha pelo menos o Nome e o E-mail do membro.");
+          return;
+      }
+      
+      // 🛑 A BARREIRA (PAYWALL) 🛑
+      // Exemplo simples: Se for plano free, trava. No futuro conectaremos ao Asaas!
+      const planoAtivo = true; // Simulação: mude para 'false' para testar o bloqueio
+      if (!planoAtivo) {
+          alert("🔒 Recurso Premium!\n\nAssine o plano Corporate para adicionar usuários ilimitados à sua equipe.");
+          return;
+      }
+
+      setLoading(true);
+      try {
+          const novoFuncionario = {
+              nome: novoMembro.nome,
+              email: novoMembro.email,
+              cargo: novoMembro.cargo,
+              conta_principal_id: userId // Amarra à conta do "chefe"
+          };
+
+          const { data, error } = await supabase.from('equipe').insert([novoFuncionario]).select();
+          if (error) throw error;
+
+          setMembrosEquipe([...membrosEquipe, data[0]]);
+          setNovoMembro({ nome: "", email: "", cargo: "" }); // Limpa o mini-form
+          alert("✅ Membro adicionado com sucesso!\nUm e-mail será enviado para ele (configuração futura).");
+      } catch (error) {
+          console.error("Erro ao adicionar:", error);
+          alert("❌ Erro ao salvar membro da equipe.");
+      } finally {
+          setLoading(false);
+      }
+  }
+
+  async function handleRemoverMembro(membroId) {
+      if(window.confirm("Deseja realmente remover o acesso deste funcionário?")) {
+          const { error } = await supabase.from('equipe').delete().eq('id', membroId);
+          if(!error) setMembrosEquipe(membrosEquipe.filter(m => m.id !== membroId));
+      }
+  }
+
+  // ==========================================
+  // SALVAR PERFIL
   // ==========================================
   async function handleSave(e) {
     e.preventDefault();
@@ -104,46 +141,32 @@ function Configuracoes() {
     try {
         const { error } = await supabase.auth.updateUser({
             data: { 
-                nome: form.nome,
-                cargo: form.cargo,
-                registro: form.registro,
-                telefone: form.telefone,
-                organizacao: form.empresa, // Salvando no banco como organizacao (padrão da Header)
-                cnpj: form.cnpj,
-                notificacoesEmail: form.notificacoesEmail,
-                notificacoesSistema: form.notificacoesSistema,
-                rdc16: form.rdc16,
-                rdc665: form.rdc665,
+                nome: form.nome, cargo: form.cargo, registro: form.registro, telefone: form.telefone,
+                organizacao: form.empresa, cnpj: form.cnpj, notificacoesEmail: form.notificacoesEmail,
+                notificacoesSistema: form.notificacoesSistema, rdc16: form.rdc16, rdc665: form.rdc665,
                 auditoriaOpme: form.auditoriaOpme
             }
         });
-
         if (error) throw error;
-
-        alert("✅ Configurações atualizadas e salvas com sucesso!\n(Pode recarregar a página para o menu atualizar).");
+        alert("✅ Configurações atualizadas e salvas com sucesso!");
     } catch (error) {
-        console.error("Erro ao salvar:", error);
         alert("❌ Ops! Erro ao salvar as configurações.");
     } finally {
         setLoading(false);
     }
   }
 
-  // ==========================================
   // ESTILOS VISUAIS
-  // ==========================================
   const sectionStyle = {
     background: "#fff", padding: "30px", borderRadius: "16px",
     boxShadow: "0 4px 20px rgba(0,0,0,0.03)", border: "1px solid #e2e8f0",
     marginBottom: "25px", fontFamily: "'Montserrat', 'Inter', sans-serif"
   };
-
   const headerStyle = {
     display: "flex", alignItems: "center", gap: "10px", 
     color: "#1e293b", fontSize: "1.2rem", fontWeight: "700",
     marginBottom: "20px", paddingBottom: "15px", borderBottom: "1px solid #f1f5f9"
   };
-
   const inputStyle = { 
       width: "100%", padding: "12px", border: "1px solid #cbd5e1", 
       borderRadius: "8px", marginTop: "6px", outline: "none", 
@@ -156,19 +179,12 @@ function Configuracoes() {
       {/* Cabeçalho */}
       <div className="configuracoes-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
         <div>
-          <h1 style={{ fontSize: "1.8rem", color: "#0f172a", margin: "0 0 4px 0", fontWeight: "800" }}>
-            Configurações do Sistema
-          </h1>
-          <p style={{ color: "#64748b", fontSize: "0.95rem", margin: 0, fontWeight: "500" }}>
-            Gerencie seu perfil, parâmetros de qualidade e assinatura.
-          </p>
+          <h1 style={{ fontSize: "1.8rem", color: "#0f172a", margin: "0 0 4px 0", fontWeight: "800" }}>Configurações do Sistema</h1>
+          <p style={{ color: "#64748b", fontSize: "0.95rem", margin: 0, fontWeight: "500" }}>Gerencie seu perfil, equipe, parâmetros de qualidade e assinatura.</p>
         </div>
         <button 
-          onClick={handleSave}
-          disabled={loading}
+          onClick={handleSave} disabled={loading}
           style={{ background: loading ? "#94a3b8" : "#6C63FF", color: "white", border: "none", borderRadius: "10px", padding: "14px 24px", fontWeight: "700", cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: "8px", transition: "0.2s", boxShadow: loading ? "none" : "0 4px 14px rgba(108, 99, 255, 0.3)", fontFamily: "inherit" }}
-          onMouseOver={(e) => { if(!loading) e.currentTarget.style.transform = "translateY(-2px)" }}
-          onMouseOut={(e) => { if(!loading) e.currentTarget.style.transform = "translateY(0)" }}
         >
           <Save size={20} /> {loading ? "Salvando..." : "Salvar Alterações"}
         </button>
@@ -178,9 +194,7 @@ function Configuracoes() {
         
         {/* Seção de Perfil */}
         <div className="config-section" style={sectionStyle}>
-          <div style={headerStyle}>
-            <User size={22} color="#6C63FF" /> Perfil Profissional
-          </div>
+          <div style={headerStyle}><User size={22} color="#6C63FF" /> Perfil Profissional</div>
           <div className="config-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "20px" }}>
             <div className="config-field">
               <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "#475569" }}>Nome Completo</label>
@@ -196,7 +210,6 @@ function Configuracoes() {
             </div>
             <div className="config-field">
               <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "#475569" }}>E-mail de Acesso</label>
-              {/* Email desabilitado por segurança do Supabase */}
               <input type="email" name="email" value={form.email} disabled style={{ ...inputStyle, background: "#f1f5f9", cursor: "not-allowed", color: "#94a3b8" }} />
             </div>
             <div className="config-field">
@@ -206,11 +219,67 @@ function Configuracoes() {
           </div>
         </div>
 
+        {/* 🌟 NOVA SEÇÃO: EQUIPE E ACESSOS 🌟 */}
+        <div className="config-section" style={sectionStyle}>
+          <div style={headerStyle}><Users size={22} color="#10b981" /> Equipe e Acessos</div>
+          <p style={{ fontSize: "0.95rem", color: "#64748b", marginBottom: "20px", fontWeight: "500" }}>
+            Adicione membros para gerenciarem a agenda e pedidos com você. Ações ficarão registradas na auditoria.
+          </p>
+
+          {/* Adicionar Membro */}
+          <div style={{ display: "flex", gap: "15px", marginBottom: "25px", alignItems: "flex-end", flexWrap: "wrap" }}>
+              <div style={{ flex: 1, minWidth: "200px" }}>
+                  <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "#475569" }}>Nome do Membro</label>
+                  <input type="text" placeholder="Ex: João Silva" value={novoMembro.nome} onChange={(e) => setNovoMembro({...novoMembro, nome: e.target.value})} style={inputStyle} />
+              </div>
+              <div style={{ flex: 1, minWidth: "200px" }}>
+                  <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "#475569" }}>E-mail (Login)</label>
+                  <input type="email" placeholder="joao@clinica.com" value={novoMembro.email} onChange={(e) => setNovoMembro({...novoMembro, email: e.target.value})} style={inputStyle} />
+              </div>
+              <div style={{ flex: 1, minWidth: "200px" }}>
+                  <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "#475569" }}>Cargo</label>
+                  <input type="text" placeholder="Enfermeiro, Recepção..." value={novoMembro.cargo} onChange={(e) => setNovoMembro({...novoMembro, cargo: e.target.value})} style={inputStyle} />
+              </div>
+              <button 
+                  type="button" onClick={handleAdicionarMembro} disabled={loading}
+                  style={{ background: "#f8fafc", color: "#6C63FF", border: "1px solid #6C63FF", borderRadius: "8px", padding: "12px 20px", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", transition: "0.2s" }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = "#eff6ff" }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = "#f8fafc" }}
+              >
+                  <UserPlus size={18} /> Adicionar
+              </button>
+          </div>
+
+          {/* Lista de Membros */}
+          <div style={{ border: "1px solid #e2e8f0", borderRadius: "10px", overflow: "hidden" }}>
+              {membrosEquipe.length === 0 ? (
+                  <div style={{ padding: "30px", textAlign: "center", color: "#94a3b8", fontWeight: "500", background: "#f8fafc" }}>
+                      Você ainda não adicionou nenhum membro à sua equipe.
+                  </div>
+              ) : (
+                  membrosEquipe.map((membro) => (
+                      <div key={membro.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "15px 20px", borderBottom: "1px solid #f1f5f9", background: "white" }}>
+                          <div style={{ display: "flex", flexDirection: "column" }}>
+                              <span style={{ fontWeight: "700", color: "#1e293b", fontSize: "1rem" }}>{membro.nome}</span>
+                              <span style={{ color: "#64748b", fontSize: "0.85rem" }}>{membro.email} • {membro.cargo}</span>
+                          </div>
+                          <button 
+                              type="button" onClick={() => handleRemoverMembro(membro.id)} title="Remover acesso"
+                              style={{ background: "transparent", color: "#ef4444", border: "none", cursor: "pointer", padding: "8px", borderRadius: "6px", display: "flex", alignItems: "center", transition: "0.2s" }}
+                              onMouseOver={(e) => { e.currentTarget.style.background = "#fee2e2" }}
+                              onMouseOut={(e) => { e.currentTarget.style.background = "transparent" }}
+                          >
+                              <Trash2 size={18} />
+                          </button>
+                      </div>
+                  ))
+              )}
+          </div>
+        </div>
+
         {/* Seção de Empresa / Organização */}
         <div className="config-section" style={sectionStyle}>
-          <div style={headerStyle}>
-            <Building size={22} color="#10b981" /> Dados da Organização
-          </div>
+          <div style={headerStyle}><Building size={22} color="#10b981" /> Dados da Organização</div>
           <div className="config-grid" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "20px" }}>
             <div className="config-field">
               <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "#475569" }}>Nome da Organização / Marca</label>
@@ -225,89 +294,48 @@ function Configuracoes() {
 
         {/* Seção de Compliance */}
         <div className="config-section" style={sectionStyle}>
-          <div style={headerStyle}>
-            <Award size={22} color="#f59e0b" /> Qualidade e Compliance
-          </div>
-          <p style={{ fontSize: "0.95rem", color: "#64748b", marginBottom: "25px", fontWeight: "500" }}>
-            Ative as resoluções sanitárias aplicáveis para vincular a rastreabilidade automaticamente aos pedidos de OPME.
-          </p>
-          
+          <div style={headerStyle}><Award size={22} color="#f59e0b" /> Qualidade e Compliance</div>
+          <p style={{ fontSize: "0.95rem", color: "#64748b", marginBottom: "25px", fontWeight: "500" }}>Ative as resoluções sanitárias aplicáveis para vincular a rastreabilidade automaticamente.</p>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <CustomCheckbox 
-                label="Habilitar protocolos da RDC 665/2022 (Boas Práticas de Fabricação e Uso)"
-                name="rdc665" checked={form.rdc665} onChange={handleChange}
-            />
-            <CustomCheckbox 
-                label="Monitoramento rígido RDC 16/2013 (Foco em OPME)"
-                name="rdc16" checked={form.rdc16} onChange={handleChange}
-            />
-            <CustomCheckbox 
-                label="Exigir fornecedor e rastreabilidade para liberação de Auditoria"
-                name="auditoriaOpme" checked={form.auditoriaOpme} onChange={handleChange}
-            />
+            <CustomCheckbox label="Habilitar protocolos da RDC 665/2022 (Boas Práticas de Fabricação e Uso)" name="rdc665" checked={form.rdc665} onChange={handleChange} />
+            <CustomCheckbox label="Monitoramento rígido RDC 16/2013 (Foco em OPME)" name="rdc16" checked={form.rdc16} onChange={handleChange} />
+            <CustomCheckbox label="Exigir fornecedor e rastreabilidade para liberação de Auditoria" name="auditoriaOpme" checked={form.auditoriaOpme} onChange={handleChange} />
           </div>
         </div>
 
         {/* Seção de Segurança e Notificações */}
         <div className="config-section" style={sectionStyle}>
-          <div style={headerStyle}>
-            <ShieldCheck size={22} color="#6C63FF" /> Segurança e Notificações
-          </div>
+          <div style={headerStyle}><ShieldCheck size={22} color="#6C63FF" /> Segurança e Notificações</div>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <CustomCheckbox 
-                label="Receber relatórios e alertas de OPME pendentes por e-mail"
-                name="notificacoesEmail" checked={form.notificacoesEmail} onChange={handleChange}
-            />
-            <CustomCheckbox 
-                label="Exibir notificações visuais de agendamento no Dashboard"
-                name="notificacoesSistema" checked={form.notificacoesSistema} onChange={handleChange}
-            />
+            <CustomCheckbox label="Receber relatórios e alertas de OPME pendentes por e-mail" name="notificacoesEmail" checked={form.notificacoesEmail} onChange={handleChange} />
+            <CustomCheckbox label="Exibir notificações visuais de agendamento no Dashboard" name="notificacoesSistema" checked={form.notificacoesSistema} onChange={handleChange} />
           </div>
         </div>
 
         {/* Seção de Planos e Pagamentos (Ligada ao Asaas) */}
         <div className="config-section" style={sectionStyle}>
-          <div style={headerStyle}>
-            <CreditCard size={22} color="#6C63FF" /> Assinatura e Pagamentos
-          </div>
-          <div className="plan-card-container" style={{ 
-              background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "14px", 
-              padding: "25px", display: "flex", justifyContent: "space-between", 
-              alignItems: "center", flexWrap: "wrap", gap: "20px" 
-          }}>
+          <div style={headerStyle}><CreditCard size={22} color="#6C63FF" /> Assinatura e Pagamentos</div>
+          <div className="plan-card-container" style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "25px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "20px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <h3 style={{ fontWeight: "700", fontSize: "1.15rem", color: "#0f172a", margin: 0 }}>
-                    Plano Corporate SurgiFlow
-                </h3>
-                <span style={{ background: "#dcfce7", color: "#166534", fontSize: "0.75rem", padding: "4px 10px", borderRadius: "20px", fontWeight: "800", letterSpacing: "0.5px" }}>
-                    ATIVO
-                </span>
+                <h3 style={{ fontWeight: "700", fontSize: "1.15rem", color: "#0f172a", margin: 0 }}>Plano Corporate SurgiFlow</h3>
+                <span style={{ background: "#dcfce7", color: "#166534", fontSize: "0.75rem", padding: "4px 10px", borderRadius: "20px", fontWeight: "800", letterSpacing: "0.5px" }}>ATIVO</span>
               </div>
-              <p style={{ margin: 0, color: "#64748b", fontSize: "0.95rem", fontWeight: "500" }}>
-                  Acesso ilimitado a cirurgias, OPME auditável e relatórios avançados de compliance.
-              </p>
+              <p style={{ margin: 0, color: "#64748b", fontSize: "0.95rem", fontWeight: "500" }}>Acesso ilimitado a cirurgias, OPME auditável e relatórios avançados de compliance.</p>
             </div>
             
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "12px" }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: "4px", fontSize: "1.6rem", fontWeight: "800", color: "#6C63FF" }}>
                 R$ 149,90 <span style={{ fontSize: "0.95rem", color: "#94a3b8", fontWeight: "600" }}>/mês</span>
               </div>
-              
               <button 
-                  type="button" 
-                  onClick={() => window.open("https://www.asaas.com/c/h7ut97drf19arp9a", "_blank")} 
-                  style={{ 
-                      background: "white", color: "#6C63FF", border: "1px solid #6C63FF", 
-                      padding: "10px 20px", borderRadius: "8px", fontWeight: "700", 
-                      cursor: "pointer", fontSize: "0.95rem", transition: "0.2s", fontFamily: "inherit"
-                  }}
+                  type="button" onClick={() => window.open("https://www.asaas.com/c/h7ut97drf19arp9a", "_blank")} 
+                  style={{ background: "white", color: "#6C63FF", border: "1px solid #6C63FF", padding: "10px 20px", borderRadius: "8px", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem", transition: "0.2s", fontFamily: "inherit" }}
                   onMouseOver={(e) => { e.currentTarget.style.background = "#f5f3ff"; }}
                   onMouseOut={(e) => { e.currentTarget.style.background = "white"; }}
               >
                 Assinar / Gerenciar Cartão
               </button>
-
             </div>
           </div>
         </div>
