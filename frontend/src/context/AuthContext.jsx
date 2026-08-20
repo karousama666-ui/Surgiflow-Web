@@ -8,18 +8,16 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // 1. Checa se já existe uma sessão segura ativa quando o app abre
-        const checarSessao = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            setUsuario(session?.user || null);
+        // 1. Força o React a ESPERAR o Supabase ir no cofre do navegador buscar a sessão
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setUsuario(session?.user ?? null);
             setLoading(false);
-        };
-        
-        checarSessao();
+        });
 
-        // 2. Fica "escutando" as mudanças (ex: se o token expirar ou o usuário deslogar)
+        // 2. O "Olheiro": Fica monitorando se a sessão expirou, se fez login em outra aba, etc.
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUsuario(session?.user || null);
+            setUsuario(session?.user ?? null);
+            setLoading(false);
         });
 
         return () => subscription.unsubscribe();
@@ -44,16 +42,15 @@ export function AuthProvider({ children }) {
         if (error) console.error("Erro ao sair:", error.message);
     };
 
-    // 👇 INSERIDO COM PINÇA: Só essa função nova, sem mexer na sua lógica original!
+    // Função de Recuperação de Senha
     const recuperarSenha = async (email) => {
         const { error } = await supabase.auth.resetPasswordForEmail(email);
         if (error) throw error;
     };
 
     return (
-        // 👇 Inserimos o recuperarSenha aqui para o Login poder usar
         <AuthContext.Provider value={{ usuario, login, logout, recuperarSenha, loading }}>
-            {/* Só carrega o sistema depois de verificar a segurança */}
+            {/* O pulo do gato: O aplicativo inteiro SÓ carrega depois que o loading for false */}
             {!loading && children} 
         </AuthContext.Provider>
     );
