@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Mail, Lock, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { supabase } from "../services/supabase"; // 👈 Importamos o Supabase direto aqui!
+import { Mail, Lock, ArrowRight, ShieldCheck, CheckCircle2, ArrowLeft, Send } from "lucide-react"; // 👈 Novos ícones adicionados
 
 import logoSurgiFlow from "../assets/logo_surgiflowdark.png"; 
 import videoFundo from "../assets/surgiflowbackground.mp4"; 
@@ -9,12 +10,18 @@ import videoFundo from "../assets/surgiflowbackground.mp4";
 function Login() {
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
-    const navigate = useNavigate(); 
-    
-    const { login, recuperarSenha } = useAuth(); 
+    const [isRecovering, setIsRecovering] = useState(false); // 👈 Controla se mostra o Login ou a Recuperação
+    const [loading, setLoading] = useState(false); // 👈 Evita duplo clique no botão
 
+    const navigate = useNavigate(); 
+    const { login } = useAuth(); 
+
+    // ==========================================
+    // FUNÇÃO 1: LOGIN NORMAL
+    // ==========================================
     const handleLogin = async (e) => {
         e.preventDefault();
+        setLoading(true);
         try {
             if (login) {
                 await login(email, senha);
@@ -22,24 +29,48 @@ function Login() {
             navigate("/dashboard");
         } catch (error) {
             console.error("Erro ao fazer login", error);
-            alert("Credenciais incorretas ou conta não encontrada.");
+            alert("❌ Credenciais incorretas ou conta não encontrada.");
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleEsqueciSenha = async (e) => {
+    // ==========================================
+    // FUNÇÃO 2: RECUPERAR SENHA (SUPABASE)
+    // ==========================================
+    const handleRecuperarSenha = async (e) => {
         e.preventDefault();
-        
         if (!email) {
-            alert("Por favor, digite seu e-mail no campo acima para recuperar a senha.");
+            alert("Por favor, digite seu e-mail no campo para recuperar a senha.");
             return;
         }
 
+        setLoading(true);
         try {
-            await recuperarSenha(email);
-            alert(`As instruções de recuperação foram enviadas para: ${email}. Verifique sua caixa de entrada!`);
+            // Dispara o e-mail oficial de recuperação do Supabase
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/`, // Redireciona de volta para o seu app após clicar no link
+            });
+            
+            if (error) throw error;
+            
+            alert(`✅ Sucesso! As instruções de recuperação foram enviadas para: ${email}.\n\nVerifique sua caixa de entrada (e o spam).`);
+            setIsRecovering(false); // Volta para a tela de login
+            setSenha(""); // Limpa o campo de senha por segurança
+            
         } catch (error) {
-            alert("Erro ao enviar e-mail de recuperação. Verifique se o e-mail está correto.");
+            console.error("Erro ao enviar e-mail de recuperação", error);
+            alert("❌ Erro ao enviar e-mail. Verifique se o endereço está correto e tente novamente.");
+        } finally {
+            setLoading(false);
         }
+    };
+
+    // Estilo padrão para os inputs
+    const inputPremiumStyle = { 
+        width: "100%", padding: "16px 16px 16px 45px", borderRadius: "12px", 
+        border: "1px solid #cbd5e1", fontSize: "1rem", outline: "none", boxSizing: "border-box", 
+        background: "#f8fafc", color: "#1e293b", fontFamily: "inherit", transition: "border 0.2s"
     };
 
     return (
@@ -54,7 +85,6 @@ function Login() {
                 flex: 1, position: "relative", display: "flex", flexDirection: "column", 
                 justifyContent: "center", padding: "80px", color: "white" 
             }}>
-                {/* Vídeo de fundo */}
                 <video 
                     autoPlay loop muted playsInline
                     style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", zIndex: 0 }}
@@ -62,23 +92,14 @@ function Login() {
                     <source src={videoFundo} type="video/mp4" />
                 </video>
                 
-                {/* MÁSCARA CLEAN: Bem transparente, deixando o vídeo brilhar */}
                 <div style={{ 
                     position: "absolute", top: 0, left: 0, width: "100%", height: "100%", 
                     background: "linear-gradient(to right, rgba(0, 0, 0, 0.3), transparent)", zIndex: 1 
                 }}></div>
 
                 <div style={{ position: "relative", zIndex: 2, maxWidth: "650px", textShadow: "0px 2px 15px rgba(0,0,0,0.85)" }}>
-                    
-                    {/* AQUI ESTÁ A MUDANÇA: Texto preto, minimalista e sem sombra */}
                     <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "30px" }}>
-                        <span style={{ 
-                            fontSize: "1.1rem", 
-                            fontWeight: "600", 
-                            color: "#000000", 
-                            textShadow: "none", // Retira a sombra para ficar clean
-                            letterSpacing: "0.5px"
-                        }}>
+                        <span style={{ fontSize: "1.1rem", fontWeight: "600", color: "#000000", textShadow: "none", letterSpacing: "0.5px" }}>
                             SurgiFlow - Plataforma de Agendamento e Controle Cirúrgico.
                         </span>
                     </div>
@@ -106,11 +127,12 @@ function Login() {
                 </div>
             </div>
 
-            {/* LADO DIREITO: PAINEL LATERAL DE LOGIN */}
+            {/* LADO DIREITO: PAINEL LATERAL DINÂMICO */}
             <div style={{ 
                 width: "100%", maxWidth: "500px", background: "#ffffff", display: "flex", 
                 flexDirection: "column", justifyContent: "center", padding: "60px 50px", 
-                boxShadow: "-10px 0 40px rgba(0,0,0,0.15)", zIndex: 10 
+                boxShadow: "-10px 0 40px rgba(0,0,0,0.15)", zIndex: 10,
+                position: "relative"
             }}>
                 
                 <div style={{ textAlign: "center", marginBottom: "35px" }}>
@@ -119,61 +141,113 @@ function Login() {
                         style={{ height: "190px", objectFit: "contain", marginBottom: "10px" }} 
                         onError={(e) => { e.target.style.display = 'none' }} 
                     />
-                    <h2 style={{ color: "#1e293b", margin: "15px 0 5px 0", fontSize: "1.6rem", fontWeight: "800" }}>Acesse sua conta</h2>
+                    <h2 style={{ color: "#1e293b", margin: "15px 0 5px 0", fontSize: "1.6rem", fontWeight: "800" }}>
+                        {isRecovering ? "Recuperar Senha" : "Acesse sua conta"}
+                    </h2>
                     
-                    <p style={{ color: "#64748b", fontSize: "0.95rem", margin: 0 }}>Painel de Controle Cirúrgico.</p>
+                    <p style={{ color: "#64748b", fontSize: "0.95rem", margin: 0 }}>
+                        {isRecovering ? "Digite seu e-mail para receber o link de acesso." : "Painel de Controle Cirúrgico."}
+                    </p>
                 </div>
 
-                <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-                    
-                    <div style={{ position: "relative" }}>
-                        <Mail size={20} color="#94a3b8" style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)" }} />
-                        <input 
-                            type="email" placeholder="E-mail profissional" value={email} onChange={(e) => setEmail(e.target.value)} required
+                {/* =========================================
+                    RENDERIZAÇÃO CONDICIONAL: LOGIN OU RECUPERAÇÃO
+                    ========================================= */}
+                
+                {!isRecovering ? (
+                    // 🟢 ESTADO 1: FORMULÁRIO DE LOGIN NORMAL
+                    <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+                        <div style={{ position: "relative" }}>
+                            <Mail size={20} color="#94a3b8" style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)" }} />
+                            <input 
+                                type="email" placeholder="E-mail profissional" value={email} onChange={(e) => setEmail(e.target.value)} required
+                                style={inputPremiumStyle}
+                                onFocus={(e) => e.target.style.borderColor = "#6C63FF"}
+                                onBlur={(e) => e.target.style.borderColor = "#cbd5e1"}
+                            />
+                        </div>
+
+                        <div style={{ position: "relative" }}>
+                            <Lock size={20} color="#94a3b8" style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)" }} />
+                            <input 
+                                type="password" placeholder="Sua senha" value={senha} onChange={(e) => setSenha(e.target.value)} required
+                                style={inputPremiumStyle}
+                                onFocus={(e) => e.target.style.borderColor = "#6C63FF"}
+                                onBlur={(e) => e.target.style.borderColor = "#cbd5e1"}
+                            />
+                        </div>
+
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "-5px", marginBottom: "15px" }}>
+                            <Link to="/cadastro" style={{ fontSize: "0.85rem", color: "#6C63FF", textDecoration: "none", fontWeight: "700", display: "flex", alignItems: "center", gap: "4px" }}>
+                                <ShieldCheck size={16} /> Criar conta grátis
+                            </Link>
+                            
+                            <button 
+                                type="button" 
+                                onClick={() => setIsRecovering(true)} 
+                                style={{ background: "none", border: "none", fontSize: "0.85rem", color: "#64748b", textDecoration: "none", fontWeight: "600", cursor: "pointer", padding: 0 }}
+                            >
+                                Esqueceu a senha?
+                            </button>
+                        </div>
+
+                        <button 
+                            type="submit" disabled={loading}
                             style={{ 
-                                width: "100%", padding: "16px 16px 16px 45px", borderRadius: "12px", 
-                                border: "1px solid #cbd5e1", fontSize: "1rem", outline: "none", boxSizing: "border-box", 
-                                background: "#f8fafc", color: "#1e293b", fontFamily: "inherit"
+                                background: loading ? "#94a3b8" : "#6C63FF", color: "white", padding: "16px", borderRadius: "12px", 
+                                border: "none", fontSize: "1.1rem", fontWeight: "700", cursor: loading ? "wait" : "pointer", 
+                                display: "flex", justifyContent: "center", alignItems: "center", gap: "10px", 
+                                boxShadow: loading ? "none" : "0 6px 20px rgba(108, 99, 255, 0.3)", transition: "0.2s", fontFamily: "inherit"
                             }}
-                        />
-                    </div>
+                            onMouseOver={(e) => { if(!loading) e.currentTarget.style.transform = "translateY(-2px)" }}
+                            onMouseOut={(e) => { if(!loading) e.currentTarget.style.transform = "translateY(0)" }}
+                        >
+                            {loading ? "Entrando..." : <>Entrar no Dashboard <ArrowRight size={20} /></>}
+                        </button>
+                    </form>
 
-                    <div style={{ position: "relative" }}>
-                        <Lock size={20} color="#94a3b8" style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)" }} />
-                        <input 
-                            type="password" placeholder="Sua senha" value={senha} onChange={(e) => setSenha(e.target.value)} 
+                ) : (
+
+                    // 🟡 ESTADO 2: FORMULÁRIO DE RECUPERAÇÃO DE SENHA
+                    <form onSubmit={handleRecuperarSenha} style={{ display: "flex", flexDirection: "column", gap: "18px", animation: "fadeIn 0.3s ease-in-out" }}>
+                        <div style={{ position: "relative" }}>
+                            <Mail size={20} color="#94a3b8" style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)" }} />
+                            <input 
+                                type="email" placeholder="Digite seu e-mail" value={email} onChange={(e) => setEmail(e.target.value)} required
+                                style={inputPremiumStyle}
+                                onFocus={(e) => e.target.style.borderColor = "#6C63FF"}
+                                onBlur={(e) => e.target.style.borderColor = "#cbd5e1"}
+                            />
+                        </div>
+
+                        <button 
+                            type="submit" disabled={loading}
                             style={{ 
-                                width: "100%", padding: "16px 16px 16px 45px", borderRadius: "12px", 
-                                border: "1px solid #cbd5e1", fontSize: "1rem", outline: "none", boxSizing: "border-box", 
-                                background: "#f8fafc", color: "#1e293b", fontFamily: "inherit"
+                                background: loading ? "#94a3b8" : "#10b981", color: "white", padding: "16px", borderRadius: "12px", 
+                                border: "none", fontSize: "1.1rem", fontWeight: "700", cursor: loading ? "wait" : "pointer", 
+                                display: "flex", justifyContent: "center", alignItems: "center", gap: "10px", 
+                                boxShadow: loading ? "none" : "0 6px 20px rgba(16, 185, 129, 0.3)", transition: "0.2s", fontFamily: "inherit", marginTop: "10px"
                             }}
-                        />
-                    </div>
+                            onMouseOver={(e) => { if(!loading) e.currentTarget.style.transform = "translateY(-2px)" }}
+                            onMouseOut={(e) => { if(!loading) e.currentTarget.style.transform = "translateY(0)" }}
+                        >
+                            {loading ? "Enviando..." : <>Enviar Link de Acesso <Send size={20} /></>}
+                        </button>
 
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "-5px", marginBottom: "15px" }}>
-                        <Link to="/cadastro" style={{ fontSize: "0.85rem", color: "#6C63FF", textDecoration: "none", fontWeight: "700", display: "flex", alignItems: "center", gap: "4px" }}>
-                            <ShieldCheck size={16} /> Criar conta grátis
-                        </Link>
-                        
-                        <a href="#" onClick={handleEsqueciSenha} style={{ fontSize: "0.85rem", color: "#64748b", textDecoration: "none", fontWeight: "600" }}>
-                            Esqueceu a senha?
-                        </a>
-                    </div>
-
-                    <button 
-                        type="submit" 
-                        style={{ 
-                            background: "#6C63FF", color: "white", padding: "16px", borderRadius: "12px", 
-                            border: "none", fontSize: "1.1rem", fontWeight: "700", cursor: "pointer", 
-                            display: "flex", justifyContent: "center", alignItems: "center", gap: "10px", 
-                            boxShadow: "0 6px 20px rgba(108, 99, 255, 0.3)", transition: "0.2s", fontFamily: "inherit"
-                        }}
-                        onMouseOver={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
-                        onMouseOut={(e) => e.currentTarget.style.transform = "translateY(0)"}
-                    >
-                        Entrar no Dashboard <ArrowRight size={20} />
-                    </button>
-                </form>
+                        <button 
+                            type="button" 
+                            onClick={() => setIsRecovering(false)} 
+                            style={{ 
+                                background: "transparent", border: "1px solid #cbd5e1", color: "#475569", padding: "14px", borderRadius: "12px", 
+                                fontSize: "0.95rem", fontWeight: "700", cursor: "pointer", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", transition: "0.2s", fontFamily: "inherit"
+                            }}
+                            onMouseOver={(e) => { e.currentTarget.style.background = "#f1f5f9" }}
+                            onMouseOut={(e) => { e.currentTarget.style.background = "transparent" }}
+                        >
+                            <ArrowLeft size={18} /> Voltar ao Login
+                        </button>
+                    </form>
+                )}
                 
                 <div style={{ marginTop: "40px", textAlign: "center", fontSize: "0.8rem", color: "#94a3b8" }}>
                     Solução desenvolvida pela <strong>SurgiFlow</strong>.<br/>
