@@ -5,9 +5,11 @@ import {
     TrendingUp, 
     AlertCircle, 
     CheckCircle2, 
-    XCircle, 
     PackageSearch, 
-    Activity 
+    Activity,
+    Users,
+    Building2,
+    Trophy // 👈 Novo ícone para os cards de ranking
 } from "lucide-react";
 
 function Relatorios() {
@@ -17,20 +19,20 @@ function Relatorios() {
     // Filtro de Mês/Ano (Começa no mês atual - Ajuste para o formato YYYY-MM)
     const [mesFiltro, setMesFiltro] = useState(new Date().toISOString().slice(0, 7));
 
-    // 1. CÁLCULO DOS DADOS (Reage automaticamente quando o mês ou os dados mudam)
-    const metricas = useMemo(() => {
-        // Filtra cirurgias do mês selecionado
+    // 1. CÁLCULO DOS DADOS
+    const { metricas, rankingMedicos, rankingHospitais } = useMemo(() => {
+        // --- FILTRO GERAL ---
         const cirurgiasDoMes = listaCirurgias.filter(c => {
             if (!c.data_cirurgia) return false;
             return c.data_cirurgia.startsWith(mesFiltro);
         });
 
+        // --- MÉTRICAS BÁSICAS ---
         const total = cirurgiasDoMes.length;
         const confirmadas = cirurgiasDoMes.filter(c => c.status === "Confirmada" || c.status === "Finalizada").length;
         const canceladas = cirurgiasDoMes.filter(c => c.status === "Cancelada").length;
         const pendentes = cirurgiasDoMes.filter(c => c.status === "Pendente").length;
 
-        // Filtra OPMEs das cirurgias desse mês
         const opmesDoMes = listaPedidos.filter(p => 
             cirurgiasDoMes.some(c => String(c.id) === String(p.cirurgia_id))
         );
@@ -38,19 +40,38 @@ function Relatorios() {
         const opmeAprovados = opmesDoMes.filter(p => p.status === "Aprovado" || p.status === "Material Entregue").length;
         const opmePendentes = opmesDoMes.filter(p => p.status === "Aguardando Orçamento" || p.status === "Em Aprovação (Convênio)").length;
 
+        // --- RANKING DE MÉDICOS ---
+        const contagemMedicos = {};
+        cirurgiasDoMes.forEach(c => {
+            const nomeMedico = c.medicos?.nome || "Não informado";
+            contagemMedicos[nomeMedico] = (contagemMedicos[nomeMedico] || 0) + 1;
+        });
+        const medicosRankeados = Object.entries(contagemMedicos)
+            .sort((a, b) => b[1] - a[1]) // Ordena do maior para o menor
+            .slice(0, 5); // Pega o Top 5
+
+        // --- RANKING DE HOSPITAIS ---
+        const contagemHospitais = {};
+        cirurgiasDoMes.forEach(c => {
+            const nomeHospital = c.hospital || "Não informado";
+            contagemHospitais[nomeHospital] = (contagemHospitais[nomeHospital] || 0) + 1;
+        });
+        const hospitaisRankeados = Object.entries(contagemHospitais)
+            .sort((a, b) => b[1] - a[1]) // Ordena do maior para o menor
+            .slice(0, 5); // Pega o Top 5
+
         return {
-            total,
-            confirmadas,
-            canceladas,
-            pendentes,
-            taxaCancelamento: total > 0 ? Math.round((canceladas / total) * 100) : 0,
-            opmeTotal: opmesDoMes.length,
-            opmeAprovados,
-            opmePendentes
+            metricas: {
+                total, confirmadas, canceladas, pendentes,
+                taxaCancelamento: total > 0 ? Math.round((canceladas / total) * 100) : 0,
+                opmeTotal: opmesDoMes.length, opmeAprovados, opmePendentes
+            },
+            rankingMedicos: medicosRankeados,
+            rankingHospitais: hospitaisRankeados
         };
     }, [listaCirurgias, listaPedidos, mesFiltro]);
 
-    // 2. ESTILOS REUTILIZÁVEIS (Para manter o código limpo)
+    // 2. ESTILOS REUTILIZÁVEIS
     const cardStyle = {
         background: "#fff", padding: "20px", borderRadius: "16px",
         boxShadow: "0 4px 6px rgba(0,0,0,0.02)", border: "1px solid #f1f5f9",
@@ -66,6 +87,11 @@ function Relatorios() {
         fontSize: "2rem", fontWeight: "700", color: "#1e293b", margin: 0
     };
 
+    const rankItemStyle = {
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+        padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: "0.95rem", color: "#334155"
+    };
+
     return (
         <div style={{ paddingBottom: "40px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
@@ -78,7 +104,6 @@ function Relatorios() {
                     </p>
                 </div>
 
-                {/* Filtro de Mês */}
                 <input 
                     type="month" 
                     value={mesFiltro}
@@ -130,16 +155,13 @@ function Relatorios() {
             </div>
 
             {/* LINHA 2: Gráficos de Barra (CSS Nativo) */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
                 
-                {/* Painel de Status das Cirurgias */}
                 <div style={cardStyle}>
                     <h3 style={{ margin: "0 0 15px 0", color: "#1e293b", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
-                        <CheckCircle2 size={18} color="#6C63FF"/> 
-                        Status das Cirurgias
+                        <CheckCircle2 size={18} color="#6C63FF"/> Status das Cirurgias
                     </h3>
                     
-                    {/* Barra Pendentes */}
                     <div style={{ marginBottom: "12px" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "5px", fontWeight: "600", color: "#475569" }}>
                             <span>Pendentes ({metricas.pendentes})</span>
@@ -150,7 +172,6 @@ function Relatorios() {
                         </div>
                     </div>
 
-                    {/* Barra Canceladas */}
                     <div>
                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "5px", fontWeight: "600", color: "#475569" }}>
                             <span>Canceladas ({metricas.canceladas})</span>
@@ -162,14 +183,11 @@ function Relatorios() {
                     </div>
                 </div>
 
-                {/* Painel de Funil de OPME */}
                 <div style={cardStyle}>
                     <h3 style={{ margin: "0 0 15px 0", color: "#1e293b", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
-                        <PackageSearch size={18} color="#6C63FF"/> 
-                        Funil de OPME
+                        <PackageSearch size={18} color="#6C63FF"/> Funil de OPME
                     </h3>
 
-                    {/* Barra Aprovados */}
                     <div style={{ marginBottom: "12px" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "5px", fontWeight: "600", color: "#475569" }}>
                             <span>Liberados / Entregues ({metricas.opmeAprovados})</span>
@@ -180,7 +198,6 @@ function Relatorios() {
                         </div>
                     </div>
 
-                    {/* Barra Em Análise */}
                     <div>
                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "5px", fontWeight: "600", color: "#475569" }}>
                             <span>Em Análise / Orçamento ({metricas.opmePendentes})</span>
@@ -191,8 +208,63 @@ function Relatorios() {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* 👇 LINHA 3: TOP RANKINGS */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                
+                {/* Ranking de Médicos */}
+                <div style={cardStyle}>
+                    <h3 style={{ margin: "0 0 10px 0", color: "#1e293b", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                        <Users size={18} color="#10b981"/> Top Produtividade (Médicos)
+                    </h3>
+                    
+                    {rankingMedicos.length === 0 ? (
+                        <p style={{ color: "#94a3b8", fontSize: "0.9rem", fontStyle: "italic", textAlign: "center", marginTop: "20px" }}>Nenhuma cirurgia neste mês.</p>
+                    ) : (
+                        <div style={{ display: "flex", flexDirection: "column" }}>
+                            {rankingMedicos.map((medico, index) => (
+                                <div key={index} style={rankItemStyle}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                        {/* Coloca um troféu no primeiro lugar */}
+                                        {index === 0 ? <Trophy size={16} color="#f59e0b" /> : <span style={{ width: "16px", color: "#94a3b8", fontSize: "0.8rem", fontWeight: "700" }}>{index + 1}º</span>}
+                                        <span style={{ fontWeight: index === 0 ? "700" : "500" }}>{medico[0]}</span>
+                                    </div>
+                                    <div style={{ background: "#f1f5f9", padding: "4px 10px", borderRadius: "12px", fontSize: "0.85rem", fontWeight: "700", color: "#6C63FF" }}>
+                                        {medico[1]} cirurgia(s)
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Ranking de Hospitais */}
+                <div style={cardStyle}>
+                    <h3 style={{ margin: "0 0 10px 0", color: "#1e293b", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                        <Building2 size={18} color="#f59e0b"/> Locais mais atuantes (Hospitais)
+                    </h3>
+                    
+                    {rankingHospitais.length === 0 ? (
+                        <p style={{ color: "#94a3b8", fontSize: "0.9rem", fontStyle: "italic", textAlign: "center", marginTop: "20px" }}>Nenhuma cirurgia neste mês.</p>
+                    ) : (
+                        <div style={{ display: "flex", flexDirection: "column" }}>
+                            {rankingHospitais.map((hospital, index) => (
+                                <div key={index} style={rankItemStyle}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                        <span style={{ fontWeight: "500" }}>{hospital[0]}</span>
+                                    </div>
+                                    <div style={{ background: "#f1f5f9", padding: "4px 10px", borderRadius: "12px", fontSize: "0.85rem", fontWeight: "700", color: "#10b981" }}>
+                                        {hospital[1]} vol.
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
 
             </div>
+            
         </div>
     );
 }
