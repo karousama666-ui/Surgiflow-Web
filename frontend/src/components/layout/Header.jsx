@@ -1,19 +1,47 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useCirurgias } from "../../context/CirurgiasContext";
 import { usePedidos } from "../../context/PedidosContext";
 import { useLocation } from "react-router-dom";
 import { Bell, LogOut, AlertCircle, PackageSearch, CheckCircle2 } from "lucide-react";
+import { supabase } from "../../services/supabase.js"; // <- IMPORT DO BANCO AQUI!
 
 function Header() {
     const { logout } = useAuth(); 
     const location = useLocation();
     
-    // Garantindo que mesmo se o Context demorar, o sistema não quebre (array vazio por padrão)
+    // Garantindo que mesmo se o Context demorar, o sistema não quebre
     const { listaCirurgias = [] } = useCirurgias() || {};
     const { listaPedidos = [] } = usePedidos() || {};
 
     const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
+    
+    // ESTADOS DINÂMICOS DO USUÁRIO 👤
+    const [nomeExibicao, setNomeExibicao] = useState("Carregando...");
+    const [cargoExibicao, setCargoExibicao] = useState("Profissional de Saúde");
+
+    // BUSCA O USUÁRIO LOGADO ASSIM QUE A TELA ABRE 🔄
+    useEffect(() => {
+        async function buscarUsuarioLogado() {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                
+                if (user && user.user_metadata && user.user_metadata.nome) {
+                    // Pega só o primeiro e o segundo nome para o layout ficar perfeito
+                    const nomeCompleto = user.user_metadata.nome.split(" ");
+                    const nomeCurto = `${nomeCompleto[0]} ${nomeCompleto[1] || ""}`;
+                    
+                    setNomeExibicao(nomeCurto);
+                } else {
+                    setNomeExibicao("Usuário");
+                }
+            } catch (error) {
+                console.error("Erro ao puxar dados do usuário:", error);
+                setNomeExibicao("Usuário");
+            }
+        }
+        buscarUsuarioLogado();
+    }, []);
 
     const formatarTitulo = () => {
         const path = location.pathname.replace("/", "");
@@ -21,15 +49,11 @@ function Header() {
         return path.charAt(0).toUpperCase() + path.slice(1);
     };
 
-    const nomeExibicao = "Carolina Ramos";
-    const cargoExibicao = "Biomédica";
-
-    // Lógica Flexível para não depender de acentos ou espaços no banco de dados
+    // Lógica Flexível para notificações
     const notificacoesReais = useMemo(() => {
         const alertas = [];
         let idCounter = 1;
 
-        // 1. Procurar por OPMEs (busca flexível pelas palavras-chave)
         const opmesPendentes = listaPedidos.filter(p => {
             const status = p.status ? p.status.toLowerCase() : "";
             return status.includes("aguardando") || status.includes("aprovação") || status.includes("aprovacao");
@@ -47,7 +71,6 @@ function Header() {
             });
         });
 
-        // 2. Procurar por Cirurgias Pendentes
         const cirurgiasPendentes = listaCirurgias.filter(c => {
             const status = c.status ? c.status.toLowerCase().trim() : "";
             return status === "pendente";
@@ -68,7 +91,7 @@ function Header() {
             });
         });
 
-        return alertas.slice(0, 5); // Mostra no máximo 5 para não quebrar o layout
+        return alertas.slice(0, 5); 
     }, [listaCirurgias, listaPedidos]);
 
     const temAlerta = notificacoesReais.length > 0;
@@ -108,7 +131,6 @@ function Header() {
                         )}
                     </button>
 
-                    {/* AJUSTE DE LAYOUT AQUI: right: 0 para não cortar na tela! */}
                     {notificacoesAbertas && (
                         <div style={{ 
                             position: "absolute", top: "45px", right: "0", width: "340px", 
@@ -149,6 +171,7 @@ function Header() {
                     )}
                 </div>
 
+                {/* BLOCO DO USUÁRIO DINÂMICO AQUI */}
                 <div style={{ display: "flex", alignItems: "center", gap: "12px", borderLeft: "1px solid #e2e8f0", paddingLeft: "20px" }}>
                     <div style={{ textAlign: "right" }}>
                         <strong style={{ display: "block", color: "#1e293b", fontSize: "0.9rem" }}>{nomeExibicao}</strong>
@@ -157,9 +180,10 @@ function Header() {
                     <div style={{ 
                         width: "38px", height: "38px", background: "#6C63FF", color: "white", 
                         borderRadius: "50%", display: "flex", justifyContent: "center", alignItems: "center", 
-                        fontWeight: "700", fontSize: "1.1rem" 
+                        fontWeight: "700", fontSize: "1.1rem", textTransform: "uppercase" 
                     }}>
-                        {nomeExibicao.charAt(0)}
+                        {/* Pega a primeira letra do nome de forma segura */}
+                        {nomeExibicao ? nomeExibicao.charAt(0) : "U"}
                     </div>
                 </div>
 
