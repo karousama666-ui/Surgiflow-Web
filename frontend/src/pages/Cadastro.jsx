@@ -4,7 +4,7 @@ import { User, Mail, Lock, FileText, ArrowRight, ShieldCheck } from "lucide-reac
 import logoSurgiFlow from "../assets/logopdf.png"; 
 
 // O CAMINHO CORRIGIDO E DEFINITIVO PARA O SUPABASE! 🎯
-import { supabase } from "../services/supabase"; 
+import { supabase } from "../services/supabase.js";
 
 function Cadastro() {
     const [form, setForm] = useState({
