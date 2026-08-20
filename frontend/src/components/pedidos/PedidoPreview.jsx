@@ -37,12 +37,24 @@ function PedidoPreview({ cirurgia, pedido, isOpen, onClose }) {
         setForm({ ...form, [e.target.name]: e.target.value });
     }
 
+    // A NOVA FUNÇÃO COM O CINTO DE SEGURANÇA (TRY...CATCH) 🛑
     async function handleSalvarOPME() {
-        const dados = { ...form, cirurgia_id: cirurgia.id };
-        if (pedido?.id) dados.id = pedido.id;
+        try {
+            const dados = { ...form, cirurgia_id: cirurgia.id };
+            if (pedido?.id) dados.id = pedido.id;
 
-        await salvarPedido(dados);
-        onClose();
+            // Tenta salvar no Supabase...
+            await salvarPedido(dados);
+            
+            // Se deu certo, avisa o usuário e fecha o modal
+            alert("✅ Pedido OPME salvo com sucesso!");
+            onClose(); 
+
+        } catch (error) {
+            // Se der erro de segurança (RLS) ou conexão, grita na tela!
+            console.error("Erro ao salvar OPME:", error);
+            alert("❌ Ops! Erro ao salvar o pedido: " + (error.message || "Verifique o console apertando F12"));
+        }
     }
 
     let data = "Não informada";
@@ -70,19 +82,19 @@ function PedidoPreview({ cirurgia, pedido, isOpen, onClose }) {
     const inputStyle = {
         width: "100%", padding: "12px", border: "1px solid #cbd5e1", borderRadius: "8px", 
         fontSize: "14px", marginTop: "6px", backgroundColor: "#f8fafc", outline: "none", color: "#1e293b",
-        fontFamily: "inherit", boxSizing: "border-box" // O box-sizing e fontFamily evitam vazamentos e fontes feias nos inputs
+        fontFamily: "inherit", boxSizing: "border-box" 
     };
 
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
-            {/* CONTAINER PRINCIPAL BLINDADO: Mata a fonte ruim e o scroll horizontal */}
+            {/* CONTAINER PRINCIPAL BLINDADO */}
             <div style={{ 
                 width: "100%", maxWidth: "650px", display: "flex", flexDirection: "column",
                 fontFamily: "'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                 color: "#1e293b"
             }}>
                 
-                {/* ÁREA COM ROLAGEM INTERNA: Trocamos o minWidth que quebrava tudo por overflowX: hidden */}
+                {/* ÁREA COM ROLAGEM INTERNA */}
                 <div style={{ maxHeight: "70vh", overflowY: "auto", overflowX: "hidden", paddingRight: "10px" }}>
                     <div ref={pdfRef} style={{ background: "white", padding: "10px 15px" }}>
                         
@@ -92,7 +104,7 @@ function PedidoPreview({ cirurgia, pedido, isOpen, onClose }) {
                             <h2 style={{ fontSize: "1.4rem", fontWeight: "800", color: "#0f172a", margin: 0 }}>Pedido Cirúrgico / OPME</h2>
                         </div>
 
-                        {/* GRID DE INFORMAÇÕES DO PACIENTE (Visual Elegante) */}
+                        {/* GRID DE INFORMAÇÕES DO PACIENTE */}
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "30px" }}>
                             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#6C63FF", fontSize: "0.85rem", fontWeight: "700", textTransform: "uppercase" }}>
@@ -180,7 +192,7 @@ function PedidoPreview({ cirurgia, pedido, isOpen, onClose }) {
                     </div>
                 </div>
 
-                {/* BOTÕES DE AÇÃO (Fixos no rodapé, não entram no PDF) */}
+                {/* BOTÕES DE AÇÃO */}
                 <div style={{ display: "flex", gap: "15px", marginTop: "20px", paddingTop: "20px", borderTop: "1px solid #e2e8f0" }}>
                     <button
                         onClick={handleSalvarOPME}
