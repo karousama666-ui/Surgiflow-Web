@@ -85,14 +85,20 @@ function Agenda() {
                 }}
                 cirurgia={cirurgiaEditando}
                 
-                onSave={(dados) => {
-                    if (cirurgiaEditando) {
-                        editarCirurgia(cirurgiaEditando.id, dados);
-                    } else {
-                        adicionarCirurgia(dados);
+                // 👇 A MÁGICA ACONTECE AQUI: Agora a agenda espera o upload terminar!
+                onSave={async (dados) => {
+                    try {
+                        if (cirurgiaEditando) {
+                            await editarCirurgia(cirurgiaEditando.id, dados);
+                        } else {
+                            await adicionarCirurgia(dados);
+                        }
+                        // Só fecha o modal DEPOIS que o banco confirmar o salvamento!
+                        setModalOpen(false);
+                        setCirurgiaEditando(null);
+                    } catch (erro) {
+                        console.error("Falha na gravação:", erro);
                     }
-                    setModalOpen(false);
-                    setCirurgiaEditando(null);
                 }}
             />
         </>
