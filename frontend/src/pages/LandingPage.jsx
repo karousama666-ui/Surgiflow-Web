@@ -172,7 +172,7 @@ function LandingPage() {
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#6C63FF" /> 2 Usuários (Acessos)</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#6C63FF" /> Kanban de OPME</li>
                             </ul>
-                            <Link to="/cadastro" className="btn-primary" style={{ width: "100%" }}>Assinar Starter</Link>
+                            <a href="https://www.asaas.com/c/23vsipmr38k4f4a3" target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ width: "100%" }}>Assinar Starter</a>
                         </div>
 
                         <div className="clean-card">
@@ -185,7 +185,7 @@ function LandingPage() {
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Usuários Ilimitados</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Relatórios de Auditoria</li>
                             </ul>
-                            <a href="#" className="btn-premium" style={{ width: "100%" }}>Assinar Pro</a>
+                            <a href="https://www.asaas.com/c/ftgprtwo5xs0seyz" target="_blank" rel="noopener noreferrer" className="btn-premium" style={{ width: "100%" }}>Assinar Pro</a>
                         </div>
                     </div>
                 </div>
