@@ -1,4 +1,4 @@
-import React, { useState } from "react"; // 👈 Importamos o useState aqui
+import React, { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // Importação dos Contextos (Os nossos "Cérebros")
@@ -16,6 +16,7 @@ import Header from "./components/layout/Header";
 // ==========================================
 // IMPORTAÇÃO DE TODAS AS TELAS DO SISTEMA
 // ==========================================
+import LandingPage from "./pages/LandingPage"; // 👈 A NOVA VITRINE IMPORTADA AQUI!
 import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
 import NovaSenha from "./pages/NovaSenha"; 
@@ -32,7 +33,7 @@ import Configuracoes from "./pages/Configuracoes";
 // O "MOLDE" DA PLATAFORMA (Menu, Topo e Fonte)
 // ==========================================
 const LayoutApp = ({ children }) => {
-    // 👇 O CONTROLE DO MENU RESPONSIVO FICA AQUI 👇
+    // O CONTROLE DO MENU RESPONSIVO FICA AQUI
     const [menuAberto, setMenuAberto] = useState(false);
 
     return (
@@ -44,13 +45,13 @@ const LayoutApp = ({ children }) => {
             fontFamily: "'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
             background: "#f8fafc" 
         }}>
-            {/* 👇 Passamos o estado para a Sidebar saber quando abrir e como fechar 👇 */}
+            {/* Passamos o estado para a Sidebar saber quando abrir e como fechar */}
             <Sidebar isOpen={menuAberto} onClose={() => setMenuAberto(false)} />
             
             {/* Painel Direito */}
             <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
                 
-                {/* 👇 Passamos a função pro Header avisar quando clicar no Hambúrguer 👇 */}
+                {/* Passamos a função pro Header avisar quando clicar no Hambúrguer */}
                 <Header onMenuToggle={() => setMenuAberto(!menuAberto)} />
                 
                 <main style={{ flex: 1, overflowY: "auto", padding: "24px", background: "#f1f5f9" }}>
@@ -72,7 +73,8 @@ function App() {
               
               <Routes>
                 {/* 🔴 ROTAS PÚBLICAS (Telas Cheias) */}
-                <Route path="/" element={<Login />} />
+                <Route path="/" element={<LandingPage />} />     {/* 👈 A Vitrine agora é a porta de entrada! */}
+                <Route path="/login" element={<Login />} />        {/* 👈 O Login mudou para /login */}
                 <Route path="/cadastro" element={<Cadastro />} />
                 <Route path="/nova-senha" element={<NovaSenha />} />
 
