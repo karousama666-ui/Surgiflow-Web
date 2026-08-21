@@ -11,7 +11,8 @@ import {
     Building2,
     Trophy,
     ShieldPlus, 
-    Truck       
+    Truck,
+    Printer // 👈 Importamos o ícone da impressora
 } from "lucide-react";
 
 function Relatorios() {
@@ -46,7 +47,7 @@ function Relatorios() {
             cirurgiasDoMes.some(c => String(c.id) === String(p.cirurgia_id))
         );
 
-        // 🛡️ BLINDAGEM DE AUDITORIA: Remove duplicatas (previne erro de clique duplo no cadastro)
+        // 🛡️ BLINDAGEM DE AUDITORIA: Remove duplicatas
         const opmesDoMes = opmesDoMesBrutos.filter((pedido, index, self) =>
             index === self.findIndex((p) => p.cirurgia_id === pedido.cirurgia_id)
         );
@@ -125,31 +126,85 @@ function Relatorios() {
     };
 
     return (
-        <div style={{ paddingBottom: "40px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
+        <div style={{ paddingBottom: "40px", fontFamily: "'Montserrat', 'Inter', sans-serif" }}>
+            
+            {/* 👇 MÁGICA DO PDF: CSS INJETADO PARA IMPRESSÃO PERFEITA (A4) 👇 */}
+            <style>
+                {`
+                @media print {
+                    body { background: white !important; margin: 0; padding: 0; }
+                    /* Esconde os menus laterais, topos e botões de ação */
+                    aside, header, .nao-imprimir { display: none !important; }
+                    
+                    /* Ajusta o container principal para ocupar a folha toda */
+                    main { padding: 0 !important; background: white !important; overflow: visible !important; }
+                    
+                    /* Faz o cabeçalho de auditoria aparecer apenas no papel */
+                    .print-header { display: block !important; margin-bottom: 30px; }
+                    
+                    /* Impede que os cards quebrem no meio da folha */
+                    .print-card { page-break-inside: avoid; border: 1px solid #cbd5e1 !important; box-shadow: none !important; }
+                    
+                    /* Força o grid a se comportar bem no papel A4 */
+                    .print-grid-4 { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: 10px !important; }
+                    .print-grid-2 { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 15px !important; }
+                }
+                
+                /* Esconde o cabeçalho de auditoria na visualização normal da tela */
+                .print-header { display: none; }
+                `}
+            </style>
+
+            {/* 👇 CABEÇALHO EXCLUSIVO PARA O PDF DE AUDITORIA 👇 */}
+            <div className="print-header">
+                <div style={{ borderBottom: "2px solid #0f172a", paddingBottom: "15px", marginBottom: "20px" }}>
+                    <h2 style={{ fontSize: "1.6rem", fontWeight: "800", color: "#0f172a", margin: "0 0 5px 0" }}>
+                        Relatório de Conformidade e Fluxo Cirúrgico
+                    </h2>
+                    <p style={{ margin: 0, color: "#475569", fontSize: "0.95rem" }}>Documentação comprobatória de rastreabilidade e operação sanitária.</p>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", color: "#334155", fontWeight: "600", marginBottom: "30px", background: "#f8fafc", padding: "10px", border: "1px solid #e2e8f0", borderRadius: "8px" }}>
+                    <span>Período de Apuração: {mesFiltro.split('-').reverse().join('/')}</span>
+                    <span>Diretrizes Aplicáveis: RDC 16/2013 e RDC 665/2022</span>
+                    <span>Gerado em: {new Date().toLocaleDateString('pt-BR')}</span>
+                </div>
+            </div>
+
+            {/* Cabeçalho da Tela (Escondido na Impressão) */}
+            <div className="nao-imprimir" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px", flexWrap: "wrap", gap: "20px" }}>
                 <div>
-                    <h1 style={{ fontSize: "1.8rem", color: "#1e293b", margin: "0 0 4px 0", fontWeight: "700" }}>
+                    <h1 style={{ fontSize: "1.8rem", color: "#1e293b", margin: "0 0 4px 0", fontWeight: "800" }}>
                         Relatórios Gerenciais
                     </h1>
-                    <p style={{ color: "#64748b", fontSize: "0.95rem", margin: 0 }}>
-                        Visão analítica e indicadores de performance (KPIs).
+                    <p style={{ color: "#64748b", fontSize: "0.95rem", margin: 0, fontWeight: "500" }}>
+                        Visão analítica, auditoria de OPME e indicadores de performance.
                     </p>
                 </div>
 
-                <input 
-                    type="month" 
-                    value={mesFiltro}
-                    onChange={(e) => setMesFiltro(e.target.value)}
-                    style={{ 
-                        padding: "12px 16px", borderRadius: "10px", border: "1px solid #cbd5e1", 
-                        fontSize: "1rem", outline: "none", color: "#1e293b", background: "#fff", cursor: "pointer"
-                    }}
-                />
+                <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
+                    <input 
+                        type="month" 
+                        value={mesFiltro}
+                        onChange={(e) => setMesFiltro(e.target.value)}
+                        style={{ 
+                            padding: "12px 16px", borderRadius: "10px", border: "1px solid #cbd5e1", 
+                            fontSize: "1rem", outline: "none", color: "#1e293b", background: "#fff", cursor: "pointer", fontWeight: "600"
+                        }}
+                    />
+                    <button 
+                        onClick={() => window.print()}
+                        style={{ background: "#10b981", color: "white", border: "none", padding: "12px 20px", borderRadius: "10px", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", transition: "0.2s", boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)" }}
+                        onMouseOver={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
+                        onMouseOut={(e) => e.currentTarget.style.transform = "translateY(0)"}
+                    >
+                        <Printer size={18} /> Baixar PDF de Auditoria
+                    </button>
+                </div>
             </div>
 
             {/* LINHA 1: KPIs Principais (4 cards) */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "20px" }}>
-                <div style={cardStyle}>
+            <div className="print-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "20px" }}>
+                <div className="print-card" style={cardStyle}>
                     <div style={headerCardStyle}>
                         <span>Total de Cirurgias</span>
                         <Activity size={20} color="#6C63FF" />
@@ -158,7 +213,7 @@ function Relatorios() {
                     <span style={{ fontSize: "0.85rem", color: "#10b981", fontWeight: "600" }}>Neste período</span>
                 </div>
 
-                <div style={cardStyle}>
+                <div className="print-card" style={cardStyle}>
                     <div style={headerCardStyle}>
                         <span>Confirmadas / Finais</span>
                         <CheckCircle2 size={20} color="#10b981" />
@@ -167,7 +222,7 @@ function Relatorios() {
                     <span style={{ fontSize: "0.85rem", color: "#64748b" }}>Agendamentos seguros</span>
                 </div>
 
-                <div style={cardStyle}>
+                <div className="print-card" style={cardStyle}>
                     <div style={headerCardStyle}>
                         <span>Taxa de Cancelamento</span>
                         <TrendingUp size={20} color="#ef4444" />
@@ -176,7 +231,7 @@ function Relatorios() {
                     <span style={{ fontSize: "0.85rem", color: "#ef4444", fontWeight: "600" }}>{metricas.canceladas} canceladas</span>
                 </div>
 
-                <div style={cardStyle}>
+                <div className="print-card" style={cardStyle}>
                     <div style={headerCardStyle}>
                         <span>OPMEs Pendentes</span>
                         <AlertCircle size={20} color="#f59e0b" />
@@ -187,9 +242,9 @@ function Relatorios() {
             </div>
 
             {/* LINHA 2: Gráficos de Barra */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
+            <div className="print-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
                 
-                <div style={cardStyle}>
+                <div className="print-card" style={cardStyle}>
                     <h3 style={{ margin: "0 0 15px 0", color: "#1e293b", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
                         <CheckCircle2 size={18} color="#6C63FF"/> Status das Cirurgias
                     </h3>
@@ -215,7 +270,7 @@ function Relatorios() {
                     </div>
                 </div>
 
-                <div style={cardStyle}>
+                <div className="print-card" style={cardStyle}>
                     <h3 style={{ margin: "0 0 15px 0", color: "#1e293b", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
                         <PackageSearch size={18} color="#6C63FF"/> Funil de OPME
                     </h3>
@@ -243,15 +298,15 @@ function Relatorios() {
             </div>
 
             {/* LINHA 3: TOP RANKINGS (MÉDICOS E HOSPITAIS) */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
-                <div style={cardStyle}>
+            <div className="print-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
+                <div className="print-card" style={cardStyle}>
                     <h3 style={{ margin: "0 0 10px 0", color: "#1e293b", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
                         <Users size={18} color="#10b981"/> Top Produtividade (Médicos)
                     </h3>
                     <RankingList dados={rankingMedicos} sufixo="cirurgia(s)" />
                 </div>
 
-                <div style={cardStyle}>
+                <div className="print-card" style={cardStyle}>
                     <h3 style={{ margin: "0 0 10px 0", color: "#1e293b", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
                         <Building2 size={18} color="#f59e0b"/> Locais mais atuantes (Hospitais)
                     </h3>
@@ -259,16 +314,16 @@ function Relatorios() {
                 </div>
             </div>
 
-            {/* 👇 LINHA 4: NOVOS RANKINGS (CONVÊNIOS E OPME) */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-                <div style={cardStyle}>
+            {/* LINHA 4: NOVOS RANKINGS (CONVÊNIOS E OPME) */}
+            <div className="print-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                <div className="print-card" style={cardStyle}>
                     <h3 style={{ margin: "0 0 10px 0", color: "#1e293b", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
                         <ShieldPlus size={18} color="#3b82f6"/> Top Convênios
                     </h3>
                     <RankingList dados={rankingConvenios} sufixo="vol." />
                 </div>
 
-                <div style={cardStyle}>
+                <div className="print-card" style={cardStyle}>
                     <h3 style={{ margin: "0 0 10px 0", color: "#1e293b", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
                         <Truck size={18} color="#8b5cf6"/> Top Fornecedores de OPME
                     </h3>
