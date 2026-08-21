@@ -73,7 +73,8 @@ function PedidoCard({ cirurgia, pedido, onPreview }) {
             <div className="pedido-actions">
                 <button type="button" onClick={onPreview} style={{ width: "100%", justifyContent: "center" }}>
                     <Eye size={17} /> 
-                    <span>Gerenciar OPME / PDF</span>
+                    {/* 👇 TEXTO ATUALIZADO 👇 */}
+                    <span>Gerenciar OPME / Anexos</span>
                 </button>
             </div>
         </div>
