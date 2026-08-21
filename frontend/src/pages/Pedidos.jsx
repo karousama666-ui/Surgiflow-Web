@@ -4,9 +4,8 @@ import { usePedidos } from "../context/PedidosContext";
 import PedidoCard from "../components/pedidos/PedidoCard";
 import PedidoPreview from "../components/pedidos/PedidoPreview";
 import "./Pedidos.css";
-import { LayoutGrid, List } from "lucide-react"; // 👈 Ícones para o alternador de visão
+import { LayoutGrid, List } from "lucide-react"; 
 
-// 👇 AS COLUNAS DO NOSSO QUADRO TRELLO 👇
 const COLUNAS_KANBAN = [
     { id: "Pendente", titulo: "Sem OPME / Novos", corFundo: "#f8fafc", corBorda: "#e2e8f0", corTopo: "#94a3b8" },
     { id: "Aguardando Orçamento", titulo: "Orçamento", corFundo: "#fffbeb", corBorda: "#ffedd5", corTopo: "#f59e0b" },
@@ -17,7 +16,7 @@ const COLUNAS_KANBAN = [
 
 function Pedidos() {
     const { listaCirurgias } = useCirurgias();
-    const { listaPedidos, salvarPedido } = usePedidos(); // 👈 Precisamos da função salvarPedido para o arrastar/soltar
+    const { listaPedidos, salvarPedido } = usePedidos(); 
 
     const [pedidoSelecionado, setPedidoSelecionado] = useState(null);
     const [previewOpen, setPreviewOpen] = useState(false);
@@ -27,10 +26,7 @@ function Pedidos() {
     const [filtroHospital, setFiltroHospital] = useState("");
     const [filtroMedico, setFiltroMedico] = useState("");
 
-    // Estado do Alternador de Visão: 'kanban' ou 'lista'
     const [visao, setVisao] = useState("kanban");
-
-    // Estado para saber qual card está sendo arrastado no momento
     const [draggedItem, setDraggedItem] = useState(null);
 
     function converterData(dataCirurgia) {
@@ -59,14 +55,12 @@ function Pedidos() {
             const correspondeHospital = filtroHospital === "" || cirurgia.hospital === filtroHospital;
             const correspondeMedico = filtroMedico === "" || nomeMedico === filtroMedico;
 
-            // No Kanban, ignoramos cirurgias canceladas na visão principal para não poluir
             const naoCancelado = visao === "kanban" ? cirurgia.status !== "Cancelada" : true;
 
             return correspondePesquisa && correspondeStatus && correspondeHospital && correspondeMedico && naoCancelado;
         })
         .sort((a, b) => converterData(b.data_cirurgia) - converterData(a.data_cirurgia));
 
-    // 👇 MÁGICA DO ARRASTAR E SOLTAR (DRAG AND DROP) 👇
     const handleDragStart = (e, cirurgia, pedido) => {
         setDraggedItem({ cirurgia, pedido });
     };
@@ -77,16 +71,14 @@ function Pedidos() {
 
         const statusAtual = draggedItem.pedido?.status || "Pendente";
         
-        // Se soltou na mesma coluna que já estava, ignora
         if (statusAtual === colunaDestinoStatus) {
             setDraggedItem(null);
             return;
         }
 
-        // Monta os dados para salvar
         const dadosSalvar = draggedItem.pedido 
             ? { ...draggedItem.pedido, status: colunaDestinoStatus } 
-            : { cirurgia_id: draggedItem.cirurgia.id, status: colunaDestinoStatus, fornecedor: "", materiais: "", valor_total: "" }; // Se o pedido não existia, cria um esqueleto dele
+            : { cirurgia_id: draggedItem.cirurgia.id, status: colunaDestinoStatus, fornecedor: "", materiais: "", valor_total: "" };
 
         try {
             await salvarPedido(dadosSalvar);
@@ -99,18 +91,17 @@ function Pedidos() {
     };
 
     const handleDragOver = (e) => {
-        e.preventDefault(); // Permite que a div receba o elemento que foi solto
+        e.preventDefault(); 
     };
 
     return (
         <>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "25px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "25px", flexWrap: "wrap", gap: "15px" }}>
                 <div>
                     <h1 style={{ margin: "0 0 5px 0", color: "#0f172a" }}>Pedidos de OPME</h1>
                     <p style={{ margin: 0, color: "#64748b", fontSize: "0.95rem" }}>Acompanhe o funil de orçamentos e liberação de materiais.</p>
                 </div>
 
-                {/* 👇 O ALTERNADOR DE VISÃO (TOGGLE) 👇 */}
                 <div style={{ display: "flex", background: "#f1f5f9", padding: "4px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
                     <button 
                         onClick={() => setVisao("kanban")}
@@ -127,11 +118,10 @@ function Pedidos() {
                 </div>
             </div>
 
-            {/* Filtros */}
-            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: "12px", marginBottom: "25px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px", marginBottom: "25px" }}>
                 <input type="text" placeholder="🔎 Buscar paciente..." value={pesquisa} onChange={(e) => setPesquisa(e.target.value)} style={{ padding: "12px 15px", border: "1px solid #cbd5e1", borderRadius: "10px", fontSize: "14px", outline: "none", fontFamily: "inherit" }} />
                 <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)} style={{ padding: "12px", border: "1px solid #cbd5e1", borderRadius: "10px", outline: "none", fontFamily: "inherit", cursor: "pointer" }}>
-                    <option value="">Status da Cirurgia (Todos)</option>
+                    <option value="">Status da Cirurgia</option>
                     <option value="Pendente">Pendente</option>
                     <option value="Confirmada">Confirmada</option>
                     <option value="Finalizada">Finalizada</option>
@@ -147,9 +137,7 @@ function Pedidos() {
                 </select>
             </div>
 
-            {/* 👇 RENDERIZAÇÃO DA VISÃO ESCOLHIDA 👇 */}
             {visao === "lista" ? (
-                // =============== VISÃO LISTA CLÁSSICA ===============
                 <div className="pedidos-grid">
                     {pedidosFiltrados.length === 0 ? (
                         <div style={{ background: "#fff", padding: "30px", borderRadius: "16px", textAlign: "center", color: "#777", gridColumn: "1 / -1" }}>Nenhum pedido encontrado.</div>
@@ -171,11 +159,21 @@ function Pedidos() {
                     )}
                 </div>
             ) : (
-                // =============== VISÃO KANBAN (QUADRO) ===============
-                <div style={{ display: "flex", gap: "20px", overflowX: "auto", minHeight: "60vh", paddingBottom: "20px", alignItems: "flex-start" }}>
+                // 👇 A CORREÇÃO DE LARGURA E SCROLL DO KANBAN ESTÁ AQUI 👇
+                <div style={{ 
+                    display: "flex", 
+                    gap: "20px", 
+                    overflowX: "auto", 
+                    minHeight: "60vh", 
+                    paddingBottom: "20px", 
+                    paddingRight: "20px", // Dá um respiro para a rolagem
+                    alignItems: "flex-start",
+                    width: "100%", // Trava a largura
+                    maxWidth: "100%", // Evita que a tela inteira vaze
+                    boxSizing: "border-box" // Mantém o padding dentro do tamanho
+                }}>
                     
                     {COLUNAS_KANBAN.map(coluna => {
-                        // Filtra as cirurgias que pertencem a esta coluna
                         const cardsDestaColuna = pedidosFiltrados.filter(cirurgia => {
                             const pedidoDaCirurgia = listaPedidos.find(p => String(p.cirurgia_id) === String(cirurgia.id));
                             const statusOPME = pedidoDaCirurgia?.status || "Pendente";
@@ -192,7 +190,6 @@ function Pedidos() {
                                     borderRadius: "14px", display: "flex", flexDirection: "column", flexShrink: 0, overflow: "hidden" 
                                 }}
                             >
-                                {/* Topo da Coluna */}
                                 <div style={{ padding: "15px", borderBottom: `2px solid ${coluna.corTopo}`, background: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                     <h3 style={{ margin: 0, fontSize: "1rem", color: "#1e293b", fontWeight: "700" }}>{coluna.titulo}</h3>
                                     <span style={{ background: "#f1f5f9", color: "#475569", padding: "2px 8px", borderRadius: "10px", fontSize: "0.8rem", fontWeight: "800" }}>
@@ -200,7 +197,6 @@ function Pedidos() {
                                     </span>
                                 </div>
 
-                                {/* Corpo da Coluna onde ficam os cards */}
                                 <div style={{ padding: "15px", display: "flex", flexDirection: "column", gap: "15px", flex: 1, minHeight: "150px" }}>
                                     {cardsDestaColuna.map(cirurgia => {
                                         const pedidoDaCirurgia = listaPedidos.find(p => String(p.cirurgia_id) === String(cirurgia.id));
@@ -208,11 +204,10 @@ function Pedidos() {
                                         return (
                                             <div 
                                                 key={cirurgia.id} 
-                                                draggable // 👈 Ativa o Drag and Drop HTML5 nativo
+                                                draggable 
                                                 onDragStart={(e) => handleDragStart(e, cirurgia, pedidoDaCirurgia)}
                                                 style={{ cursor: "grab", opacity: draggedItem?.cirurgia.id === cirurgia.id ? 0.5 : 1 }}
                                             >
-                                                {/* Reutilizamos o seu próprio PedidoCard dentro do Kanban! */}
                                                 <PedidoCard
                                                     cirurgia={cirurgia}
                                                     pedido={pedidoDaCirurgia}
@@ -237,7 +232,6 @@ function Pedidos() {
                 </div>
             )}
 
-            {/* Modal de Detalhes do OPME */}
             <PedidoPreview
                 cirurgia={pedidoSelecionado?.cirurgia}
                 pedido={pedidoSelecionado?.pedido}
