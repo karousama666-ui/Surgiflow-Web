@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ShieldCheck, LayoutGrid, FileCheck, CheckCircle2, Stethoscope, Building2 } from 'lucide-react';
+import { ArrowRight, ShieldCheck, LayoutGrid, Users, CheckCircle2, Stethoscope, Building2 } from 'lucide-react';
 
 import logoSurgiFlow from '../assets/logo_vertical.png'; 
 import iconeFundo from '../assets/iconegrande.png'; 
@@ -114,12 +114,13 @@ function LandingPage() {
                             <p style={{ color: "#475569", lineHeight: "1.6", fontWeight: "500" }}>Checklists inteligentes para validação de jejum, exames e termos antes do paciente pisar no hospital.</p>
                         </div>
 
+                        {/* 👇 NOVO CARD ATUALIZADO 👇 */}
                         <div className="clean-card">
                             <div style={{ background: "#fef3c7", width: "60px", height: "60px", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "24px" }}>
-                                <FileCheck size={30} color="#f59e0b" />
+                                <Users size={30} color="#f59e0b" />
                             </div>
-                            <h3 style={{ fontSize: "1.3rem", fontWeight: "800", marginBottom: "15px", color: "#1e293b" }}>Compliance e RDC</h3>
-                            <p style={{ color: "#475569", lineHeight: "1.6", fontWeight: "500" }}>Relatórios executivos focados na RDC 16/2013 e RDC 665/2022. Prontos para apresentar na sua próxima auditoria.</p>
+                            <h3 style={{ fontSize: "1.3rem", fontWeight: "800", marginBottom: "15px", color: "#1e293b" }}>Gestão Colaborativa</h3>
+                            <p style={{ color: "#475569", lineHeight: "1.6", fontWeight: "500" }}>Conecte a recepção, o faturamento e o corpo clínico na mesma plataforma. Centralize a comunicação e elimine o caos do WhatsApp.</p>
                         </div>
                     </div>
                 </div>
@@ -156,7 +157,7 @@ function LandingPage() {
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> 1 Médico cadastrado</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Até 10 Pacientes</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Kanban de OPME</li>
-                                <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Relatórios (RDC)</li>
+                                <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Relatórios de Agenda</li>
                             </ul>
                             <Link to="/cadastro" className="btn-outline" style={{ width: "100%" }}>Começar Grátis</Link>
                         </div>
