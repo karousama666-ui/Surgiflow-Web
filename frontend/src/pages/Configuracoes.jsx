@@ -57,7 +57,7 @@ function Configuracoes() {
           if (user) {
               setUserId(user.id);
               
-              // 👇 NOVO: BUSCA O PLANO OFICIAL NA TABELA PERFIS 👇
+              // BUSCA O PLANO OFICIAL NA TABELA PERFIS
               const { data: perfilData, error: perfilError } = await supabase
                   .from('perfis')
                   .select('plano')
@@ -114,6 +114,12 @@ function Configuracoes() {
       // TRAVA DO PLANO FREE
       if (planoAtual === "free") {
           alert("🔒 Recurso Premium!\n\nFaça o Upgrade para o plano Starter ou Clinic Pro na aba de Assinaturas para adicionar usuários à sua equipe.");
+          return;
+      }
+
+      // TRAVA DO PLANO STARTER (Limite de 2 usuários)
+      if (planoAtual === "starter" && membrosEquipe.length >= 2) {
+          alert("🔒 Limite do Plano Starter atingido!\n\nVocê atingiu o limite de 2 acessos para a equipe. Faça o upgrade para o Clinic Pro para adicionar usuários ilimitados.");
           return;
       }
 
@@ -376,7 +382,8 @@ function Configuracoes() {
                   <ul style={{ listStyle: "none", padding: 0, color: "#475569", display: "flex", flexDirection: "column", gap: "8px", fontSize: "0.9rem", marginBottom: "20px", fontWeight: "500" }}>
                       <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#6C63FF" strokeWidth={3} /> Até 10 Médicos</li>
                       <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#6C63FF" strokeWidth={3} /> Pacientes Ilimitados</li>
-                      <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#6C63FF" strokeWidth={3} /> Kanban de OPME</li>
+                      {/* 👇 NOVO TEXTO AQUI 👇 */}
+                      <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#6C63FF" strokeWidth={3} /> 2 Usuários (Acessos)</li>
                   </ul>
                   <a href="https://www.asaas.com/c/23vsipmr38k4f4a3" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "#6C63FF", color: "white", padding: "12px", borderRadius: "8px", fontWeight: "700", textDecoration: "none" }}>
                       <ArrowUpCircle size={18} /> Assinar Starter
@@ -389,7 +396,8 @@ function Configuracoes() {
                   <ul style={{ listStyle: "none", padding: 0, color: "#cbd5e1", display: "flex", flexDirection: "column", gap: "8px", fontSize: "0.9rem", marginBottom: "20px", fontWeight: "500" }}>
                       <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#10b981" strokeWidth={3} /> Médicos Ilimitados</li>
                       <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#10b981" strokeWidth={3} /> Usuários Ilimitados</li>
-                      <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#10b981" strokeWidth={3} /> Relatórios (RDC)</li>
+                      {/* 👇 NOVO TEXTO AQUI 👇 */}
+                      <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#10b981" strokeWidth={3} /> Gestão Colaborativa</li>
                   </ul>
                   <a href="https://www.asaas.com/c/ftgprtwo5xs0seyz" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "white", color: "#0f172a", padding: "12px", borderRadius: "8px", fontWeight: "800", textDecoration: "none", transition: "0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = "#e2e8f0"} onMouseOut={(e) => e.currentTarget.style.background = "white"}>
                       <ArrowUpCircle size={18} /> Assinar Clinic Pro
