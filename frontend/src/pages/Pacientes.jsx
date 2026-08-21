@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "../services/supabase"; // Importe a conexão com o Supabase
 import { usePacientes } from "../context/PacientesContext";
 import PacienteModal from "../components/modal/PacienteModal";
 import { Search, Plus, Pencil, Trash2, UserCircle2, Phone } from "lucide-react";
@@ -9,8 +10,29 @@ function Pacientes() {
     const [pesquisa, setPesquisa] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
     const [pacienteEditando, setPacienteEditando] = useState(null);
+    
+    // 👇 Estado para guardar o plano do usuário
+    const [planoAtual, setPlanoAtual] = useState("free"); 
 
-    // Filtra pelo nome, CPF ou telefone
+    // 👇 Busca o plano atual do usuário no banco de dados assim que a tela abre
+    useEffect(() => {
+        async function carregarPlano() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: perfilData } = await supabase
+                    .from('perfis')
+                    .select('plano')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (perfilData) {
+                    setPlanoAtual(perfilData.plano || 'free');
+                }
+            }
+        }
+        carregarPlano();
+    }, []);
+
     const pacientesFiltrados = listaPacientes.filter((p) => {
         const termo = pesquisa.toLowerCase();
         return (
@@ -21,6 +43,13 @@ function Pacientes() {
     });
 
     const handleAbrirModalNovo = () => {
+        // 🚨 TRAVA DE LIMITE POR PLANO 🚨
+        if (planoAtual === 'free' && listaPacientes.length >= 10) {
+            alert("🔒 Limite do Plano Free atingido!\n\nVocê atingiu o limite de 10 pacientes. Faça o upgrade para o plano Starter na tela de Configurações para cadastrar pacientes ilimitados.");
+            return; 
+        }
+
+        // Se passou da trava, abre o modal
         setPacienteEditando(null);
         setModalOpen(true);
     };

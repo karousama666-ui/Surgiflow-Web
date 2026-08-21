@@ -1,17 +1,38 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "../services/supabase"; // Importe a conexão com o Supabase
 import { useMedicos } from "../context/MedicosContext";
 import MedicoModal from "../components/modal/MedicoModal";
 import { Search, Plus, Pencil, Trash2, Phone, Stethoscope, MessageCircle } from "lucide-react";
 
 function Medicos() {
-    // Puxa as funções do Contexto de Médicos (Certifique-se de que esses nomes batem com o seu MedicosContext)
     const { listaMedicos, adicionarMedico, editarMedico, excluirMedico } = useMedicos();
     
     const [pesquisa, setPesquisa] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
     const [medicoEditando, setMedicoEditando] = useState(null);
+    
+    // 👇 Estado para guardar o plano do usuário
+    const [planoAtual, setPlanoAtual] = useState("free"); 
 
-    // Filtra por nome, CRM ou especialidade
+    // 👇 Busca o plano atual do usuário no banco de dados assim que a tela abre
+    useEffect(() => {
+        async function carregarPlano() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: perfilData } = await supabase
+                    .from('perfis')
+                    .select('plano')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (perfilData) {
+                    setPlanoAtual(perfilData.plano || 'free');
+                }
+            }
+        }
+        carregarPlano();
+    }, []);
+
     const medicosFiltrados = listaMedicos?.filter((m) => {
         const termo = pesquisa.toLowerCase();
         return (
@@ -22,6 +43,18 @@ function Medicos() {
     }) || [];
 
     const handleAbrirModalNovo = () => {
+        // 🚨 TRAVAS DE LIMITES POR PLANO 🚨
+        if (planoAtual === 'free' && listaMedicos.length >= 1) {
+            alert("🔒 Limite do Plano Free atingido!\n\nVocê já tem 1 médico cadastrado. Faça o upgrade para o plano Starter na tela de Configurações para adicionar até 10 médicos.");
+            return;
+        }
+
+        if (planoAtual === 'starter' && listaMedicos.length >= 10) {
+            alert("🔒 Limite do Plano Starter atingido!\n\nVocê atingiu o limite de 10 médicos. Faça o upgrade para o Clinic Pro na tela de Configurações para cadastros ilimitados.");
+            return;
+        }
+
+        // Se passou pelas travas, abre o modal normalmente
         setMedicoEditando(null);
         setModalOpen(true);
     };
