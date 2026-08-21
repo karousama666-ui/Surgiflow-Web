@@ -159,15 +159,16 @@ function Pedidos() {
                     )}
                 </div>
             ) : (
-                // 👇 A CORREÇÃO DEFINITIVA DO SCROLL FICA AQUI 👇
-                <div style={{ width: "100%", overflowX: "auto", paddingBottom: "15px" }}>
+                // 👇 A CAIXA DUPLA: A BLINDAGEM CONTRA O ESTOURO DE TELA 👇
+                <div style={{ width: "100%", maxWidth: "100%", overflow: "hidden" }}> 
                     <div style={{ 
                         display: "flex", 
                         gap: "20px", 
+                        overflowX: "auto", // O scroll horizontal acontece AQUI dentro
                         minHeight: "60vh", 
-                        alignItems: "flex-start",
-                        width: "max-content", /* A MÁGICA: Ele cresce até o fim do conteúdo sem quebrar a tela! */
-                        paddingRight: "20px" /* Respiro para a última coluna */
+                        paddingBottom: "20px", 
+                        paddingRight: "20px", 
+                        alignItems: "flex-start"
                     }}>
                         
                         {COLUNAS_KANBAN.map(coluna => {
