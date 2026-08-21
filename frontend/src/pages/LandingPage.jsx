@@ -36,6 +36,13 @@ function LandingPage() {
                 
                 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; align-items: stretch; }
                 
+                /* 👇 CLASSES DO CABEÇALHO 👇 */
+                .header-container { display: flex; justify-content: space-between; align-items: center; height: 100px; }
+                .logo-img { height: 85px; width: auto; object-fit: contain; }
+                .header-nav { display: flex; align-items: center; gap: 25px; }
+                .btn-login { padding: 10px 20px; }
+
+                /* 👇 REGRAS PARA TABLET 👇 */
                 @media (max-width: 900px) {
                     .hero-title { font-size: 2.5rem; }
                     .grid-3 { grid-template-columns: 1fr; }
@@ -43,10 +50,21 @@ function LandingPage() {
                     .bg-watermark { width: 300px; opacity: 0.06; } 
                 }
 
+                /* 👇 REGRAS EXCLUSIVAS PARA CELULAR (Evitar corte no botão) 👇 */
+                @media (max-width: 600px) {
+                    .landing-container { padding: 0 16px; }
+                    .header-container { height: 75px; }
+                    .logo-img { height: 45px; } /* Logo menor no celular */
+                    .header-nav { gap: 12px; } /* Menos espaço entre botão e texto */
+                    .btn-login { padding: 8px 14px !important; font-size: 0.85rem !important; } /* Botão mais enxuto */
+                    .header-link { font-size: 0.9rem !important; }
+                    .hero-section { padding-top: 120px; }
+                }
+
                 .clean-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 40px; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; flex-direction: column; height: 100%; }
                 .clean-card:hover { transform: translateY(-5px); border-color: #cbd5e1; box-shadow: 0 12px 25px rgba(0,0,0,0.05); }
                 
-                .btn-primary { background: #6C63FF; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: 1rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 6px 15px rgba(108, 99, 255, 0.25); border: none; cursor: pointer; }
+                .btn-primary { background: #6C63FF; color: white; border-radius: 10px; font-weight: 700; font-size: 1rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 6px 15px rgba(108, 99, 255, 0.25); border: none; cursor: pointer; }
                 .btn-primary:hover { transform: translateY(-2px); background: #5a52d5; box-shadow: 0 8px 20px rgba(108, 99, 255, 0.35); }
                 
                 .btn-premium { background: #0f172a; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: 1rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 6px 15px rgba(15, 23, 42, 0.2); border: none; cursor: pointer; }
@@ -61,13 +79,14 @@ function LandingPage() {
             </style>
 
             <header style={{ position: "fixed", top: 0, width: "100%", background: "rgba(255, 255, 255, 0.9)", backdropFilter: "blur(12px)", borderBottom: "1px solid #e2e8f0", zIndex: 100 }}>
-                <div className="landing-container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", height: "100px" }}>
+                {/* 👇 Cabeçalho usando as novas classes responsivas 👇 */}
+                <div className="landing-container header-container">
                     <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
-                        <img src={logoSurgiFlow} alt="SurgiFlow Logo" style={{ height: "85px", width: "auto", objectFit: "contain" }} />
+                        <img src={logoSurgiFlow} alt="SurgiFlow Logo" className="logo-img" />
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "25px" }}>
+                    <div className="header-nav">
                         <a href="#planos" className="header-link">Planos</a>
-                        <Link to="/login" className="btn-primary" style={{ padding: "10px 20px", display: "inline-flex", width: "auto" }}>Acessar Conta</Link>
+                        <Link to="/login" className="btn-primary btn-login" style={{ display: "inline-flex", width: "auto" }}>Acessar Conta</Link>
                     </div>
                 </div>
             </header>
@@ -114,7 +133,6 @@ function LandingPage() {
                             <p style={{ color: "#475569", lineHeight: "1.6", fontWeight: "500" }}>Checklists inteligentes para validação de jejum, exames e termos antes do paciente pisar no hospital.</p>
                         </div>
 
-                        {/* 👇 NOVO CARD ATUALIZADO 👇 */}
                         <div className="clean-card">
                             <div style={{ background: "#fef3c7", width: "60px", height: "60px", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "24px" }}>
                                 <Users size={30} color="#f59e0b" />
