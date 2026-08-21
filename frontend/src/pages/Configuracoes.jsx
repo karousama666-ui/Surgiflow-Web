@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from "../services/supabase"; 
-import { User, Building, ShieldCheck, CreditCard, Award, Save, Check, Users, UserPlus, Trash2 } from "lucide-react";
+import { User, Building, ShieldCheck, CreditCard, Save, Check, Users, UserPlus, Trash2 } from "lucide-react";
 import "./Configuracoes.css";
 
 // ==========================================
@@ -36,12 +36,12 @@ function Configuracoes() {
   const [userId, setUserId] = useState(null); 
   const [membrosEquipe, setMembrosEquipe] = useState([]); 
   
-  // 👇 ADICIONADO CAMPO DE SENHA AQUI
   const [novoMembro, setNovoMembro] = useState({ nome: "", email: "", cargo: "", senha: "" }); 
 
+  // 👇 STATUS LIMPO: Apenas os campos que realmente importam!
   const [form, setForm] = useState({
     nome: "", cargo: "", registro: "", email: "", telefone: "", empresa: "", cnpj: "",
-    notificacoesEmail: true, notificacoesSistema: true, rdc16: true, rdc665: true, auditoriaOpme: true
+    notificacoesEmail: true, notificacoesSistema: true, notificacoesWhatsapp: true
   });
 
   // ==========================================
@@ -64,9 +64,7 @@ function Configuracoes() {
                   cnpj: user.user_metadata?.cnpj || "",
                   notificacoesEmail: user.user_metadata?.notificacoesEmail ?? true,
                   notificacoesSistema: user.user_metadata?.notificacoesSistema ?? true,
-                  rdc16: user.user_metadata?.rdc16 ?? true,
-                  rdc665: user.user_metadata?.rdc665 ?? true,
-                  auditoriaOpme: user.user_metadata?.auditoriaOpme ?? true,
+                  notificacoesWhatsapp: user.user_metadata?.notificacoesWhatsapp ?? true,
               }));
 
               const { data: equipeData } = await supabase
@@ -86,7 +84,7 @@ function Configuracoes() {
   }
 
   // ==========================================
-  // LÓGICA DA EQUIPE (CRIAR LOGIN NO SUPABASE + SALVAR NA TABELA)
+  // LÓGICA DA EQUIPE
   // ==========================================
   async function handleAdicionarMembro() {
       if (!novoMembro.nome || !novoMembro.email || !novoMembro.senha || novoMembro.senha.length < 6) {
@@ -102,8 +100,6 @@ function Configuracoes() {
 
       setLoading(true);
       try {
-          // 1. CRIA O LOGIN REAL NA PORTARIA DO SUPABASE (Auth)
-          // Isso permite que o funcionário acesse o sistema pela tela de login!
           const { data: authData, error: authError } = await supabase.auth.signUp({
               email: novoMembro.email,
               password: novoMembro.senha,
@@ -111,7 +107,7 @@ function Configuracoes() {
                   data: {
                       nome: novoMembro.nome,
                       cargo: novoMembro.cargo,
-                      conta_chefe_id: userId // Marca ele como "subordinado" ao ID da chefe
+                      conta_chefe_id: userId 
                   }
               }
           });
@@ -125,7 +121,6 @@ function Configuracoes() {
               return;
           }
 
-          // 2. SALVA O FUNCIONÁRIO NA TABELA 'equipe'
           const novoFuncionario = {
               nome: novoMembro.nome,
               email: novoMembro.email,
@@ -137,7 +132,7 @@ function Configuracoes() {
           if (error) throw error;
 
           setMembrosEquipe([...membrosEquipe, data[0]]);
-          setNovoMembro({ nome: "", email: "", cargo: "", senha: "" }); // Limpa o mini-form
+          setNovoMembro({ nome: "", email: "", cargo: "", senha: "" }); 
           
           alert(`✅ Membro adicionado com sucesso!\n\nEnvie o acesso para o funcionário:\nLogin: ${novoFuncionario.email}\nSenha: (A senha que você acabou de criar)`);
       } catch (error) {
@@ -167,8 +162,7 @@ function Configuracoes() {
             data: { 
                 nome: form.nome, cargo: form.cargo, registro: form.registro, telefone: form.telefone,
                 organizacao: form.empresa, cnpj: form.cnpj, notificacoesEmail: form.notificacoesEmail,
-                notificacoesSistema: form.notificacoesSistema, rdc16: form.rdc16, rdc665: form.rdc665,
-                auditoriaOpme: form.auditoriaOpme
+                notificacoesSistema: form.notificacoesSistema, notificacoesWhatsapp: form.notificacoesWhatsapp
             }
         });
         if (error) throw error;
@@ -204,7 +198,7 @@ function Configuracoes() {
       <div className="configuracoes-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
         <div>
           <h1 style={{ fontSize: "1.8rem", color: "#0f172a", margin: "0 0 4px 0", fontWeight: "800" }}>Configurações do Sistema</h1>
-          <p style={{ color: "#64748b", fontSize: "0.95rem", margin: 0, fontWeight: "500" }}>Gerencie seu perfil, equipe, parâmetros de qualidade e assinatura.</p>
+          <p style={{ color: "#64748b", fontSize: "0.95rem", margin: 0, fontWeight: "500" }}>Gerencie seu perfil, equipe, segurança e notificações.</p>
         </div>
         <button 
           onClick={handleSave} disabled={loading}
@@ -250,7 +244,6 @@ function Configuracoes() {
             Adicione membros para gerenciarem a agenda e pedidos com você. Ações ficarão registradas na auditoria.
           </p>
 
-          {/* Adicionar Membro (Agora com Senha!) */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: "15px", marginBottom: "25px", alignItems: "flex-end" }}>
               <div>
                   <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "#475569" }}>Nome do Membro</label>
@@ -278,7 +271,6 @@ function Configuracoes() {
               </button>
           </div>
 
-          {/* Lista de Membros */}
           <div style={{ border: "1px solid #e2e8f0", borderRadius: "10px", overflow: "hidden" }}>
               {membrosEquipe.length === 0 ? (
                   <div style={{ padding: "30px", textAlign: "center", color: "#94a3b8", fontWeight: "500", background: "#f8fafc" }}>
@@ -320,27 +312,18 @@ function Configuracoes() {
           </div>
         </div>
 
-        {/* Seção de Compliance */}
-        <div className="config-section" style={sectionStyle}>
-          <div style={headerStyle}><Award size={22} color="#f59e0b" /> Qualidade e Compliance</div>
-          <p style={{ fontSize: "0.95rem", color: "#64748b", marginBottom: "25px", fontWeight: "500" }}>Ative as resoluções sanitárias aplicáveis para vincular a rastreabilidade automaticamente.</p>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <CustomCheckbox label="Habilitar protocolos da RDC 665/2022 (Boas Práticas de Fabricação e Uso)" name="rdc665" checked={form.rdc665} onChange={handleChange} />
-            <CustomCheckbox label="Monitoramento rígido RDC 16/2013 (Foco em OPME)" name="rdc16" checked={form.rdc16} onChange={handleChange} />
-            <CustomCheckbox label="Exigir fornecedor e rastreabilidade para liberação de Auditoria" name="auditoriaOpme" checked={form.auditoriaOpme} onChange={handleChange} />
-          </div>
-        </div>
-
-        {/* Seção de Segurança e Notificações */}
+        {/* 👇 NOVO: Seção de Segurança e Notificações 👇 */}
         <div className="config-section" style={sectionStyle}>
           <div style={headerStyle}><ShieldCheck size={22} color="#6C63FF" /> Segurança e Notificações</div>
+          <p style={{ fontSize: "0.95rem", color: "#64748b", marginBottom: "25px", fontWeight: "500" }}>Configure os alertas e ferramentas de comunicação da sua plataforma.</p>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <CustomCheckbox label="Receber relatórios e alertas de OPME pendentes por e-mail" name="notificacoesEmail" checked={form.notificacoesEmail} onChange={handleChange} />
-            <CustomCheckbox label="Exibir notificações visuais de agendamento no Dashboard" name="notificacoesSistema" checked={form.notificacoesSistema} onChange={handleChange} />
+            <CustomCheckbox label="Exibir alertas visuais de OPME pendente no Dashboard" name="notificacoesSistema" checked={form.notificacoesSistema} onChange={handleChange} />
+            <CustomCheckbox label="Habilitar botão de notificação via WhatsApp para pacientes na Agenda" name="notificacoesWhatsapp" checked={form.notificacoesWhatsapp} onChange={handleChange} />
+            <CustomCheckbox label="Receber relatório semanal de cirurgias por e-mail" name="notificacoesEmail" checked={form.notificacoesEmail} onChange={handleChange} />
           </div>
         </div>
 
-        {/* Seção de Planos e Pagamentos (Ligada ao Asaas) */}
+        {/* Seção de Planos e Pagamentos */}
         <div className="config-section" style={sectionStyle}>
           <div style={headerStyle}><CreditCard size={22} color="#6C63FF" /> Assinatura e Pagamentos</div>
           <div className="plan-card-container" style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "25px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "20px" }}>
@@ -349,7 +332,7 @@ function Configuracoes() {
                 <h3 style={{ fontWeight: "700", fontSize: "1.15rem", color: "#0f172a", margin: 0 }}>Plano Corporate SurgiFlow</h3>
                 <span style={{ background: "#dcfce7", color: "#166534", fontSize: "0.75rem", padding: "4px 10px", borderRadius: "20px", fontWeight: "800", letterSpacing: "0.5px" }}>ATIVO</span>
               </div>
-              <p style={{ margin: 0, color: "#64748b", fontSize: "0.95rem", fontWeight: "500" }}>Acesso ilimitado a cirurgias, OPME auditável e relatórios avançados de compliance.</p>
+              <p style={{ margin: 0, color: "#64748b", fontSize: "0.95rem", fontWeight: "500" }}>Acesso ilimitado a cirurgias, OPME auditável e relatórios avançados.</p>
             </div>
             
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "12px" }}>
