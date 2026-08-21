@@ -159,76 +159,74 @@ function Pedidos() {
                     )}
                 </div>
             ) : (
-                // 👇 A CORREÇÃO DE LARGURA E SCROLL DO KANBAN ESTÁ AQUI 👇
-                <div style={{ 
-                    display: "flex", 
-                    gap: "20px", 
-                    overflowX: "auto", 
-                    minHeight: "60vh", 
-                    paddingBottom: "20px", 
-                    paddingRight: "20px", // Dá um respiro para a rolagem
-                    alignItems: "flex-start",
-                    width: "100%", // Trava a largura
-                    maxWidth: "100%", // Evita que a tela inteira vaze
-                    boxSizing: "border-box" // Mantém o padding dentro do tamanho
-                }}>
-                    
-                    {COLUNAS_KANBAN.map(coluna => {
-                        const cardsDestaColuna = pedidosFiltrados.filter(cirurgia => {
-                            const pedidoDaCirurgia = listaPedidos.find(p => String(p.cirurgia_id) === String(cirurgia.id));
-                            const statusOPME = pedidoDaCirurgia?.status || "Pendente";
-                            return statusOPME === coluna.id;
-                        });
+                // 👇 A CORREÇÃO DEFINITIVA DO SCROLL FICA AQUI 👇
+                <div style={{ width: "100%", overflowX: "auto", paddingBottom: "15px" }}>
+                    <div style={{ 
+                        display: "flex", 
+                        gap: "20px", 
+                        minHeight: "60vh", 
+                        alignItems: "flex-start",
+                        width: "max-content", /* A MÁGICA: Ele cresce até o fim do conteúdo sem quebrar a tela! */
+                        paddingRight: "20px" /* Respiro para a última coluna */
+                    }}>
+                        
+                        {COLUNAS_KANBAN.map(coluna => {
+                            const cardsDestaColuna = pedidosFiltrados.filter(cirurgia => {
+                                const pedidoDaCirurgia = listaPedidos.find(p => String(p.cirurgia_id) === String(cirurgia.id));
+                                const statusOPME = pedidoDaCirurgia?.status || "Pendente";
+                                return statusOPME === coluna.id;
+                            });
 
-                        return (
-                            <div 
-                                key={coluna.id} 
-                                onDragOver={handleDragOver}
-                                onDrop={(e) => handleDrop(e, coluna.id)}
-                                style={{ 
-                                    minWidth: "320px", width: "320px", background: coluna.corFundo, border: `1px solid ${coluna.corBorda}`, 
-                                    borderRadius: "14px", display: "flex", flexDirection: "column", flexShrink: 0, overflow: "hidden" 
-                                }}
-                            >
-                                <div style={{ padding: "15px", borderBottom: `2px solid ${coluna.corTopo}`, background: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                    <h3 style={{ margin: 0, fontSize: "1rem", color: "#1e293b", fontWeight: "700" }}>{coluna.titulo}</h3>
-                                    <span style={{ background: "#f1f5f9", color: "#475569", padding: "2px 8px", borderRadius: "10px", fontSize: "0.8rem", fontWeight: "800" }}>
-                                        {cardsDestaColuna.length}
-                                    </span>
-                                </div>
+                            return (
+                                <div 
+                                    key={coluna.id} 
+                                    onDragOver={handleDragOver}
+                                    onDrop={(e) => handleDrop(e, coluna.id)}
+                                    style={{ 
+                                        minWidth: "320px", width: "320px", background: coluna.corFundo, border: `1px solid ${coluna.corBorda}`, 
+                                        borderRadius: "14px", display: "flex", flexDirection: "column", flexShrink: 0, overflow: "hidden" 
+                                    }}
+                                >
+                                    <div style={{ padding: "15px", borderBottom: `2px solid ${coluna.corTopo}`, background: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                        <h3 style={{ margin: 0, fontSize: "1rem", color: "#1e293b", fontWeight: "700" }}>{coluna.titulo}</h3>
+                                        <span style={{ background: "#f1f5f9", color: "#475569", padding: "2px 8px", borderRadius: "10px", fontSize: "0.8rem", fontWeight: "800" }}>
+                                            {cardsDestaColuna.length}
+                                        </span>
+                                    </div>
 
-                                <div style={{ padding: "15px", display: "flex", flexDirection: "column", gap: "15px", flex: 1, minHeight: "150px" }}>
-                                    {cardsDestaColuna.map(cirurgia => {
-                                        const pedidoDaCirurgia = listaPedidos.find(p => String(p.cirurgia_id) === String(cirurgia.id));
-                                        
-                                        return (
-                                            <div 
-                                                key={cirurgia.id} 
-                                                draggable 
-                                                onDragStart={(e) => handleDragStart(e, cirurgia, pedidoDaCirurgia)}
-                                                style={{ cursor: "grab", opacity: draggedItem?.cirurgia.id === cirurgia.id ? 0.5 : 1 }}
-                                            >
-                                                <PedidoCard
-                                                    cirurgia={cirurgia}
-                                                    pedido={pedidoDaCirurgia}
-                                                    onPreview={() => {
-                                                        setPedidoSelecionado({ cirurgia, pedido: pedidoDaCirurgia });
-                                                        setPreviewOpen(true);
-                                                    }}
-                                                />
+                                    <div style={{ padding: "15px", display: "flex", flexDirection: "column", gap: "15px", flex: 1, minHeight: "150px" }}>
+                                        {cardsDestaColuna.map(cirurgia => {
+                                            const pedidoDaCirurgia = listaPedidos.find(p => String(p.cirurgia_id) === String(cirurgia.id));
+                                            
+                                            return (
+                                                <div 
+                                                    key={cirurgia.id} 
+                                                    draggable 
+                                                    onDragStart={(e) => handleDragStart(e, cirurgia, pedidoDaCirurgia)}
+                                                    style={{ cursor: "grab", opacity: draggedItem?.cirurgia.id === cirurgia.id ? 0.5 : 1 }}
+                                                >
+                                                    <PedidoCard
+                                                        cirurgia={cirurgia}
+                                                        pedido={pedidoDaCirurgia}
+                                                        onPreview={() => {
+                                                            setPedidoSelecionado({ cirurgia, pedido: pedidoDaCirurgia });
+                                                            setPreviewOpen(true);
+                                                        }}
+                                                    />
+                                                </div>
+                                            );
+                                        })}
+
+                                        {cardsDestaColuna.length === 0 && (
+                                            <div style={{ textAlign: "center", padding: "30px 10px", color: "#cbd5e1", fontSize: "0.9rem", fontStyle: "italic", border: "2px dashed #cbd5e1", borderRadius: "10px" }}>
+                                                Solte um pedido aqui
                                             </div>
-                                        );
-                                    })}
-
-                                    {cardsDestaColuna.length === 0 && (
-                                        <div style={{ textAlign: "center", padding: "30px 10px", color: "#cbd5e1", fontSize: "0.9rem", fontStyle: "italic", border: "2px dashed #cbd5e1", borderRadius: "10px" }}>
-                                            Solte um pedido aqui
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
                 </div>
             )}
 
