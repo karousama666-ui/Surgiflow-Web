@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from "../services/supabase"; 
-import { User, Building, ShieldCheck, CreditCard, Save, Check, Users, UserPlus, Trash2 } from "lucide-react";
+import { useAuth } from '../context/AuthContext'; // Puxando o AuthContext para o Logout
+import { User, Building, ShieldCheck, CreditCard, Save, Check, Users, UserPlus, Trash2, ArrowUpCircle } from "lucide-react";
 import "./Configuracoes.css";
 
 // ==========================================
@@ -32,13 +33,15 @@ const CustomCheckbox = ({ label, name, checked, onChange }) => {
 // TELA PRINCIPAL DE CONFIGURAÇÕES
 // ==========================================
 function Configuracoes() {
+  const { logout } = useAuth(); // Função de Logout
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState(null); 
   const [membrosEquipe, setMembrosEquipe] = useState([]); 
+  const [planoAtual, setPlanoAtual] = useState("free"); // Estado do Plano
   
   const [novoMembro, setNovoMembro] = useState({ nome: "", email: "", cargo: "", senha: "" }); 
 
-  // 👇 STATUS LIMPO: Apenas os campos que realmente importam!
+  // STATUS LIMPO
   const [form, setForm] = useState({
     nome: "", cargo: "", registro: "", email: "", telefone: "", empresa: "", cnpj: "",
     notificacoesEmail: true, notificacoesSistema: true, notificacoesWhatsapp: true
@@ -53,6 +56,8 @@ function Configuracoes() {
           
           if (user) {
               setUserId(user.id);
+              setPlanoAtual(user.user_metadata?.plano || "free"); // Lê o plano (Padrão é free)
+
               setForm(prevForm => ({
                   ...prevForm,
                   email: user.email || "",
@@ -84,7 +89,7 @@ function Configuracoes() {
   }
 
   // ==========================================
-  // LÓGICA DA EQUIPE
+  // LÓGICA DA EQUIPE (Com Trava de Plano)
   // ==========================================
   async function handleAdicionarMembro() {
       if (!novoMembro.nome || !novoMembro.email || !novoMembro.senha || novoMembro.senha.length < 6) {
@@ -92,9 +97,9 @@ function Configuracoes() {
           return;
       }
       
-      const planoAtivo = true; 
-      if (!planoAtivo) {
-          alert("🔒 Recurso Premium!\n\nAssine o plano Corporate para adicionar usuários ilimitados à sua equipe.");
+      // TRAVA DO PLANO FREE: Bloqueia adicionar equipe se não for Starter ou Pro
+      if (planoAtual === "free") {
+          alert("🔒 Recurso Premium!\n\nFaça o Upgrade para o plano Starter ou Clinic Pro para adicionar usuários à sua equipe.");
           return;
       }
 
@@ -212,7 +217,15 @@ function Configuracoes() {
         
         {/* Seção de Perfil */}
         <div className="config-section" style={sectionStyle}>
-          <div style={headerStyle}><User size={22} color="#6C63FF" /> Perfil Profissional</div>
+          <div style={{ ...headerStyle, justifyContent: "space-between", borderBottom: "none" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <User size={22} color="#6C63FF" /> Perfil Profissional
+              </div>
+              <button type="button" onClick={logout} style={{ background: "transparent", border: "1px solid #ef4444", color: "#ef4444", padding: "6px 12px", borderRadius: "8px", fontWeight: "600", cursor: "pointer", fontSize: "0.85rem", transition: "0.2s" }} onMouseOver={(e) => { e.currentTarget.style.background = "#fee2e2" }} onMouseOut={(e) => { e.currentTarget.style.background = "transparent" }}>
+                  Sair da Conta (Logout)
+              </button>
+          </div>
+          <div style={{ borderTop: "1px solid #f1f5f9", marginBottom: "20px" }}></div>
           <div className="config-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "20px" }}>
             <div className="config-field">
               <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "#475569" }}>Nome Completo</label>
@@ -312,7 +325,7 @@ function Configuracoes() {
           </div>
         </div>
 
-        {/* 👇 NOVO: Seção de Segurança e Notificações 👇 */}
+        {/* Seção de Segurança e Notificações */}
         <div className="config-section" style={sectionStyle}>
           <div style={headerStyle}><ShieldCheck size={22} color="#6C63FF" /> Segurança e Notificações</div>
           <p style={{ fontSize: "0.95rem", color: "#64748b", marginBottom: "25px", fontWeight: "500" }}>Configure os alertas e ferramentas de comunicação da sua plataforma.</p>
@@ -323,31 +336,51 @@ function Configuracoes() {
           </div>
         </div>
 
-        {/* Seção de Planos e Pagamentos */}
+        {/* 💳 SEÇÃO DE PLANOS (NOVO LAYOUT DE UPGRADE) 💳 */}
         <div className="config-section" style={sectionStyle}>
-          <div style={headerStyle}><CreditCard size={22} color="#6C63FF" /> Assinatura e Pagamentos</div>
-          <div className="plan-card-container" style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "25px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "20px" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <h3 style={{ fontWeight: "700", fontSize: "1.15rem", color: "#0f172a", margin: 0 }}>Plano Corporate SurgiFlow</h3>
-                <span style={{ background: "#dcfce7", color: "#166534", fontSize: "0.75rem", padding: "4px 10px", borderRadius: "20px", fontWeight: "800", letterSpacing: "0.5px" }}>ATIVO</span>
+          <div style={headerStyle}><CreditCard size={22} color="#6C63FF" /> Minha Assinatura</div>
+          
+          <div style={{ background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "12px", padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
+              <div>
+                  <p style={{ color: "#64748b", fontSize: "0.9rem", fontWeight: "600", marginBottom: "5px" }}>Plano Atual</p>
+                  <h3 style={{ fontSize: "1.5rem", fontWeight: "800", color: "#1e293b", textTransform: "capitalize", margin: 0 }}>
+                      SurgiFlow {planoAtual}
+                  </h3>
               </div>
-              <p style={{ margin: 0, color: "#64748b", fontSize: "0.95rem", fontWeight: "500" }}>Acesso ilimitado a cirurgias, OPME auditável e relatórios avançados.</p>
-            </div>
-            
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "12px" }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: "4px", fontSize: "1.6rem", fontWeight: "800", color: "#6C63FF" }}>
-                R$ 149,90 <span style={{ fontSize: "0.95rem", color: "#94a3b8", fontWeight: "600" }}>/mês</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#10b981", background: "#ecfdf5", padding: "8px 16px", borderRadius: "20px", fontWeight: "700", border: "1px solid #a7f3d0" }}>
+                  <ShieldCheck size={20} /> Conta Ativa
               </div>
-              <button 
-                  type="button" onClick={() => window.open("https://www.asaas.com/c/h7ut97drf19arp9a", "_blank")} 
-                  style={{ background: "white", color: "#6C63FF", border: "1px solid #6C63FF", padding: "10px 20px", borderRadius: "8px", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem", transition: "0.2s", fontFamily: "inherit" }}
-                  onMouseOver={(e) => { e.currentTarget.style.background = "#f5f3ff"; }}
-                  onMouseOut={(e) => { e.currentTarget.style.background = "white"; }}
-              >
-                Assinar / Gerenciar Cartão
-              </button>
-            </div>
+          </div>
+
+          <h3 style={{ fontSize: "1.1rem", fontWeight: "700", color: "#1e293b", marginBottom: "15px" }}>Precisa de mais recursos? Faça um Upgrade:</h3>
+          
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+              
+              {/* Box Upgrade Starter */}
+              <div style={{ border: "2px solid #e2e8f0", borderRadius: "12px", padding: "24px", transition: "0.2s" }} onMouseOver={(e) => e.currentTarget.style.borderColor = "#6C63FF"} onMouseOut={(e) => e.currentTarget.style.borderColor = "#e2e8f0"}>
+                  <h4 style={{ fontSize: "1.2rem", fontWeight: "800", color: "#1e293b", marginBottom: "10px" }}>Starter (R$ 149/mês)</h4>
+                  <ul style={{ listStyle: "none", padding: 0, color: "#475569", display: "flex", flexDirection: "column", gap: "8px", fontSize: "0.9rem", marginBottom: "20px", fontWeight: "500" }}>
+                      <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#6C63FF" strokeWidth={3} /> Até 10 Médicos</li>
+                      <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#6C63FF" strokeWidth={3} /> Pacientes Ilimitados</li>
+                      <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#6C63FF" strokeWidth={3} /> Kanban de OPME</li>
+                  </ul>
+                  <a href="https://www.asaas.com/c/23vsipmr38k4f4a3" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "#6C63FF", color: "white", padding: "12px", borderRadius: "8px", fontWeight: "700", textDecoration: "none" }}>
+                      <ArrowUpCircle size={18} /> Assinar Starter
+                  </a>
+              </div>
+
+              {/* Box Upgrade Pro */}
+              <div style={{ border: "2px solid #e2e8f0", borderRadius: "12px", padding: "24px", background: "#0f172a", color: "white" }}>
+                  <h4 style={{ fontSize: "1.2rem", fontWeight: "800", marginBottom: "10px" }}>Clinic Pro (R$ 399/mês)</h4>
+                  <ul style={{ listStyle: "none", padding: 0, color: "#cbd5e1", display: "flex", flexDirection: "column", gap: "8px", fontSize: "0.9rem", marginBottom: "20px", fontWeight: "500" }}>
+                      <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#10b981" strokeWidth={3} /> Médicos Ilimitados</li>
+                      <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#10b981" strokeWidth={3} /> Usuários Ilimitados</li>
+                      <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#10b981" strokeWidth={3} /> Relatórios (RDC)</li>
+                  </ul>
+                  <a href="https://www.asaas.com/c/ftgprtwo5xs0seyz" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "white", color: "#0f172a", padding: "12px", borderRadius: "8px", fontWeight: "800", textDecoration: "none", transition: "0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = "#e2e8f0"} onMouseOut={(e) => e.currentTarget.style.background = "white"}>
+                      <ArrowUpCircle size={18} /> Assinar Clinic Pro
+                  </a>
+              </div>
           </div>
         </div>
 
