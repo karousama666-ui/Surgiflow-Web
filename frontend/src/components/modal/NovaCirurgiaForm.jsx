@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useMedicos } from "../../context/MedicosContext";
+import { usePacientes } from "../../context/PacientesContext"; // 👈 IMPORTAMOS O CÉREBRO DE PACIENTES!
 import { supabase } from "../../services/supabase"; 
 import { User, Hospital, FileText, Calendar, Clock, UploadCloud, FileCheck, X, Eye, Trash2 } from "lucide-react"; 
 
 function NovaCirurgiaForm({ onSave, dados }) {
     const { listaMedicos } = useMedicos();
+    const { listaPacientes } = usePacientes(); // 👈 PUXAMOS A LISTA DE PACIENTES!
     const [isUploading, setIsUploading] = useState(false); 
 
     const [form, setForm] = useState({
@@ -56,20 +58,15 @@ function NovaCirurgiaForm({ onSave, dados }) {
         });
     }
 
-    // 👇 A MÁGICA: Agora salva dentro da subpasta do usuário logado!
     const handleSalvar = async () => {
         setIsUploading(true);
         try {
             let linkFinalDoAnexo = form.anexo_url;
 
-            // 1. DESCOBRE QUEM ESTÁ LOGADO AGORA
             const { data: { user } } = await supabase.auth.getUser();
 
-            // Se o usuário selecionou um arquivo NOVO e está logado, fazemos o upload
             if (form.novo_arquivo && user) {
                 const extensao = form.novo_arquivo.name.split('.').pop();
-                
-                // 2. CRIA O CAMINHO BLINDADO: "ID_DO_USUARIO/nome_do_arquivo.pdf"
                 const caminhoDoArquivo = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${extensao}`;
                 
                 const { error: uploadError } = await supabase.storage
@@ -78,7 +75,6 @@ function NovaCirurgiaForm({ onSave, dados }) {
 
                 if (uploadError) throw uploadError;
 
-                // Pega o link público do arquivo usando o novo caminho
                 const { data: publicUrl } = supabase.storage
                     .from('anexos_cirurgias')
                     .getPublicUrl(caminhoDoArquivo);
@@ -86,9 +82,8 @@ function NovaCirurgiaForm({ onSave, dados }) {
                 linkFinalDoAnexo = publicUrl.publicUrl;
             }
 
-            // Monta os dados para o banco
             const dadosFormatadosParaSupabase = {
-                paciente: form.paciente,
+                paciente: form.paciente, // Salva o NOME que veio do select para manter a compatibilidade com o banco
                 medico_id: form.medicoId ? Number(form.medicoId) : null,
                 hospital: form.hospital,
                 convenio: form.convenio,
@@ -99,7 +94,6 @@ function NovaCirurgiaForm({ onSave, dados }) {
 
             await onSave(dadosFormatadosParaSupabase);
 
-            // Limpa o formulário após salvar cirurgia nova
             if (!dados) {
                 setForm({ paciente: "", medicoId: "", hospital: "", convenio: "", data: "", horario: "", anexo_url: null, novo_arquivo: null });
             }
@@ -126,16 +120,29 @@ function NovaCirurgiaForm({ onSave, dados }) {
     return (
         <form style={{ display: "flex", flexDirection: "column", gap: "20px", fontFamily: "'Inter', system-ui, sans-serif" }}>
             
-            {/* Paciente */}
+            {/* 👇 CAMPO INTELIGENTE DE PACIENTE 👇 */}
             <div>
-                <label style={labelStyle}>Paciente</label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                    <label style={labelStyle}>Paciente</label>
+                    <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>Não encontrou? Cadastre no menu Fichas.</span>
+                </div>
                 <div style={{ position: "relative" }}>
-                    <User size={18} color="#94a3b8" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)" }} />
-                    <input type="text" name="paciente" placeholder="Nome completo do paciente" value={form.paciente} onChange={handleChange}
-                        style={inputPremiumStyle}
+                    <User size={18} color="#94a3b8" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", zIndex: 2 }} />
+                    <select 
+                        name="paciente" 
+                        value={form.paciente} 
+                        onChange={handleChange}
+                        style={{ ...inputPremiumStyle, cursor: "pointer", appearance: "none", position: "relative" }}
                         onFocus={(e) => e.target.style.border = "1px solid #6C63FF"}
                         onBlur={(e) => e.target.style.border = "1px solid #e2e8f0"}
-                    />
+                    >
+                        <option value="" disabled>Selecione o paciente cadastrado...</option>
+                        {listaPacientes.map(pac => (
+                            <option key={pac.id} value={pac.nome}>
+                                {pac.nome} {pac.cpf ? `(CPF: ${pac.cpf})` : ""}
+                            </option>
+                        ))}
+                    </select>
                 </div>
             </div>
 
