@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, LayoutGrid, FileCheck, CheckCircle2, Stethoscope, Building2 } from 'lucide-react';
-import logoSurgiFlow from '../assets/logo_surgiflowdark.png'; 
 
 function LandingPage() {
     return (
