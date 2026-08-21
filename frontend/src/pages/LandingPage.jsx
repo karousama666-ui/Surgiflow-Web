@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, LayoutGrid, FileCheck, CheckCircle2, Stethoscope, Building2 } from 'lucide-react';
 
-// 👇 Arquivo do logo atualizado conforme o seu pedido!
+// Seu logo cumpridinho!
 import logoSurgiFlow from '../assets/logo_vertical.png'; 
 
 function LandingPage() {
@@ -11,7 +11,9 @@ function LandingPage() {
             
             <style>
                 {`
-                /* Rolagem suave quando clica no link do menu */
+                /* A regra mágica que impede os botões de vazarem para os lados */
+                *, *::before, *::after { box-sizing: border-box; }
+                
                 html { scroll-behavior: smooth; }
 
                 .landing-container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
@@ -19,7 +21,8 @@ function LandingPage() {
                 .hero-section { padding: 160px 24px 80px 24px; text-align: center; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); }
                 .hero-title { font-size: 3.8rem; font-weight: 800; line-height: 1.15; margin-bottom: 24px; color: #0f172a; letter-spacing: -1px; }
                 
-                .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+                /* O grid estica os cards para terem a mesma altura */
+                .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; align-items: stretch; }
                 
                 @media (max-width: 900px) {
                     .hero-title { font-size: 2.5rem; }
@@ -27,20 +30,20 @@ function LandingPage() {
                     .hero-section { padding: 140px 20px 60px 20px; }
                 }
 
-                .clean-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 40px; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+                /* Cards agora empurram os botões pro fundo perfeitamente */
+                .clean-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 40px; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; flex-direction: column; height: 100%; }
                 .clean-card:hover { transform: translateY(-5px); border-color: #cbd5e1; box-shadow: 0 12px 25px rgba(0,0,0,0.05); }
                 
-                /* 👇 ESTILOS DOS BOTÕES REDUZIDOS E MAIS ELEGANTES 👇 */
-                .btn-primary { background: #6C63FF; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: 1rem; text-decoration: none; display: inline-flex; alignItems: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 6px 15px rgba(108, 99, 255, 0.25); }
+                /* Botões globais */
+                .btn-primary { background: #6C63FF; color: white; padding: 14px 24px; border-radius: 10px; font-weight: 700; font-size: 1rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 6px 15px rgba(108, 99, 255, 0.25); border: none; cursor: pointer; }
                 .btn-primary:hover { transform: translateY(-2px); background: #5a52d5; box-shadow: 0 8px 20px rgba(108, 99, 255, 0.35); }
                 
-                .btn-premium { background: #0f172a; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: 1rem; text-decoration: none; display: inline-flex; alignItems: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 6px 15px rgba(15, 23, 42, 0.2); }
+                .btn-premium { background: #0f172a; color: white; padding: 14px 24px; border-radius: 10px; font-weight: 700; font-size: 1rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 6px 15px rgba(15, 23, 42, 0.2); border: none; cursor: pointer; }
                 .btn-premium:hover { transform: translateY(-2px); background: #1e293b; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.3); }
 
-                .btn-outline { border: 2px solid #cbd5e1; color: #475569; background: #ffffff; padding: 10px 24px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 1rem; display: inline-flex; alignItems: center; justify-content: center; transition: 0.2s; }
+                .btn-outline { border: 2px solid #cbd5e1; color: #475569; background: #ffffff; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
                 .btn-outline:hover { border-color: #6C63FF; color: #6C63FF; background: #f8fafc; }
 
-                /* Estilo pro link de texto do Menu */
                 .header-link { color: #475569; text-decoration: none; font-weight: 700; font-size: 1rem; transition: color 0.2s; }
                 .header-link:hover { color: #6C63FF; }
                 `}
@@ -50,12 +53,12 @@ function LandingPage() {
             <header style={{ position: "fixed", top: 0, width: "100%", background: "rgba(255, 255, 255, 0.9)", backdropFilter: "blur(12px)", borderBottom: "1px solid #e2e8f0", zIndex: 100 }}>
                 <div className="landing-container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", height: "80px" }}>
                     <div>
-                        <img src={logoSurgiFlow} alt="SurgiFlow Logo" style={{ height: "55px", objectFit: "contain" }} />
+                        {/* 👇 LOGO AJUSTADO: Destravamos a largura pra ele ficar bonitão! */}
+                        <img src={logoSurgiFlow} alt="SurgiFlow Logo" style={{ height: "auto", maxHeight: "45px", width: "200px", objectFit: "contain" }} />
                     </div>
-                    {/* 👇 O NOVO MENU COM O BOTÃO PLANOS E O ACESSAR CONTA ROXO 👇 */}
                     <div style={{ display: "flex", alignItems: "center", gap: "25px" }}>
                         <a href="#planos" className="header-link">Planos</a>
-                        <Link to="/login" className="btn-primary" style={{ padding: "10px 20px" }}>Acessar Conta</Link>
+                        <Link to="/login" className="btn-primary" style={{ padding: "10px 20px", display: "inline-flex", width: "auto" }}>Acessar Conta</Link>
                     </div>
                 </div>
             </header>
@@ -70,7 +73,7 @@ function LandingPage() {
                     <p style={{ fontSize: "1.25rem", color: "#64748b", marginBottom: "40px", lineHeight: "1.6", fontWeight: "500" }}>
                         Controle agendamentos, aprove OPMEs em formato Kanban e blinde sua operação com checklists pré-cirúrgicos e relatórios de compliance.
                     </p>
-                    <Link to="/cadastro" className="btn-primary" style={{ padding: "14px 28px", fontSize: "1.05rem" }}>
+                    <Link to="/cadastro" className="btn-primary" style={{ padding: "14px 28px", fontSize: "1.05rem", display: "inline-flex", width: "auto" }}>
                         Experimente Grátis <ArrowRight size={20} />
                     </Link>
                     <p style={{ marginTop: "20px", fontSize: "0.95rem", color: "#94a3b8", fontWeight: "500" }}>Não requer cartão de crédito • Configuração em 5 minutos</p>
@@ -128,7 +131,7 @@ function LandingPage() {
                 </div>
             </section>
 
-            {/* 👇 ADICIONADO O ID="PLANOS" AQUI PARA A ÂNCORA FUNCIONAR 👇 */}
+            {/* SEÇÃO DE PREÇOS */}
             <section id="planos" style={{ padding: "80px 0", background: "#ffffff", borderTop: "1px solid #e2e8f0" }}>
                 <div className="landing-container">
                     <div style={{ textAlign: "center", marginBottom: "60px" }}>
@@ -138,7 +141,7 @@ function LandingPage() {
 
                     <div className="grid-3">
                         {/* Plano Free */}
-                        <div className="clean-card" style={{ display: "flex", flexDirection: "column" }}>
+                        <div className="clean-card">
                             <h3 style={{ fontSize: "1.5rem", fontWeight: "800", color: "#1e293b" }}>Free</h3>
                             <p style={{ color: "#64748b", marginBottom: "20px", fontWeight: "500" }}>Para testar a plataforma</p>
                             <div style={{ fontSize: "2.8rem", fontWeight: "800", marginBottom: "25px", color: "#0f172a" }}>R$ 0<span style={{ fontSize: "1rem", color: "#94a3b8" }}>/mês</span></div>
@@ -147,12 +150,11 @@ function LandingPage() {
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Até 10 Pacientes</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Gestão de Agenda Básica</li>
                             </ul>
-                            {/* Botão Free Reduzido */}
                             <Link to="/cadastro" className="btn-outline" style={{ width: "100%" }}>Começar Grátis</Link>
                         </div>
 
                         {/* Plano Starter */}
-                        <div className="clean-card" style={{ display: "flex", flexDirection: "column", border: "2px solid #6C63FF", transform: "scale(1.05)", background: "#ffffff", boxShadow: "0 20px 40px rgba(108, 99, 255, 0.1)", position: "relative" }}>
+                        <div className="clean-card" style={{ border: "2px solid #6C63FF", transform: "scale(1.05)", background: "#ffffff", boxShadow: "0 20px 40px rgba(108, 99, 255, 0.1)", position: "relative" }}>
                             <div style={{ position: "absolute", top: "-15px", left: "50%", transform: "translateX(-50%)", background: "#6C63FF", color: "white", padding: "6px 20px", borderRadius: "20px", fontSize: "0.85rem", fontWeight: "800", letterSpacing: "0.5px" }}>MAIS ESCOLHIDO</div>
                             <h3 style={{ fontSize: "1.5rem", fontWeight: "800", color: "#1e293b" }}>Starter</h3>
                             <p style={{ color: "#64748b", marginBottom: "20px", fontWeight: "500" }}>Para equipes em crescimento</p>
@@ -163,12 +165,11 @@ function LandingPage() {
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#6C63FF" /> 2 Usuários (Acessos)</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#6C63FF" /> Kanban de OPME</li>
                             </ul>
-                            {/* Botão Starter Reduzido */}
                             <Link to="/cadastro" className="btn-primary" style={{ width: "100%" }}>Assinar Starter</Link>
                         </div>
 
                         {/* Plano Clinic Pro */}
-                        <div className="clean-card" style={{ display: "flex", flexDirection: "column" }}>
+                        <div className="clean-card">
                             <h3 style={{ fontSize: "1.5rem", fontWeight: "800", color: "#1e293b" }}>Clinic Pro</h3>
                             <p style={{ color: "#64748b", marginBottom: "20px", fontWeight: "500" }}>Para operações completas</p>
                             <div style={{ fontSize: "2.8rem", fontWeight: "800", marginBottom: "25px", color: "#0f172a" }}>R$ 399<span style={{ fontSize: "1.5rem" }}>,90</span><span style={{ fontSize: "1rem", color: "#94a3b8" }}>/mês</span></div>
@@ -178,7 +179,6 @@ function LandingPage() {
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Usuários Ilimitados</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Relatórios de Auditoria</li>
                             </ul>
-                            {/* Botão Pro Reduzido */}
                             <a href="#" className="btn-premium" style={{ width: "100%" }}>Assinar Pro</a>
                         </div>
                     </div>
