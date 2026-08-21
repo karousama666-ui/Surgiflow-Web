@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from "../services/supabase"; 
-import { useAuth } from '../context/AuthContext'; // Puxando o AuthContext para o Logout
+import { useAuth } from '../context/AuthContext'; 
 import { User, Building, ShieldCheck, CreditCard, Save, Check, Users, UserPlus, Trash2, ArrowUpCircle } from "lucide-react";
 import "./Configuracoes.css";
 
@@ -33,11 +33,11 @@ const CustomCheckbox = ({ label, name, checked, onChange }) => {
 // TELA PRINCIPAL DE CONFIGURAÇÕES
 // ==========================================
 function Configuracoes() {
-  const { logout } = useAuth(); // Função de Logout
+  const { logout } = useAuth(); 
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState(null); 
   const [membrosEquipe, setMembrosEquipe] = useState([]); 
-  const [planoAtual, setPlanoAtual] = useState("free"); // Estado do Plano
+  const [planoAtual, setPlanoAtual] = useState("free"); 
   
   const [novoMembro, setNovoMembro] = useState({ nome: "", email: "", cargo: "", senha: "" }); 
 
@@ -56,8 +56,21 @@ function Configuracoes() {
           
           if (user) {
               setUserId(user.id);
-              setPlanoAtual(user.user_metadata?.plano || "free"); // Lê o plano (Padrão é free)
+              
+              // 👇 NOVO: BUSCA O PLANO OFICIAL NA TABELA PERFIS 👇
+              const { data: perfilData, error: perfilError } = await supabase
+                  .from('perfis')
+                  .select('plano')
+                  .eq('id', user.id)
+                  .single();
+              
+              if (!perfilError && perfilData) {
+                  setPlanoAtual(perfilData.plano || "free");
+              } else {
+                  setPlanoAtual("free");
+              }
 
+              // Carrega os dados do formulário
               setForm(prevForm => ({
                   ...prevForm,
                   email: user.email || "",
@@ -72,6 +85,7 @@ function Configuracoes() {
                   notificacoesWhatsapp: user.user_metadata?.notificacoesWhatsapp ?? true,
               }));
 
+              // Carrega a equipe
               const { data: equipeData } = await supabase
                 .from('equipe')
                 .select('*')
@@ -97,9 +111,9 @@ function Configuracoes() {
           return;
       }
       
-      // TRAVA DO PLANO FREE: Bloqueia adicionar equipe se não for Starter ou Pro
+      // TRAVA DO PLANO FREE
       if (planoAtual === "free") {
-          alert("🔒 Recurso Premium!\n\nFaça o Upgrade para o plano Starter ou Clinic Pro para adicionar usuários à sua equipe.");
+          alert("🔒 Recurso Premium!\n\nFaça o Upgrade para o plano Starter ou Clinic Pro na aba de Assinaturas para adicionar usuários à sua equipe.");
           return;
       }
 
