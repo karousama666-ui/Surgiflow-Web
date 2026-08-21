@@ -20,15 +20,14 @@ function LandingPage() {
                 .hero-section { position: relative; padding: 180px 24px 80px 24px; text-align: center; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); overflow: hidden; }
                 .hero-title { font-size: 3.8rem; font-weight: 800; line-height: 1.15; margin-bottom: 24px; color: #0f172a; letter-spacing: -1px; position: relative; z-index: 2; }
                 
-                /* 👇 MARCA D'ÁGUA AJUSTADA (MENOR, CENTRALIZADA E MAIS VISÍVEL) 👇 */
                 .bg-watermark {
                     position: absolute;
                     top: 50%;
                     left: 50%;
                     transform: translate(-50%, -50%);
-                    width: 450px; /* Bem menor e mais delicado */
-                    max-width: 90vw; /* Garante que não vaza no celular */
-                    opacity: 0.08; /* Menos transparente (8%) */
+                    width: 450px; 
+                    max-width: 90vw; 
+                    opacity: 0.08; 
                     z-index: 0;
                     pointer-events: none;
                 }
@@ -41,7 +40,7 @@ function LandingPage() {
                     .hero-title { font-size: 2.5rem; }
                     .grid-3 { grid-template-columns: 1fr; }
                     .hero-section { padding: 160px 20px 60px 20px; }
-                    .bg-watermark { width: 300px; opacity: 0.06; } /* Ajuste fino pro celular */
+                    .bg-watermark { width: 300px; opacity: 0.06; } 
                 }
 
                 .clean-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 40px; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; flex-direction: column; height: 100%; }
@@ -74,7 +73,6 @@ function LandingPage() {
             </header>
 
             <section className="hero-section">
-                {/* Imagem de Fundo atualizada */}
                 <img src={iconeFundo} alt="" className="bg-watermark" />
                 
                 <div className="landing-container hero-content" style={{ maxWidth: "900px" }}>
@@ -149,6 +147,7 @@ function LandingPage() {
                     </div>
 
                     <div className="grid-3">
+                        {/* PLANO FREE */}
                         <div className="clean-card">
                             <h3 style={{ fontSize: "1.5rem", fontWeight: "800", color: "#1e293b" }}>Free</h3>
                             <p style={{ color: "#64748b", marginBottom: "20px", fontWeight: "500" }}>Para testar a plataforma</p>
@@ -156,11 +155,13 @@ function LandingPage() {
                             <ul style={{ listStyle: "none", padding: 0, margin: "0 0 30px 0", color: "#475569", display: "flex", flexDirection: "column", gap: "14px", flex: 1, fontWeight: "500" }}>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> 1 Médico cadastrado</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Até 10 Pacientes</li>
-                                <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Gestão de Agenda Básica</li>
+                                <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Kanban de OPME</li>
+                                <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Relatórios (RDC)</li>
                             </ul>
                             <Link to="/cadastro" className="btn-outline" style={{ width: "100%" }}>Começar Grátis</Link>
                         </div>
 
+                        {/* PLANO STARTER */}
                         <div className="clean-card" style={{ border: "2px solid #6C63FF", transform: "scale(1.05)", background: "#ffffff", boxShadow: "0 20px 40px rgba(108, 99, 255, 0.1)", position: "relative" }}>
                             <div style={{ position: "absolute", top: "-15px", left: "50%", transform: "translateX(-50%)", background: "#6C63FF", color: "white", padding: "6px 20px", borderRadius: "20px", fontSize: "0.85rem", fontWeight: "800", letterSpacing: "0.5px" }}>MAIS ESCOLHIDO</div>
                             <h3 style={{ fontSize: "1.5rem", fontWeight: "800", color: "#1e293b" }}>Starter</h3>
@@ -170,11 +171,12 @@ function LandingPage() {
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#6C63FF" /> Até 10 Médicos</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#6C63FF" /> Pacientes Ilimitados</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#6C63FF" /> 2 Usuários (Acessos)</li>
-                                <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#6C63FF" /> Kanban de OPME</li>
+                                <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#6C63FF" /> Kanban & Relatórios</li>
                             </ul>
                             <a href="https://www.asaas.com/c/23vsipmr38k4f4a3" target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ width: "100%" }}>Assinar Starter</a>
                         </div>
 
+                        {/* PLANO PRO */}
                         <div className="clean-card">
                             <h3 style={{ fontSize: "1.5rem", fontWeight: "800", color: "#1e293b" }}>Clinic Pro</h3>
                             <p style={{ color: "#64748b", marginBottom: "20px", fontWeight: "500" }}>Para operações completas</p>
@@ -183,7 +185,7 @@ function LandingPage() {
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Médicos Ilimitados</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Pacientes Ilimitados</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Usuários Ilimitados</li>
-                                <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Relatórios de Auditoria</li>
+                                <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Kanban & Relatórios</li>
                             </ul>
                             <a href="https://www.asaas.com/c/ftgprtwo5xs0seyz" target="_blank" rel="noopener noreferrer" className="btn-premium" style={{ width: "100%" }}>Assinar Pro</a>
                         </div>
