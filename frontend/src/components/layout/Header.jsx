@@ -3,10 +3,12 @@ import { useAuth } from "../../context/AuthContext";
 import { useCirurgias } from "../../context/CirurgiasContext";
 import { usePedidos } from "../../context/PedidosContext";
 import { useLocation } from "react-router-dom";
-import { Bell, LogOut, AlertCircle, PackageSearch, CheckCircle2, BellOff } from "lucide-react";
+// 👇 Importamos o ícone 'Menu' (Hambúrguer)
+import { Bell, LogOut, AlertCircle, PackageSearch, CheckCircle2, BellOff, Menu } from "lucide-react";
 import { supabase } from "../../services/supabase.js"; 
 
-function Header() {
+// 👇 Recebemos a função onMenuToggle por propriedade
+function Header({ onMenuToggle }) {
     const { logout } = useAuth(); 
     const location = useLocation();
     
@@ -18,7 +20,7 @@ function Header() {
     
     const [nomeExibicao, setNomeExibicao] = useState("Carregando...");
     const [cargoExibicao, setCargoExibicao] = useState("Profissional de Saúde");
-    const [notificacoesAtivas, setNotificacoesAtivas] = useState(true); // 👈 Conectado com as Configurações!
+    const [notificacoesAtivas, setNotificacoesAtivas] = useState(true);
 
     useEffect(() => {
         async function buscarUsuarioLogado() {
@@ -35,8 +37,6 @@ function Header() {
                     }
                     
                     if (user.user_metadata.cargo) setCargoExibicao(user.user_metadata.cargo);
-                    
-                    // Puxa a preferência do usuário direto do banco
                     setNotificacoesAtivas(user.user_metadata.notificacoesSistema ?? true);
                 }
             } catch (error) {
@@ -59,9 +59,7 @@ function Header() {
             document.removeEventListener("mousedown", lidarComCliqueFora);
         }
 
-        return () => {
-            document.removeEventListener("mousedown", lidarComCliqueFora);
-        };
+        return () => document.removeEventListener("mousedown", lidarComCliqueFora);
     }, [notificacoesAbertas]);
 
     const formatarTitulo = () => {
@@ -121,13 +119,23 @@ function Header() {
             display: "flex", justifyContent: "space-between", alignItems: "center", 
             padding: "20px 30px", background: "#fff", borderBottom: "1px solid #e2e8f0" 
         }}>
-            <div style={{ color: "#64748b", fontSize: "0.95rem" }}>
-                Menu Principal / <strong style={{ color: "#1e293b" }}>{formatarTitulo()}</strong>
+            {/* 👇 ADICIONAMOS O BOTÃO HAMBÚRGUER AQUI 👇 */}
+            <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+                <button 
+                    className="mobile-menu-btn" 
+                    onClick={onMenuToggle} 
+                    style={{ background: "none", border: "none", cursor: "pointer", display: "none", color: "#1e293b", padding: 0 }}
+                >
+                    <Menu size={26} />
+                </button>
+                <div className="header-title" style={{ color: "#64748b", fontSize: "0.95rem" }}>
+                    Menu Principal / <strong style={{ color: "#1e293b" }}>{formatarTitulo()}</strong>
+                </div>
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
                 
-                <span style={{ 
+                <span className="badge-online" style={{ 
                     display: "flex", alignItems: "center", gap: "6px", background: "#dcfce7", color: "#15803d", 
                     padding: "4px 12px", borderRadius: "20px", fontSize: "0.8rem", fontWeight: "600" 
                 }}>
@@ -152,7 +160,7 @@ function Header() {
                     </button>
 
                     {notificacoesAbertas && (
-                        <div style={{ 
+                        <div className="notificacoes-dropdown" style={{ 
                             position: "absolute", top: "45px", right: "0", width: "340px", 
                             background: "#fff", borderRadius: "12px", boxShadow: "0 10px 25px rgba(0,0,0,0.1)", 
                             border: "1px solid #e2e8f0", zIndex: 9999, overflow: "hidden" 
@@ -197,7 +205,7 @@ function Header() {
                     )}
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: "12px", borderLeft: "1px solid #e2e8f0", paddingLeft: "20px" }}>
+                <div className="user-profile-header" style={{ display: "flex", alignItems: "center", gap: "12px", borderLeft: "1px solid #e2e8f0", paddingLeft: "20px" }}>
                     <div style={{ textAlign: "right" }}>
                         <strong style={{ display: "block", color: "#1e293b", fontSize: "0.9rem" }}>{nomeExibicao}</strong>
                         <span style={{ color: "#64748b", fontSize: "0.8rem" }}>{cargoExibicao}</span>
@@ -205,7 +213,7 @@ function Header() {
                     <div style={{ 
                         width: "38px", height: "38px", background: "#6C63FF", color: "white", 
                         borderRadius: "50%", display: "flex", justifyContent: "center", alignItems: "center", 
-                        fontWeight: "700", fontSize: "1.1rem", textTransform: "uppercase" 
+                        fontWeight: "700", fontSize: "1.1rem", textTransform: "uppercase", flexShrink: 0 
                     }}>
                         {nomeExibicao ? nomeExibicao.charAt(0) : "U"}
                     </div>
@@ -220,8 +228,9 @@ function Header() {
                     }}
                     onMouseOver={(e) => e.currentTarget.style.background = "#fef2f2"}
                     onMouseOut={(e) => e.currentTarget.style.background = "none"}
+                    title="Sair do Sistema"
                 >
-                    Sair <LogOut size={16} />
+                    <span className="logout-text">Sair</span> <LogOut size={16} />
                 </button>
 
             </div>

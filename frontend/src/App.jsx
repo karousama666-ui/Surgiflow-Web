@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react"; // 👈 Importamos o useState aqui
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // Importação dos Contextos (Os nossos "Cérebros")
@@ -6,7 +6,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { CirurgiasProvider } from "./context/CirurgiasContext";
 import { MedicosProvider } from "./context/MedicosContext";
 import { PedidosProvider } from "./context/PedidosContext";
-import { PacientesProvider } from "./context/PacientesContext"; // 👈 NOVO CÉREBRO ADICIONADO!
+import { PacientesProvider } from "./context/PacientesContext"; 
 
 // Importação do Segurança da Rota e Componentes Visuais
 import RotaProtegida from "./components/RotaProtegida";
@@ -22,7 +22,7 @@ import NovaSenha from "./pages/NovaSenha";
 import Dashboard from "./pages/Dashboard";
 import Agenda from "./pages/Agenda";
 import Calendario from "./pages/Calendario";
-import Pacientes from "./pages/Pacientes"; // 👈 IMPORTAÇÃO DA NOVA TELA!
+import Pacientes from "./pages/Pacientes"; 
 import Medicos from "./pages/Medicos";
 import Pedidos from "./pages/Pedidos";
 import Relatorios from "./pages/Relatorios";
@@ -32,6 +32,9 @@ import Configuracoes from "./pages/Configuracoes";
 // O "MOLDE" DA PLATAFORMA (Menu, Topo e Fonte)
 // ==========================================
 const LayoutApp = ({ children }) => {
+    // 👇 O CONTROLE DO MENU RESPONSIVO FICA AQUI 👇
+    const [menuAberto, setMenuAberto] = useState(false);
+
     return (
         <div style={{ 
             display: "flex", 
@@ -41,12 +44,15 @@ const LayoutApp = ({ children }) => {
             fontFamily: "'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
             background: "#f8fafc" 
         }}>
-            {/* Menu Lateral */}
-            <Sidebar />
+            {/* 👇 Passamos o estado para a Sidebar saber quando abrir e como fechar 👇 */}
+            <Sidebar isOpen={menuAberto} onClose={() => setMenuAberto(false)} />
             
             {/* Painel Direito */}
             <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-                <Header />
+                
+                {/* 👇 Passamos a função pro Header avisar quando clicar no Hambúrguer 👇 */}
+                <Header onMenuToggle={() => setMenuAberto(!menuAberto)} />
+                
                 <main style={{ flex: 1, overflowY: "auto", padding: "24px", background: "#f1f5f9" }}>
                     {children}
                 </main>
@@ -62,7 +68,7 @@ function App() {
         <CirurgiasProvider>
           <MedicosProvider>
             <PedidosProvider>
-              <PacientesProvider> {/* 👈 ABRAÇANDO AS ROTAS COM O NOVO CONTEXTO */}
+              <PacientesProvider> 
               
               <Routes>
                 {/* 🔴 ROTAS PÚBLICAS (Telas Cheias) */}
@@ -74,7 +80,7 @@ function App() {
                 <Route path="/dashboard" element={<RotaProtegida><LayoutApp><Dashboard /></LayoutApp></RotaProtegida>} />
                 <Route path="/agenda" element={<RotaProtegida><LayoutApp><Agenda /></LayoutApp></RotaProtegida>} />
                 <Route path="/calendario" element={<RotaProtegida><LayoutApp><Calendario /></LayoutApp></RotaProtegida>} />
-                <Route path="/pacientes" element={<RotaProtegida><LayoutApp><Pacientes /></LayoutApp></RotaProtegida>} /> {/* 👈 NOVA ROTA ADICIONADA! */}
+                <Route path="/pacientes" element={<RotaProtegida><LayoutApp><Pacientes /></LayoutApp></RotaProtegida>} />
                 <Route path="/medicos" element={<RotaProtegida><LayoutApp><Medicos /></LayoutApp></RotaProtegida>} />
                 <Route path="/pedidos" element={<RotaProtegida><LayoutApp><Pedidos /></LayoutApp></RotaProtegida>} />
                 <Route path="/relatorios" element={<RotaProtegida><LayoutApp><Relatorios /></LayoutApp></RotaProtegida>} />

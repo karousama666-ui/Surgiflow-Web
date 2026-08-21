@@ -11,11 +11,12 @@ import {
   ClipboardList,
   FileText,
   Settings,
-  Contact // 👈 Ícone de contatos importado
+  Contact,
+  X // 👈 Importamos o X para fechar no mobile
 } from "lucide-react";
 
-function Sidebar() {
-  // Estilo elegante para os títulos separadores do menu
+// 👇 Recebemos as propriedades de controle do Mobile
+function Sidebar({ isOpen, onClose }) {
   const categoryStyle = {
     fontSize: "0.7rem",
     fontWeight: "800",
@@ -29,58 +30,68 @@ function Sidebar() {
   };
 
   return (
-    <aside className="sidebar" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <Logo />
+    <>
+      {/* 👇 TELA ESCURA DE FUNDO NO MOBILE 👇 */}
+      {isOpen && <div className="sidebar-overlay" onClick={onClose}></div>}
 
-      {/* flex: 1 faz o menu ocupar o espaço disponível */}
-      <nav style={{ flex: 1, overflowY: 'auto' }}>
+      {/* 👇 A CLASSE DINÂMICA 'open' FAZ ELE DESLIZAR 👇 */}
+      <aside className={`sidebar ${isOpen ? "open" : ""}`} style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
         
-        <span style={categoryStyle}>Gerenciamento</span>
-        <NavLink to="/dashboard" end>
-          <LayoutDashboard size={20} />
-          Dashboard
-        </NavLink>
+        {/* Botão de Fechar Exclusivo do Celular */}
+        <button className="close-sidebar-btn" onClick={onClose}>
+            <X size={24} />
+        </button>
 
-        <NavLink to="/agenda">
-          <CalendarDays size={20} />
-          Agenda
-        </NavLink>
+        <Logo />
 
-        <NavLink to="/calendario">
-          <Calendar size={20} />
-          Calendário
-        </NavLink>
+        <nav style={{ flex: 1, overflowY: 'auto' }}>
+          
+          <span style={categoryStyle}>Gerenciamento</span>
+          <NavLink to="/dashboard" end onClick={onClose}>
+            <LayoutDashboard size={20} />
+            Dashboard
+          </NavLink>
 
-        <span style={categoryStyle}>Rede</span>
-        
-        {/* 👇 NOVO BOTÃO DE FICHAS AQUI 👇 */}
-        <NavLink to="/pacientes">
-          <Contact size={20} />
-          Fichas de Pacientes
-        </NavLink>
+          <NavLink to="/agenda" onClick={onClose}>
+            <CalendarDays size={20} />
+            Agenda
+          </NavLink>
 
-        <NavLink to="/medicos">
-          <Users size={20} />
-          Médicos
-        </NavLink>
+          <NavLink to="/calendario" onClick={onClose}>
+            <Calendar size={20} />
+            Calendário
+          </NavLink>
 
-        <NavLink to="/pedidos">
-          <ClipboardList size={20} />
-          Pedidos
-        </NavLink>
+          <span style={categoryStyle}>Rede</span>
+          
+          <NavLink to="/pacientes" onClick={onClose}>
+            <Contact size={20} />
+            Fichas de Pacientes
+          </NavLink>
 
-        <span style={categoryStyle}>Sistema</span>
-        <NavLink to="/relatorios">
-          <FileText size={20} />
-          Relatórios
-        </NavLink>
+          <NavLink to="/medicos" onClick={onClose}>
+            <Users size={20} />
+            Médicos
+          </NavLink>
 
-        <NavLink to="/configuracoes">
-          <Settings size={20} />
-          Configurações
-        </NavLink>
-      </nav>
-    </aside>
+          <NavLink to="/pedidos" onClick={onClose}>
+            <ClipboardList size={20} />
+            Pedidos
+          </NavLink>
+
+          <span style={categoryStyle}>Sistema</span>
+          <NavLink to="/relatorios" onClick={onClose}>
+            <FileText size={20} />
+            Relatórios
+          </NavLink>
+
+          <NavLink to="/configuracoes" onClick={onClose}>
+            <Settings size={20} />
+            Configurações
+          </NavLink>
+        </nav>
+      </aside>
+    </>
   )
 }
 
