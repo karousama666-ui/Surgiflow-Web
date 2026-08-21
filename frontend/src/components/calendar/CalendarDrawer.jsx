@@ -7,7 +7,8 @@ import {
     CircleCheck,
     Pencil,
     Trash2,
-    FileText
+    FileText,
+    Paperclip // 👈 NOVO ÍCONE ADICIONADO AQUI!
 } from "lucide-react";
 
 function CalendarDrawer({
@@ -133,10 +134,26 @@ function CalendarDrawer({
                         Editar
                     </button>
                     
-                    <button className="drawer-btn">
-                        <FileText size={18}/>
-                        Gerar Pedido
-                    </button>
+                    {/* 👇 NOVA LÓGICA DE VISUALIZAÇÃO DE ANEXO AQUI 👇 */}
+                    {cirurgia?.anexo_url ? (
+                        <button
+                            className="drawer-btn"
+                            onClick={() => window.open(cirurgia.anexo_url, "_blank")}
+                            title="Visualizar documento anexado"
+                        >
+                            <Paperclip size={18} color="#6C63FF" />
+                            Ver Anexo
+                        </button>
+                    ) : (
+                        <button
+                            className="drawer-btn"
+                            disabled
+                            style={{ opacity: 0.6, cursor: "not-allowed", background: "#f8fafc", color: "#94a3b8" }}
+                        >
+                            <Paperclip size={18} />
+                            Sem Anexo
+                        </button>
+                    )}
                     
                     <button
                         className="drawer-btn danger"
