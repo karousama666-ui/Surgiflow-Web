@@ -35,8 +35,6 @@ function Agenda() {
                 <button
                     onClick={() => {
                         // 🛑 A BARREIRA (PAYWALL) COMEÇA AQUI 🛑
-                        // Se o plano for grátis e ele já tiver 10 cirurgias, barra!
-                        // No futuro, você checará algo como: if (usuario.plano === 'free' && listaCirurgias.length >= 10)
                         if (listaCirurgias.length >= 10) {
                             alert("🔒 Limite do Plano Grátis atingido!\n\nVocê já possui 10 cirurgias cadastradas. Assine o plano Premium para cadastros ilimitados.");
                             
@@ -67,8 +65,12 @@ function Agenda() {
                     editarCirurgia(id, { status: novoStatus });
                 }}
                 
+                // 👇 AQUI ESTÁ A NOVA TRAVA DE SEGURANÇA! 👇
                 onDelete={(id) => {
-                    excluirCirurgia(id);
+                    const confirmacao = window.confirm("⚠️ Tem certeza que deseja excluir esta cirurgia? Esta ação não poderá ser desfeita.");
+                    if (confirmacao) {
+                        excluirCirurgia(id);
+                    }
                 }}
                 
                 onEdit={(cirurgia) => {
@@ -85,7 +87,6 @@ function Agenda() {
                 }}
                 cirurgia={cirurgiaEditando}
                 
-                // 👇 A MÁGICA ACONTECE AQUI: Agora a agenda espera o upload terminar!
                 onSave={async (dados) => {
                     try {
                         if (cirurgiaEditando) {
