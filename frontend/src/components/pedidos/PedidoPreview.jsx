@@ -1,12 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Modal from "../modal/Modal";
 import "./PedidoPreview.css";
 import logoDocumento from "../../assets/logopdf.png";
-import { User, Stethoscope, Building2, CalendarDays, Clock3, CircleCheck, FileText, Package, Paperclip } from "lucide-react"; // 👈 Adicionamos o Paperclip (Clipe de papel)
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import { User, Stethoscope, Building2, CalendarDays, Clock3, CircleCheck, FileText, Package } from "lucide-react";
 import { usePedidos } from "../../context/PedidosContext";
 
 function PedidoPreview({ cirurgia, pedido, isOpen, onClose }) {
     const { salvarPedido } = usePedidos();
+    const pdfRef = useRef(null);
 
     const [form, setForm] = useState({
         fornecedor: "",
@@ -34,17 +37,21 @@ function PedidoPreview({ cirurgia, pedido, isOpen, onClose }) {
         setForm({ ...form, [e.target.name]: e.target.value });
     }
 
+    // A NOVA FUNÇÃO COM O CINTO DE SEGURANÇA (TRY...CATCH) 🛑
     async function handleSalvarOPME() {
         try {
             const dados = { ...form, cirurgia_id: cirurgia.id };
             if (pedido?.id) dados.id = pedido.id;
 
+            // Tenta salvar no Supabase...
             await salvarPedido(dados);
             
+            // Se deu certo, avisa o usuário e fecha o modal
             alert("✅ Pedido OPME salvo com sucesso!");
             onClose(); 
 
         } catch (error) {
+            // Se der erro de segurança (RLS) ou conexão, grita na tela!
             console.error("Erro ao salvar OPME:", error);
             alert("❌ Ops! Erro ao salvar o pedido: " + (error.message || "Verifique o console apertando F12"));
         }
@@ -59,6 +66,18 @@ function PedidoPreview({ cirurgia, pedido, isOpen, onClose }) {
         hora = partes[1] || "Não informado";
     }
     const nomeMedico = cirurgia?.medicos?.nome ? `Dr(a). ${cirurgia.medicos.nome}` : "Médico não informado";
+
+    const gerarPDF = async () => {
+        const elemento = pdfRef.current;
+        const canvas = await html2canvas(elemento, { scale: 2 });
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF("p", "mm", "a4");
+        const larguraPDF = 210;
+        const alturaPDF = (canvas.height * larguraPDF) / canvas.width;
+        
+        pdf.addImage(imgData, "PNG", 0, 0, larguraPDF, alturaPDF);
+        pdf.save(`Pedido_Cirurgico_${cirurgia.paciente.replace(/\s+/g, "_")}.pdf`);
+    };
 
     const inputStyle = {
         width: "100%", padding: "12px", border: "1px solid #cbd5e1", borderRadius: "8px", 
@@ -77,7 +96,7 @@ function PedidoPreview({ cirurgia, pedido, isOpen, onClose }) {
                 
                 {/* ÁREA COM ROLAGEM INTERNA */}
                 <div style={{ maxHeight: "70vh", overflowY: "auto", overflowX: "hidden", paddingRight: "10px" }}>
-                    <div style={{ background: "white", padding: "10px 15px" }}>
+                    <div ref={pdfRef} style={{ background: "white", padding: "10px 15px" }}>
                         
                         {/* CABEÇALHO */}
                         <div style={{ textAlign: "center", borderBottom: "1px solid #f1f5f9", paddingBottom: "20px", marginBottom: "25px" }}>
@@ -165,38 +184,28 @@ function PedidoPreview({ cirurgia, pedido, isOpen, onClose }) {
                                 <textarea name="materiais" value={form.materiais} onChange={handleChange} rows="4" style={{ ...inputStyle, resize: "none" }} placeholder="Descreva as órteses, próteses e materiais especiais necessários..."></textarea>
                             </div>
                         </div>
+
+                        {/* RODAPÉ DO PDF */}
+                        <div style={{ marginTop: "30px", textAlign: "center", color: "#94a3b8", fontSize: "0.8rem", fontWeight: "500" }}>
+                            Documento gerado e auditado pelo <strong>SurgiFlow</strong>
+                        </div>
                     </div>
                 </div>
 
-                {/* 👇 BOTÕES DE AÇÃO ATUALIZADOS 👇 */}
+                {/* BOTÕES DE AÇÃO */}
                 <div style={{ display: "flex", gap: "15px", marginTop: "20px", paddingTop: "20px", borderTop: "1px solid #e2e8f0" }}>
                     <button
                         onClick={handleSalvarOPME}
                         style={{ flex: 1, background: "#10b981", color: "white", border: "none", borderRadius: "10px", padding: "14px", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", fontFamily: "inherit", transition: "0.2s" }}
-                        onMouseOver={(e) => e.currentTarget.style.background = "#059669"}
-                        onMouseOut={(e) => e.currentTarget.style.background = "#10b981"}
                     >
                         💾 Salvar OPME
                     </button>
-
-                    {/* Lógica Inteligente para o Anexo */}
-                    {cirurgia?.anexo_url ? (
-                        <button
-                            onClick={() => window.open(cirurgia.anexo_url, "_blank")}
-                            style={{ flex: 1, background: "#6C63FF", color: "white", border: "none", borderRadius: "10px", padding: "14px", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", fontFamily: "inherit", transition: "0.2s" }}
-                            onMouseOver={(e) => e.currentTarget.style.background = "#5b54d6"}
-                            onMouseOut={(e) => e.currentTarget.style.background = "#6C63FF"}
-                        >
-                            <Paperclip size={18} /> Ver Documento Original
-                        </button>
-                    ) : (
-                        <button
-                            disabled
-                            style={{ flex: 1, background: "#f1f5f9", color: "#94a3b8", border: "1px solid #cbd5e1", borderRadius: "10px", padding: "14px", fontWeight: "700", cursor: "not-allowed", fontSize: "0.95rem", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", fontFamily: "inherit" }}
-                        >
-                            <Paperclip size={18} /> Sem Anexo
-                        </button>
-                    )}
+                    <button
+                        onClick={gerarPDF}
+                        style={{ flex: 1, background: "#6C63FF", color: "white", border: "none", borderRadius: "10px", padding: "14px", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", fontFamily: "inherit", transition: "0.2s" }}
+                    >
+                        📄 Gerar PDF
+                    </button>
                 </div>
 
             </div>
