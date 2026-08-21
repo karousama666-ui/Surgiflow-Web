@@ -6,12 +6,12 @@ import PedidoPreview from "../components/pedidos/PedidoPreview";
 import "./Pedidos.css";
 import { LayoutGrid, List } from "lucide-react"; 
 
+// 👇 COLUNA "ENTREGUE" REMOVIDA PARA FOCAR NO QUE IMPORTA: APROVAÇÃO! 👇
 const COLUNAS_KANBAN = [
     { id: "Pendente", titulo: "Sem OPME / Novos", corFundo: "#f8fafc", corBorda: "#e2e8f0", corTopo: "#94a3b8" },
     { id: "Aguardando Orçamento", titulo: "Orçamento", corFundo: "#fffbeb", corBorda: "#ffedd5", corTopo: "#f59e0b" },
     { id: "Em Aprovação (Convênio)", titulo: "Em Aprovação", corFundo: "#eff6ff", corBorda: "#dbeafe", corTopo: "#3b82f6" },
-    { id: "Aprovado", titulo: "Aprovado", corFundo: "#ecfdf5", corBorda: "#d1fae5", corTopo: "#10b981" },
-    { id: "Material Entregue", titulo: "Entregue", corFundo: "#f0fdf4", corBorda: "#bbf7d0", corTopo: "#059669" }
+    { id: "Aprovado", titulo: "Aprovado", corFundo: "#ecfdf5", corBorda: "#d1fae5", corTopo: "#10b981" }
 ];
 
 function Pedidos() {
@@ -159,12 +159,11 @@ function Pedidos() {
                     )}
                 </div>
             ) : (
-                // 👇 A CAIXA DUPLA: A BLINDAGEM CONTRA O ESTOURO DE TELA 👇
                 <div style={{ width: "100%", maxWidth: "100%", overflow: "hidden" }}> 
                     <div style={{ 
                         display: "flex", 
                         gap: "20px", 
-                        overflowX: "auto", // O scroll horizontal acontece AQUI dentro
+                        overflowX: "auto", 
                         minHeight: "60vh", 
                         paddingBottom: "20px", 
                         paddingRight: "20px", 
