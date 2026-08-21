@@ -2,8 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, LayoutGrid, FileCheck, CheckCircle2, Stethoscope, Building2 } from 'lucide-react';
 
-// O seu logo horizontal
+// Seus arquivos de imagem
 import logoSurgiFlow from '../assets/logo_vertical.png'; 
+import iconeFundo from '../assets/iconegrande.png'; // 👈 O ícone gigante importado aqui!
 
 function LandingPage() {
     return (
@@ -17,8 +18,24 @@ function LandingPage() {
 
                 .landing-container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
                 
-                .hero-section { padding: 180px 24px 80px 24px; text-align: center; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); }
-                .hero-title { font-size: 3.8rem; font-weight: 800; line-height: 1.15; margin-bottom: 24px; color: #0f172a; letter-spacing: -1px; }
+                /* 👇 A SEÇÃO HERO AGORA TEM OVERFLOW HIDDEN PARA O ÍCONE NÃO VAZAR 👇 */
+                .hero-section { position: relative; padding: 180px 24px 80px 24px; text-align: center; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); overflow: hidden; }
+                .hero-title { font-size: 3.8rem; font-weight: 800; line-height: 1.15; margin-bottom: 24px; color: #0f172a; letter-spacing: -1px; position: relative; z-index: 2; }
+                
+                /* 👇 A MÁGICA DA MARCA D'ÁGUA ESTILO APPLE 👇 */
+                .bg-watermark {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -55%);
+                    width: 750px;
+                    max-width: 150vw;
+                    opacity: 0.03; /* Super sutil, apenas 3% de visibilidade */
+                    z-index: 0;
+                    pointer-events: none; /* O mouse ignora a imagem, permitindo clicar nos botões */
+                }
+
+                .hero-content { position: relative; z-index: 2; }
                 
                 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; align-items: stretch; }
                 
@@ -26,6 +43,7 @@ function LandingPage() {
                     .hero-title { font-size: 2.5rem; }
                     .grid-3 { grid-template-columns: 1fr; }
                     .hero-section { padding: 160px 20px 60px 20px; }
+                    .bg-watermark { width: 500px; opacity: 0.04; } /* Ajuste pro celular */
                 }
 
                 .clean-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 40px; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; flex-direction: column; height: 100%; }
@@ -47,10 +65,8 @@ function LandingPage() {
 
             {/* HEADER DA VITRINE */}
             <header style={{ position: "fixed", top: 0, width: "100%", background: "rgba(255, 255, 255, 0.9)", backdropFilter: "blur(12px)", borderBottom: "1px solid #e2e8f0", zIndex: 100 }}>
-                {/* 👇 AUMENTAMOS A ALTURA DO HEADER PARA 100PX 👇 */}
                 <div className="landing-container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", height: "100px" }}>
                     <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
-                        {/* 👇 AUMENTAMOS O LOGO (Sem travar a largura e com 85px de altura) 👇 */}
                         <img src={logoSurgiFlow} alt="SurgiFlow Logo" style={{ height: "85px", width: "auto", objectFit: "contain" }} />
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "25px" }}>
@@ -60,9 +76,12 @@ function LandingPage() {
                 </div>
             </header>
 
-            {/* SEÇÃO HERO */}
+            {/* SEÇÃO HERO COM MARCA D'ÁGUA */}
             <section className="hero-section">
-                <div className="landing-container" style={{ maxWidth: "900px" }}>
+                {/* 👇 A IMAGEM GIGANTE FICA AQUI, ATRÁS DE TUDO 👇 */}
+                <img src={iconeFundo} alt="" className="bg-watermark" />
+                
+                <div className="landing-container hero-content" style={{ maxWidth: "900px" }}>
                     <div style={{ display: "inline-block", background: "#ecfdf5", color: "#059669", padding: "8px 16px", borderRadius: "20px", fontWeight: "700", fontSize: "0.9rem", marginBottom: "24px", border: "1px solid #a7f3d0" }}>
                         🚀 O Sistema Operacional do Bloco Cirúrgico
                     </div>
