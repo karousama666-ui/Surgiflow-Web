@@ -1,9 +1,9 @@
-import { useState, useMemo, useEffect, useRef } from "react"; // 👈 Adicionamos o useRef aqui!
+import { useState, useMemo, useEffect, useRef } from "react"; 
 import { useAuth } from "../../context/AuthContext";
 import { useCirurgias } from "../../context/CirurgiasContext";
 import { usePedidos } from "../../context/PedidosContext";
 import { useLocation } from "react-router-dom";
-import { Bell, LogOut, AlertCircle, PackageSearch, CheckCircle2 } from "lucide-react";
+import { Bell, LogOut, AlertCircle, PackageSearch, CheckCircle2, BellOff } from "lucide-react";
 import { supabase } from "../../services/supabase.js"; 
 
 function Header() {
@@ -14,37 +14,40 @@ function Header() {
     const { listaPedidos = [] } = usePedidos() || {};
 
     const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
-    
-    // 👇 REF: É como se fosse uma "etiqueta de rastreamento" para a caixa de notificação
     const notificacaoRef = useRef(null);
     
     const [nomeExibicao, setNomeExibicao] = useState("Carregando...");
     const [cargoExibicao, setCargoExibicao] = useState("Profissional de Saúde");
+    const [notificacoesAtivas, setNotificacoesAtivas] = useState(true); // 👈 Conectado com as Configurações!
 
     useEffect(() => {
         async function buscarUsuarioLogado() {
             try {
                 const { data: { user } } = await supabase.auth.getUser();
                 
-                if (user && user.user_metadata && user.user_metadata.nome) {
-                    const nomeCompleto = user.user_metadata.nome.split(" ");
-                    const nomeCurto = `${nomeCompleto[0]} ${nomeCompleto[1] || ""}`;
-                    setNomeExibicao(nomeCurto);
-                } else {
-                    setNomeExibicao("Usuário");
+                if (user && user.user_metadata) {
+                    if (user.user_metadata.nome) {
+                        const nomeCompleto = user.user_metadata.nome.split(" ");
+                        const nomeCurto = `${nomeCompleto[0]} ${nomeCompleto[1] || ""}`;
+                        setNomeExibicao(nomeCurto);
+                    } else {
+                        setNomeExibicao("Usuário");
+                    }
+                    
+                    if (user.user_metadata.cargo) setCargoExibicao(user.user_metadata.cargo);
+                    
+                    // Puxa a preferência do usuário direto do banco
+                    setNotificacoesAtivas(user.user_metadata.notificacoesSistema ?? true);
                 }
             } catch (error) {
                 console.error("Erro ao puxar dados do usuário:", error);
-                setNomeExibicao("Usuário");
             }
         }
         buscarUsuarioLogado();
     }, []);
 
-    // 👇 O DETETIVE DE CLIQUES: Ele vigia o mouse quando as notificações estão abertas
     useEffect(() => {
         function lidarComCliqueFora(event) {
-            // Se o clique foi numa área que NÃO pertence à div da notificação, ele fecha!
             if (notificacaoRef.current && !notificacaoRef.current.contains(event.target)) {
                 setNotificacoesAbertas(false);
             }
@@ -132,19 +135,18 @@ function Header() {
                     Online
                 </span>
 
-                {/* 👇 ADICIONAMOS A REF NESTA DIV PARA RASTREAR ELA E SEUS FILHOS 👇 */}
                 <div ref={notificacaoRef} style={{ position: "relative" }}>
                     <button 
                         onClick={() => setNotificacoesAbertas(!notificacoesAbertas)}
                         style={{ 
                             background: notificacoesAbertas ? "#f1f5f9" : "none", 
-                            border: "none", cursor: "pointer", color: temAlerta ? "#1e293b" : "#64748b", 
+                            border: "none", cursor: "pointer", color: temAlerta && notificacoesAtivas ? "#1e293b" : "#64748b", 
                             padding: "8px", borderRadius: "50%", transition: "0.2s",
                             display: "flex", alignItems: "center", justifyContent: "center"
                         }}
                     >
                         <Bell size={22} />
-                        {temAlerta && (
+                        {temAlerta && notificacoesAtivas && (
                             <span style={{ position: "absolute", top: "5px", right: "6px", background: "#ef4444", width: "10px", height: "10px", borderRadius: "50%", border: "2px solid #fff" }}></span>
                         )}
                     </button>
@@ -157,16 +159,22 @@ function Header() {
                         }}>
                             <div style={{ background: "#f8fafc", padding: "12px 16px", borderBottom: "1px solid #e2e8f0", fontWeight: "700", color: "#1e293b", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                 Alertas do Sistema
-                                <span style={{ fontSize: "0.75rem", background: "#e2e8f0", color: "#475569", padding: "2px 8px", borderRadius: "10px" }}>{notificacoesReais.length}</span>
+                                {notificacoesAtivas && <span style={{ fontSize: "0.75rem", background: "#e2e8f0", color: "#475569", padding: "2px 8px", borderRadius: "10px" }}>{notificacoesReais.length}</span>}
                             </div>
                             
                             <div style={{ maxHeight: "320px", overflowY: "auto" }}>
-                                {temAlerta ? (
+                                {!notificacoesAtivas ? (
+                                    <div style={{ padding: "30px 20px", textAlign: "center", color: "#94a3b8" }}>
+                                        <BellOff size={30} color="#cbd5e1" style={{ margin: "0 auto 10px auto" }} />
+                                        <p style={{ margin: 0, fontSize: "0.9rem" }}>Notificações desativadas nas Configurações.</p>
+                                    </div>
+                                ) : temAlerta ? (
                                     notificacoesReais.map(notif => (
                                         <div key={notif.id} style={{ 
                                             padding: "15px 16px", borderBottom: "1px solid #f1f5f9", 
-                                            display: "flex", gap: "12px", alignItems: "flex-start" 
-                                        }}>
+                                            display: "flex", gap: "12px", alignItems: "flex-start",
+                                            transition: "background 0.2s", cursor: "pointer"
+                                        }} onMouseOver={(e) => e.currentTarget.style.background = "#f8fafc"} onMouseOut={(e) => e.currentTarget.style.background = "#fff"}>
                                             {notif.tipo === "opme" && <PackageSearch size={18} color="#f59e0b" style={{ marginTop: "2px", flexShrink: 0 }} />}
                                             {notif.tipo === "cirurgia" && <AlertCircle size={18} color="#ef4444" style={{ marginTop: "2px", flexShrink: 0 }} />}
                                             

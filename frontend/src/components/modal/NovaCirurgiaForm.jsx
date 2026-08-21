@@ -1,12 +1,29 @@
 import { useState, useEffect } from "react";
 import { useMedicos } from "../../context/MedicosContext";
-import { usePacientes } from "../../context/PacientesContext"; // 👈 IMPORTAMOS O CÉREBRO DE PACIENTES!
+import { usePacientes } from "../../context/PacientesContext"; 
 import { supabase } from "../../services/supabase"; 
-import { User, Hospital, FileText, Calendar, Clock, UploadCloud, FileCheck, X, Eye, Trash2 } from "lucide-react"; 
+import { User, Hospital, FileText, Calendar, Clock, UploadCloud, FileCheck, X, Eye, Trash2, CheckSquare } from "lucide-react"; 
+
+// 👇 COMPONENTE NOVO: Visual Premium para os checkboxes do checklist
+const CustomCheck = ({ label, field, checked, onChange }) => (
+    <label style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer", userSelect: "none" }}>
+        <div style={{
+            width: "20px", height: "20px", borderRadius: "6px",
+            background: checked ? "#10b981" : "#ffffff",
+            border: checked ? "1px solid #10b981" : "1px solid #cbd5e1",
+            display: "flex", justifyContent: "center", alignItems: "center",
+            transition: "all 0.2s ease"
+        }}>
+            {checked && <FileCheck size={14} color="white" strokeWidth={3} />}
+        </div>
+        <span style={{ color: checked ? "#065f46" : "#475569", fontSize: "0.9rem", fontWeight: checked ? "600" : "500", transition: "color 0.2s" }}>{label}</span>
+        <input type="checkbox" checked={checked} onChange={() => onChange(field, !checked)} style={{ display: "none" }} />
+    </label>
+);
 
 function NovaCirurgiaForm({ onSave, dados }) {
     const { listaMedicos } = useMedicos();
-    const { listaPacientes } = usePacientes(); // 👈 PUXAMOS A LISTA DE PACIENTES!
+    const { listaPacientes } = usePacientes(); 
     const [isUploading, setIsUploading] = useState(false); 
 
     const [form, setForm] = useState({
@@ -18,6 +35,11 @@ function NovaCirurgiaForm({ onSave, dados }) {
         horario: "",
         anexo_url: null,     
         novo_arquivo: null   
+    });
+
+    // 👇 NOVO: Estado para guardar as marcações do checklist
+    const [checklist, setChecklist] = useState({
+        jejum: false, exames: false, termo: false
     });
 
     useEffect(() => {
@@ -40,6 +62,11 @@ function NovaCirurgiaForm({ onSave, dados }) {
                 anexo_url: dados.anexo_url || null, 
                 novo_arquivo: null
             });
+
+            // 👇 NOVO: Carrega o checklist salvo no banco, se existir
+            if (dados.checklist) {
+                setChecklist(dados.checklist);
+            }
         }
     }, [dados]);
 
@@ -56,6 +83,11 @@ function NovaCirurgiaForm({ onSave, dados }) {
             ...form,
             medicoId: e.target.value
         });
+    }
+
+    // 👇 NOVO: Função para atualizar apenas uma caixinha do checklist
+    function handleChecklistChange(field, value) {
+        setChecklist({ ...checklist, [field]: value });
     }
 
     const handleSalvar = async () => {
@@ -83,19 +115,21 @@ function NovaCirurgiaForm({ onSave, dados }) {
             }
 
             const dadosFormatadosParaSupabase = {
-                paciente: form.paciente, // Salva o NOME que veio do select para manter a compatibilidade com o banco
+                paciente: form.paciente, 
                 medico_id: form.medicoId ? Number(form.medicoId) : null,
                 hospital: form.hospital,
                 convenio: form.convenio,
                 data_cirurgia: (form.data && form.horario) ? `${form.data} ${form.horario}` : null,
                 status: dados ? dados.status : "Pendente",
-                anexo_url: linkFinalDoAnexo 
+                anexo_url: linkFinalDoAnexo,
+                checklist: checklist // 👈 NOVO: Envia o checklist pro banco!
             };
 
             await onSave(dadosFormatadosParaSupabase);
 
             if (!dados) {
                 setForm({ paciente: "", medicoId: "", hospital: "", convenio: "", data: "", horario: "", anexo_url: null, novo_arquivo: null });
+                setChecklist({ jejum: false, exames: false, termo: false }); // Reseta o checklist
             }
         } catch (error) {
             console.error("Erro ao salvar:", error);
@@ -120,7 +154,7 @@ function NovaCirurgiaForm({ onSave, dados }) {
     return (
         <form style={{ display: "flex", flexDirection: "column", gap: "20px", fontFamily: "'Inter', system-ui, sans-serif" }}>
             
-            {/* 👇 CAMPO INTELIGENTE DE PACIENTE 👇 */}
+            {/* Campo Inteligente de Paciente */}
             <div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
                     <label style={labelStyle}>Paciente</label>
@@ -217,7 +251,19 @@ function NovaCirurgiaForm({ onSave, dados }) {
                 </div>
             </div>
 
-            {/* Anexo de Documentos Moderno (COM PERSISTÊNCIA) */}
+            {/* 👇 NOVO: O ESCUDO ANTI-CANCELAMENTO 👇 */}
+            <div style={{ border: "1px solid #e2e8f0", borderRadius: "12px", padding: "20px", background: "#f8fafc" }}>
+                <h3 style={{ fontSize: "1rem", color: "#0f172a", margin: "0 0 15px 0", display: "flex", alignItems: "center", gap: "8px", fontWeight: "700" }}>
+                    <CheckSquare size={18} color="#10b981" /> Checklist de Validação
+                </h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px", background: "#fff", padding: "15px", borderRadius: "10px", border: "1px solid #cbd5e1" }}>
+                    <CustomCheck label="Jejum confirmado com paciente" field="jejum" checked={checklist.jejum} onChange={handleChecklistChange} />
+                    <CustomCheck label="Exames Pré-Operatórios recebidos" field="exames" checked={checklist.exames} onChange={handleChecklistChange} />
+                    <CustomCheck label="Termo de Consentimento Assinado" field="termo" checked={checklist.termo} onChange={handleChecklistChange} />
+                </div>
+            </div>
+
+            {/* Anexo de Documentos Moderno */}
             <div>
                 <label style={labelStyle}>Anexo de Documentos / Pedido</label>
                 <div style={{
@@ -260,7 +306,7 @@ function NovaCirurgiaForm({ onSave, dados }) {
                         </div>
                     )}
 
-                    {/* ESTADO 2: Acabou de selecionar um arquivo (Cirurgia Nova ou Atualização) */}
+                    {/* ESTADO 2: Acabou de selecionar um arquivo */}
                     {form.novo_arquivo && (
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", zIndex: 10 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "10px", overflow: "hidden" }}>
