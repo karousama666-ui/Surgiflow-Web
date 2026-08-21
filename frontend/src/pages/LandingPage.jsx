@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, LayoutGrid, FileCheck, CheckCircle2, Stethoscope, Building2 } from 'lucide-react';
 
-// Seu logo cumpridinho!
+// O seu logo horizontal
 import logoSurgiFlow from '../assets/logo_vertical.png'; 
 
 function LandingPage() {
@@ -11,37 +11,33 @@ function LandingPage() {
             
             <style>
                 {`
-                /* A regra mágica que impede os botões de vazarem para os lados */
                 *, *::before, *::after { box-sizing: border-box; }
                 
                 html { scroll-behavior: smooth; }
 
                 .landing-container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
                 
-                .hero-section { padding: 160px 24px 80px 24px; text-align: center; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); }
+                .hero-section { padding: 180px 24px 80px 24px; text-align: center; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); }
                 .hero-title { font-size: 3.8rem; font-weight: 800; line-height: 1.15; margin-bottom: 24px; color: #0f172a; letter-spacing: -1px; }
                 
-                /* O grid estica os cards para terem a mesma altura */
                 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; align-items: stretch; }
                 
                 @media (max-width: 900px) {
                     .hero-title { font-size: 2.5rem; }
                     .grid-3 { grid-template-columns: 1fr; }
-                    .hero-section { padding: 140px 20px 60px 20px; }
+                    .hero-section { padding: 160px 20px 60px 20px; }
                 }
 
-                /* Cards agora empurram os botões pro fundo perfeitamente */
                 .clean-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 40px; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; flex-direction: column; height: 100%; }
                 .clean-card:hover { transform: translateY(-5px); border-color: #cbd5e1; box-shadow: 0 12px 25px rgba(0,0,0,0.05); }
                 
-                /* Botões globais */
-                .btn-primary { background: #6C63FF; color: white; padding: 14px 24px; border-radius: 10px; font-weight: 700; font-size: 1rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 6px 15px rgba(108, 99, 255, 0.25); border: none; cursor: pointer; }
+                .btn-primary { background: #6C63FF; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: 1rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 6px 15px rgba(108, 99, 255, 0.25); border: none; cursor: pointer; }
                 .btn-primary:hover { transform: translateY(-2px); background: #5a52d5; box-shadow: 0 8px 20px rgba(108, 99, 255, 0.35); }
                 
-                .btn-premium { background: #0f172a; color: white; padding: 14px 24px; border-radius: 10px; font-weight: 700; font-size: 1rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 6px 15px rgba(15, 23, 42, 0.2); border: none; cursor: pointer; }
+                .btn-premium { background: #0f172a; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: 1rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 6px 15px rgba(15, 23, 42, 0.2); border: none; cursor: pointer; }
                 .btn-premium:hover { transform: translateY(-2px); background: #1e293b; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.3); }
 
-                .btn-outline { border: 2px solid #cbd5e1; color: #475569; background: #ffffff; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+                .btn-outline { border: 2px solid #cbd5e1; color: #475569; background: #ffffff; padding: 10px 24px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
                 .btn-outline:hover { border-color: #6C63FF; color: #6C63FF; background: #f8fafc; }
 
                 .header-link { color: #475569; text-decoration: none; font-weight: 700; font-size: 1rem; transition: color 0.2s; }
@@ -51,10 +47,11 @@ function LandingPage() {
 
             {/* HEADER DA VITRINE */}
             <header style={{ position: "fixed", top: 0, width: "100%", background: "rgba(255, 255, 255, 0.9)", backdropFilter: "blur(12px)", borderBottom: "1px solid #e2e8f0", zIndex: 100 }}>
-                <div className="landing-container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", height: "80px" }}>
-                    <div>
-                        {/* 👇 LOGO AJUSTADO: Destravamos a largura pra ele ficar bonitão! */}
-                        <img src={logoSurgiFlow} alt="SurgiFlow Logo" style={{ height: "auto", maxHeight: "45px", width: "200px", objectFit: "contain" }} />
+                {/* 👇 AUMENTAMOS A ALTURA DO HEADER PARA 100PX 👇 */}
+                <div className="landing-container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", height: "100px" }}>
+                    <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+                        {/* 👇 AUMENTAMOS O LOGO (Sem travar a largura e com 85px de altura) 👇 */}
+                        <img src={logoSurgiFlow} alt="SurgiFlow Logo" style={{ height: "85px", width: "auto", objectFit: "contain" }} />
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "25px" }}>
                         <a href="#planos" className="header-link">Planos</a>
