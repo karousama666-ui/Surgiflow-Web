@@ -2,9 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, LayoutGrid, FileCheck, CheckCircle2, Stethoscope, Building2 } from 'lucide-react';
 
-// Seus arquivos de imagem
 import logoSurgiFlow from '../assets/logo_vertical.png'; 
-import iconeFundo from '../assets/iconegrande.png'; // 👈 O ícone gigante importado aqui!
+import iconeFundo from '../assets/iconegrande.png'; 
 
 function LandingPage() {
     return (
@@ -18,21 +17,20 @@ function LandingPage() {
 
                 .landing-container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
                 
-                /* 👇 A SEÇÃO HERO AGORA TEM OVERFLOW HIDDEN PARA O ÍCONE NÃO VAZAR 👇 */
                 .hero-section { position: relative; padding: 180px 24px 80px 24px; text-align: center; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); overflow: hidden; }
                 .hero-title { font-size: 3.8rem; font-weight: 800; line-height: 1.15; margin-bottom: 24px; color: #0f172a; letter-spacing: -1px; position: relative; z-index: 2; }
                 
-                /* 👇 A MÁGICA DA MARCA D'ÁGUA ESTILO APPLE 👇 */
+                /* 👇 MARCA D'ÁGUA AJUSTADA (MENOR, CENTRALIZADA E MAIS VISÍVEL) 👇 */
                 .bg-watermark {
                     position: absolute;
                     top: 50%;
                     left: 50%;
-                    transform: translate(-50%, -55%);
-                    width: 750px;
-                    max-width: 150vw;
-                    opacity: 0.03; /* Super sutil, apenas 3% de visibilidade */
+                    transform: translate(-50%, -50%);
+                    width: 450px; /* Bem menor e mais delicado */
+                    max-width: 90vw; /* Garante que não vaza no celular */
+                    opacity: 0.08; /* Menos transparente (8%) */
                     z-index: 0;
-                    pointer-events: none; /* O mouse ignora a imagem, permitindo clicar nos botões */
+                    pointer-events: none;
                 }
 
                 .hero-content { position: relative; z-index: 2; }
@@ -43,7 +41,7 @@ function LandingPage() {
                     .hero-title { font-size: 2.5rem; }
                     .grid-3 { grid-template-columns: 1fr; }
                     .hero-section { padding: 160px 20px 60px 20px; }
-                    .bg-watermark { width: 500px; opacity: 0.04; } /* Ajuste pro celular */
+                    .bg-watermark { width: 300px; opacity: 0.06; } /* Ajuste fino pro celular */
                 }
 
                 .clean-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 40px; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; flex-direction: column; height: 100%; }
@@ -63,7 +61,6 @@ function LandingPage() {
                 `}
             </style>
 
-            {/* HEADER DA VITRINE */}
             <header style={{ position: "fixed", top: 0, width: "100%", background: "rgba(255, 255, 255, 0.9)", backdropFilter: "blur(12px)", borderBottom: "1px solid #e2e8f0", zIndex: 100 }}>
                 <div className="landing-container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", height: "100px" }}>
                     <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
@@ -76,9 +73,8 @@ function LandingPage() {
                 </div>
             </header>
 
-            {/* SEÇÃO HERO COM MARCA D'ÁGUA */}
             <section className="hero-section">
-                {/* 👇 A IMAGEM GIGANTE FICA AQUI, ATRÁS DE TUDO 👇 */}
+                {/* Imagem de Fundo atualizada */}
                 <img src={iconeFundo} alt="" className="bg-watermark" />
                 
                 <div className="landing-container hero-content" style={{ maxWidth: "900px" }}>
@@ -96,7 +92,6 @@ function LandingPage() {
                 </div>
             </section>
 
-            {/* SEÇÃO DE FUNCIONALIDADES */}
             <section style={{ padding: "80px 0", background: "#ffffff" }}>
                 <div className="landing-container">
                     <div style={{ textAlign: "center", marginBottom: "60px" }}>
@@ -132,7 +127,6 @@ function LandingPage() {
                 </div>
             </section>
 
-            {/* SEÇÃO PÚBLICO ALVO */}
             <section style={{ padding: "80px 0", background: "#f8fafc" }}>
                 <div className="landing-container" style={{ textAlign: "center" }}>
                     <h2 style={{ fontSize: "2rem", fontWeight: "800", marginBottom: "40px", color: "#0f172a" }}>Desenvolvido para operações de alto nível</h2>
@@ -147,7 +141,6 @@ function LandingPage() {
                 </div>
             </section>
 
-            {/* SEÇÃO DE PREÇOS */}
             <section id="planos" style={{ padding: "80px 0", background: "#ffffff", borderTop: "1px solid #e2e8f0" }}>
                 <div className="landing-container">
                     <div style={{ textAlign: "center", marginBottom: "60px" }}>
@@ -156,7 +149,6 @@ function LandingPage() {
                     </div>
 
                     <div className="grid-3">
-                        {/* Plano Free */}
                         <div className="clean-card">
                             <h3 style={{ fontSize: "1.5rem", fontWeight: "800", color: "#1e293b" }}>Free</h3>
                             <p style={{ color: "#64748b", marginBottom: "20px", fontWeight: "500" }}>Para testar a plataforma</p>
@@ -169,7 +161,6 @@ function LandingPage() {
                             <Link to="/cadastro" className="btn-outline" style={{ width: "100%" }}>Começar Grátis</Link>
                         </div>
 
-                        {/* Plano Starter */}
                         <div className="clean-card" style={{ border: "2px solid #6C63FF", transform: "scale(1.05)", background: "#ffffff", boxShadow: "0 20px 40px rgba(108, 99, 255, 0.1)", position: "relative" }}>
                             <div style={{ position: "absolute", top: "-15px", left: "50%", transform: "translateX(-50%)", background: "#6C63FF", color: "white", padding: "6px 20px", borderRadius: "20px", fontSize: "0.85rem", fontWeight: "800", letterSpacing: "0.5px" }}>MAIS ESCOLHIDO</div>
                             <h3 style={{ fontSize: "1.5rem", fontWeight: "800", color: "#1e293b" }}>Starter</h3>
@@ -184,7 +175,6 @@ function LandingPage() {
                             <Link to="/cadastro" className="btn-primary" style={{ width: "100%" }}>Assinar Starter</Link>
                         </div>
 
-                        {/* Plano Clinic Pro */}
                         <div className="clean-card">
                             <h3 style={{ fontSize: "1.5rem", fontWeight: "800", color: "#1e293b" }}>Clinic Pro</h3>
                             <p style={{ color: "#64748b", marginBottom: "20px", fontWeight: "500" }}>Para operações completas</p>
@@ -201,7 +191,6 @@ function LandingPage() {
                 </div>
             </section>
 
-            {/* FOOTER */}
             <footer style={{ padding: "40px 24px", textAlign: "center", background: "#f8fafc", borderTop: "1px solid #e2e8f0" }}>
                 <img src={logoSurgiFlow} alt="SurgiFlow" style={{ height: "40px", marginBottom: "15px", filter: "grayscale(100%) opacity(0.6)" }} />
                 <p style={{ color: "#64748b", fontSize: "0.95rem", fontWeight: "500" }}>&copy; {new Date().getFullYear()} SurgiFlow. Todos os direitos reservados.</p>
