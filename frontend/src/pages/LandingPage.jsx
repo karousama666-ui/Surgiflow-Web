@@ -1,18 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, LayoutGrid, FileCheck, CheckCircle2, Stethoscope, Building2 } from 'lucide-react';
+
+// 👇 Se quiser usar o logo cumpridinho depois, é só trocar o nome do arquivo aqui!
 import logoSurgiFlow from '../assets/logo_surgiflowdark.png'; 
 
 function LandingPage() {
     return (
         <div style={{ fontFamily: "'Montserrat', 'Inter', sans-serif", background: "#f8fafc", color: "#1e293b", minHeight: "100vh", overflowX: "hidden" }}>
             
-            {/* INJETANDO RESPONSIVIDADE E ESTILOS CLAROS */}
             <style>
                 {`
                 .landing-container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
                 
-                .hero-section { padding: 140px 24px 80px 24px; text-align: center; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); }
+                .hero-section { padding: 160px 24px 80px 24px; text-align: center; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); }
                 .hero-title { font-size: 3.8rem; font-weight: 800; line-height: 1.15; margin-bottom: 24px; color: #0f172a; letter-spacing: -1px; }
                 
                 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
@@ -20,34 +21,39 @@ function LandingPage() {
                 @media (max-width: 900px) {
                     .hero-title { font-size: 2.5rem; }
                     .grid-3 { grid-template-columns: 1fr; }
-                    .hero-section { padding: 120px 20px 60px 20px; }
+                    .hero-section { padding: 140px 20px 60px 20px; }
                 }
 
-                /* Cards Claros e Elegantes */
                 .clean-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 40px; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
                 .clean-card:hover { transform: translateY(-5px); border-color: #cbd5e1; box-shadow: 0 12px 25px rgba(0,0,0,0.05); }
                 
-                .btn-primary { background: #6C63FF; color: white; padding: 16px 32px; border-radius: 12px; font-weight: 700; font-size: 1.1rem; text-decoration: none; display: inline-flex; alignItems: center; gap: 10px; transition: 0.2s; box-shadow: 0 8px 20px rgba(108, 99, 255, 0.25); }
+                /* ESTILOS DOS BOTÕES PADRONIZADOS */
+                .btn-primary { background: #6C63FF; color: white; padding: 16px 32px; border-radius: 12px; font-weight: 700; font-size: 1.1rem; text-decoration: none; display: inline-flex; alignItems: center; justify-content: center; gap: 10px; transition: 0.2s; box-shadow: 0 8px 20px rgba(108, 99, 255, 0.25); }
                 .btn-primary:hover { transform: translateY(-2px); background: #5a52d5; box-shadow: 0 12px 25px rgba(108, 99, 255, 0.35); }
                 
-                .btn-outline { border: 1px solid #cbd5e1; color: #475569; background: #ffffff; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; transition: 0.2s; }
-                .btn-outline:hover { background: #f1f5f9; border-color: #94a3b8; color: #1e293b; }
+                .btn-premium { background: #0f172a; color: white; padding: 16px 32px; border-radius: 12px; font-weight: 700; font-size: 1.1rem; text-decoration: none; display: inline-flex; alignItems: center; justify-content: center; gap: 10px; transition: 0.2s; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2); }
+                .btn-premium:hover { transform: translateY(-2px); background: #1e293b; box-shadow: 0 12px 25px rgba(15, 23, 42, 0.3); }
+
+                .btn-outline { border: 2px solid #cbd5e1; color: #475569; background: #ffffff; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 1.1rem; display: inline-flex; alignItems: center; justify-content: center; transition: 0.2s; }
+                .btn-outline:hover { border-color: #6C63FF; color: #6C63FF; background: #f8fafc; }
                 `}
             </style>
 
-            {/* HEADER DA VITRINE (Claro) */}
+            {/* HEADER DA VITRINE (Agora mais alto para caber a logo) */}
             <header style={{ position: "fixed", top: 0, width: "100%", background: "rgba(255, 255, 255, 0.9)", backdropFilter: "blur(12px)", borderBottom: "1px solid #e2e8f0", zIndex: 100 }}>
-                <div className="landing-container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", height: "80px" }}>
+                {/* 👇 Aumentei a altura para 100px 👇 */}
+                <div className="landing-container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", height: "100px" }}>
                     <div>
-                        <img src={logoSurgiFlow} alt="SurgiFlow Logo" style={{ height: "55px", objectFit: "contain" }} />
+                        {/* 👇 Aumentei a logo para 80px 👇 */}
+                        <img src={logoSurgiFlow} alt="SurgiFlow Logo" style={{ height: "80px", objectFit: "contain" }} />
                     </div>
                     <div>
-                        <Link to="/login" className="btn-outline">Acessar Conta</Link>
+                        <Link to="/login" className="btn-outline" style={{ padding: "10px 24px", fontSize: "1rem" }}>Acessar Conta</Link>
                     </div>
                 </div>
             </header>
 
-            {/* SEÇÃO HERO (TOPO) */}
+            {/* SEÇÃO HERO */}
             <section className="hero-section">
                 <div className="landing-container" style={{ maxWidth: "900px" }}>
                     <div style={{ display: "inline-block", background: "#ecfdf5", color: "#059669", padding: "8px 16px", borderRadius: "20px", fontWeight: "700", fontSize: "0.9rem", marginBottom: "24px", border: "1px solid #a7f3d0" }}>
@@ -64,7 +70,7 @@ function LandingPage() {
                 </div>
             </section>
 
-            {/* SEÇÃO DE FUNCIONALIDADES (DORES E SOLUÇÕES) */}
+            {/* SEÇÃO DE FUNCIONALIDADES */}
             <section style={{ padding: "80px 0", background: "#ffffff" }}>
                 <div className="landing-container">
                     <div style={{ textAlign: "center", marginBottom: "60px" }}>
@@ -115,7 +121,7 @@ function LandingPage() {
                 </div>
             </section>
 
-            {/* SEÇÃO DE PREÇOS (OS NOVOS PLANOS AQUI!) */}
+            {/* SEÇÃO DE PREÇOS COM OS BOTÕES NOVOS */}
             <section style={{ padding: "80px 0", background: "#ffffff", borderTop: "1px solid #e2e8f0" }}>
                 <div className="landing-container">
                     <div style={{ textAlign: "center", marginBottom: "60px" }}>
@@ -134,10 +140,11 @@ function LandingPage() {
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Até 10 Pacientes</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Gestão de Agenda Básica</li>
                             </ul>
-                            <Link to="/cadastro" className="btn-outline" style={{ display: "block", textAlign: "center" }}>Começar Grátis</Link>
+                            {/* Botão Free - Largura 100% */}
+                            <Link to="/cadastro" className="btn-outline" style={{ width: "100%" }}>Começar Grátis</Link>
                         </div>
 
-                        {/* Plano Starter (Destaque) */}
+                        {/* Plano Starter */}
                         <div className="clean-card" style={{ display: "flex", flexDirection: "column", border: "2px solid #6C63FF", transform: "scale(1.05)", background: "#ffffff", boxShadow: "0 20px 40px rgba(108, 99, 255, 0.1)", position: "relative" }}>
                             <div style={{ position: "absolute", top: "-15px", left: "50%", transform: "translateX(-50%)", background: "#6C63FF", color: "white", padding: "6px 20px", borderRadius: "20px", fontSize: "0.85rem", fontWeight: "800", letterSpacing: "0.5px" }}>MAIS ESCOLHIDO</div>
                             <h3 style={{ fontSize: "1.5rem", fontWeight: "800", color: "#1e293b" }}>Starter</h3>
@@ -149,7 +156,8 @@ function LandingPage() {
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#6C63FF" /> 2 Usuários (Acessos)</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#6C63FF" /> Kanban de OPME</li>
                             </ul>
-                            <Link to="/cadastro" className="btn-primary" style={{ display: "block", textAlign: "center", width: "100%" }}>Assinar Starter</Link>
+                            {/* Botão Starter - Largura 100% */}
+                            <Link to="/cadastro" className="btn-primary" style={{ width: "100%" }}>Assinar Starter</Link>
                         </div>
 
                         {/* Plano Clinic Pro */}
@@ -163,7 +171,8 @@ function LandingPage() {
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Usuários Ilimitados</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Relatórios de Auditoria</li>
                             </ul>
-                            <Link to="/cadastro" className="btn-outline" style={{ display: "block", textAlign: "center" }}>Assinar Pro</Link>
+                            {/* Botão Pro - Classe Premium escura e link pronto pro pagamento */}
+                            <a href="#" className="btn-premium" style={{ width: "100%" }}>Assinar Pro</a>
                         </div>
                     </div>
                 </div>
