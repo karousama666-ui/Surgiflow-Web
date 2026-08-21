@@ -10,7 +10,8 @@ import {
   Users,
   ClipboardList,
   FileText,
-  Settings
+  Settings,
+  Contact // 👈 Ícone de contatos importado
 } from "lucide-react";
 
 function Sidebar() {
@@ -51,6 +52,13 @@ function Sidebar() {
         </NavLink>
 
         <span style={categoryStyle}>Rede</span>
+        
+        {/* 👇 NOVO BOTÃO DE FICHAS AQUI 👇 */}
+        <NavLink to="/pacientes">
+          <Contact size={20} />
+          Fichas de Pacientes
+        </NavLink>
+
         <NavLink to="/medicos">
           <Users size={20} />
           Médicos

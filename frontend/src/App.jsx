@@ -6,6 +6,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { CirurgiasProvider } from "./context/CirurgiasContext";
 import { MedicosProvider } from "./context/MedicosContext";
 import { PedidosProvider } from "./context/PedidosContext";
+import { PacientesProvider } from "./context/PacientesContext"; // 👈 NOVO CÉREBRO ADICIONADO!
 
 // Importação do Segurança da Rota e Componentes Visuais
 import RotaProtegida from "./components/RotaProtegida";
@@ -17,10 +18,11 @@ import Header from "./components/layout/Header";
 // ==========================================
 import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
-import NovaSenha from "./pages/NovaSenha"; // 👈 NOSSA TELA NOVA AQUI!
+import NovaSenha from "./pages/NovaSenha"; 
 import Dashboard from "./pages/Dashboard";
 import Agenda from "./pages/Agenda";
 import Calendario from "./pages/Calendario";
+import Pacientes from "./pages/Pacientes"; // 👈 IMPORTAÇÃO DA NOVA TELA!
 import Medicos from "./pages/Medicos";
 import Pedidos from "./pages/Pedidos";
 import Relatorios from "./pages/Relatorios";
@@ -60,17 +62,19 @@ function App() {
         <CirurgiasProvider>
           <MedicosProvider>
             <PedidosProvider>
+              <PacientesProvider> {/* 👈 ABRAÇANDO AS ROTAS COM O NOVO CONTEXTO */}
               
               <Routes>
                 {/* 🔴 ROTAS PÚBLICAS (Telas Cheias) */}
                 <Route path="/" element={<Login />} />
                 <Route path="/cadastro" element={<Cadastro />} />
-                <Route path="/nova-senha" element={<NovaSenha />} /> {/* 👈 NOSSA ROTA NOVA AQUI! */}
+                <Route path="/nova-senha" element={<NovaSenha />} />
 
                 {/* 🟢 ROTAS PROTEGIDAS (Com o Molde Aplicado) */}
                 <Route path="/dashboard" element={<RotaProtegida><LayoutApp><Dashboard /></LayoutApp></RotaProtegida>} />
                 <Route path="/agenda" element={<RotaProtegida><LayoutApp><Agenda /></LayoutApp></RotaProtegida>} />
                 <Route path="/calendario" element={<RotaProtegida><LayoutApp><Calendario /></LayoutApp></RotaProtegida>} />
+                <Route path="/pacientes" element={<RotaProtegida><LayoutApp><Pacientes /></LayoutApp></RotaProtegida>} /> {/* 👈 NOVA ROTA ADICIONADA! */}
                 <Route path="/medicos" element={<RotaProtegida><LayoutApp><Medicos /></LayoutApp></RotaProtegida>} />
                 <Route path="/pedidos" element={<RotaProtegida><LayoutApp><Pedidos /></LayoutApp></RotaProtegida>} />
                 <Route path="/relatorios" element={<RotaProtegida><LayoutApp><Relatorios /></LayoutApp></RotaProtegida>} />
@@ -78,6 +82,7 @@ function App() {
                 
               </Routes>
 
+              </PacientesProvider>
             </PedidosProvider>
           </MedicosProvider>
         </CirurgiasProvider>

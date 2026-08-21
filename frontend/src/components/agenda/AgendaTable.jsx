@@ -1,5 +1,5 @@
 import "./AgendaTable.css";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, MessageCircle } from "lucide-react"; // 👈 Importamos o ícone do WhatsApp/Chat!
 
 function AgendaTable({
     cirurgias,
@@ -8,7 +8,7 @@ function AgendaTable({
     onEdit
 }) {
 
-    // 1. Função para extrair a Data e a Hora que vêm grudadas do banco de dados (ex: "2026-08-18 19:00")
+    // 1. Função para extrair a Data e a Hora
     function extrairDataEHora(dataCirurgia) {
         if (!dataCirurgia) return { data: "", hora: "" };
         const partes = dataCirurgia.split(" ");
@@ -23,21 +23,36 @@ function AgendaTable({
         return `${dia}/${mes}/${ano}`;
     }
 
-    // 3. Pega o nome do médico que o nosso Contexto já trouxe mastigado do banco!
+    // 3. Pega o nome do médico
     function obterNomeMedico(cirurgia) {
-        // Se o banco trouxe o relacionamento da tabela, usamos ele
         if (cirurgia.medicos && cirurgia.medicos.nome) {
             return `Dra. / Dr. ${cirurgia.medicos.nome}`;
         }
         return "Médico não informado";
     }
 
-    // Cores de status
+    // 4. Cores de status
     function obterStatusClasse(status) {
         if (status === "Confirmada") return "status-confirmada";
         if (status === "Finalizada") return "status-finalizada";
         if (status === "Cancelada") return "status-cancelada";
         return "status-pendente";
+    }
+
+    // 👇 5. A MÁGICA DA COMUNICAÇÃO: Função que monta a mensagem e abre o WhatsApp
+    function dispararWhatsApp(cirurgia) {
+        const { data, hora } = extrairDataEHora(cirurgia.data_cirurgia);
+        const dataFormatada = formatarData(data);
+        const medico = obterNomeMedico(cirurgia);
+
+        // Texto padrão e humanizado (Você pode alterar o texto como preferir)
+        const mensagem = `Olá, ${cirurgia.paciente}! Aqui é da equipe de agendamento cirúrgico do SurgiFlow.\n\nSua cirurgia com o(a) *${medico}* está confirmada para o dia *${dataFormatada}* às *${hora}* no *${cirurgia.hospital}*.\n\nPor favor, lembre-se das orientações de jejum e de levar um documento original com foto.\nQualquer dúvida, estamos à disposição!`;
+
+        // Transforma o texto em um formato que a URL da internet entende
+        const textoCodificado = encodeURIComponent(mensagem);
+
+        // Abre o WhatsApp (Web ou App) pedindo para selecionar o contato
+        window.open(`https://wa.me/?text=${textoCodificado}`, "_blank");
     }
 
     return (
@@ -60,7 +75,6 @@ function AgendaTable({
 
                     <tbody>
                         {cirurgias.map((cirurgia) => {
-                            // Extrai as informações de data e hora para cada linha
                             const { data, hora } = extrairDataEHora(cirurgia.data_cirurgia);
 
                             return (
@@ -85,6 +99,22 @@ function AgendaTable({
                                     </td>
                                     <td>
                                         <div className="agenda-actions">
+                                            {/* 👇 BOTÃO DO WHATSAPP ADICIONADO AQUI 👇 */}
+                                            <button
+                                                type="button"
+                                                onClick={() => dispararWhatsApp(cirurgia)}
+                                                title="Notificar Paciente (WhatsApp)"
+                                                style={{
+                                                    color: "#16a34a", background: "#dcfce7", border: "1px solid #bbf7d0", 
+                                                    padding: "6px", borderRadius: "6px", cursor: "pointer", 
+                                                    display: "flex", alignItems: "center", justifyContent: "center", transition: "0.2s"
+                                                }}
+                                                onMouseOver={(e) => e.currentTarget.style.background = "#bbf7d0"}
+                                                onMouseOut={(e) => e.currentTarget.style.background = "#dcfce7"}
+                                            >
+                                                <MessageCircle size={17} />
+                                            </button>
+
                                             <button
                                                 type="button"
                                                 className="edit-button"
@@ -160,6 +190,20 @@ function AgendaTable({
                                 </select>
 
                                 <div className="agenda-actions">
+                                    {/* 👇 BOTÃO DO WHATSAPP MOBILE ADICIONADO AQUI 👇 */}
+                                    <button
+                                        type="button"
+                                        onClick={() => dispararWhatsApp(cirurgia)}
+                                        style={{
+                                            color: "#16a34a", background: "#dcfce7", border: "1px solid #bbf7d0", 
+                                            padding: "6px 10px", borderRadius: "6px", cursor: "pointer", 
+                                            display: "flex", alignItems: "center", gap: "6px", fontWeight: "600", fontSize: "0.85rem"
+                                        }}
+                                    >
+                                        <MessageCircle size={17} />
+                                        <span>Notificar</span>
+                                    </button>
+
                                     <button
                                         type="button"
                                         className="edit-button"
