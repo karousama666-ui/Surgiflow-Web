@@ -38,13 +38,15 @@ function Configuracoes() {
   const [userId, setUserId] = useState(null); 
   const [membrosEquipe, setMembrosEquipe] = useState([]); 
   const [planoAtual, setPlanoAtual] = useState("free"); 
+  const [tagOriginal, setTagOriginal] = useState(""); // 👈 NOVO: Guarda a tag original para comparar
   
   const [novoMembro, setNovoMembro] = useState({ nome: "", email: "", cargo: "", senha: "" }); 
 
-  // STATUS LIMPO
+  // STATUS LIMPO (Agora inclui a 'tag')
   const [form, setForm] = useState({
     nome: "", cargo: "", registro: "", email: "", telefone: "", empresa: "", cnpj: "",
-    notificacoesEmail: true, notificacoesSistema: true, notificacoesWhatsapp: true
+    notificacoesEmail: true, notificacoesSistema: true, notificacoesWhatsapp: true,
+    tag: "" // 👈 NOVO
   });
 
   // ==========================================
@@ -70,6 +72,16 @@ function Configuracoes() {
                   setPlanoAtual("free");
               }
 
+              // 👈 NOVO: BUSCA A SURGITAG NA TABELA PROFILES
+              const { data: tagData } = await supabase
+                  .from('profiles')
+                  .select('surgitag')
+                  .eq('id', user.id)
+                  .single();
+              
+              let tagAtual = tagData?.surgitag || "";
+              setTagOriginal(tagAtual);
+
               // Carrega os dados do formulário
               setForm(prevForm => ({
                   ...prevForm,
@@ -83,6 +95,7 @@ function Configuracoes() {
                   notificacoesEmail: user.user_metadata?.notificacoesEmail ?? true,
                   notificacoesSistema: user.user_metadata?.notificacoesSistema ?? true,
                   notificacoesWhatsapp: user.user_metadata?.notificacoesWhatsapp ?? true,
+                  tag: tagAtual // 👈 NOVO: Preenche o campo da Tag
               }));
 
               // Carrega a equipe
@@ -176,24 +189,59 @@ function Configuracoes() {
   }
 
   // ==========================================
-  // SALVAR PERFIL
+  // SALVAR PERFIL E SURGITAG
   // ==========================================
   async function handleSave(e) {
     e.preventDefault();
+
+    // 👈 NOVO: VALIDAÇÕES DA SURGITAG
+    if (form.tag.trim() === '') {
+        alert("❌ A SurgiTag não pode ser vazia.");
+        return;
+    }
+    if (form.tag.includes(' ')) {
+        alert("❌ A SurgiTag não pode conter espaços. Use underline ou letras juntas.");
+        return;
+    }
+
     setLoading(true);
 
     try {
-        const { error } = await supabase.auth.updateUser({
+        // 1. Atualiza as configurações padrões do Auth
+        const { error: authError } = await supabase.auth.updateUser({
             data: { 
                 nome: form.nome, cargo: form.cargo, registro: form.registro, telefone: form.telefone,
                 organizacao: form.empresa, cnpj: form.cnpj, notificacoesEmail: form.notificacoesEmail,
                 notificacoesSistema: form.notificacoesSistema, notificacoesWhatsapp: form.notificacoesWhatsapp
             }
         });
-        if (error) throw error;
-        alert("✅ Configurações atualizadas e salvas com sucesso!");
+        if (authError) throw authError;
+
+        // 2. 👈 NOVO: Atualiza a SurgiTag se ela tiver sido alterada
+        if (form.tag !== tagOriginal) {
+            // Usamos 'upsert' porque o usuário pode não ter aberto o chat ainda para o registro existir
+            const { error: tagError } = await supabase
+                .from('profiles')
+                .upsert({ id: userId, surgitag: form.tag.trim(), nome_completo: form.nome });
+            
+            if (tagError) {
+                // Erro 23505 é o código do banco de dados quando uma regra 'UNIQUE' é violada (já existe!)
+                if (tagError.code === '23505') { 
+                    throw new Error("TAG_DUPLICADA");
+                }
+                throw tagError;
+            }
+            setTagOriginal(form.tag.trim());
+        }
+
+        alert("✅ Configurações e SurgiTag atualizadas com sucesso!");
     } catch (error) {
-        alert("❌ Ops! Erro ao salvar as configurações.");
+        if (error.message === "TAG_DUPLICADA") {
+            alert("❌ Essa SurgiTag já está em uso por outro profissional da rede. Por favor, escolha outra.");
+        } else {
+            alert("❌ Ops! Erro ao salvar as configurações.");
+            console.error(error);
+        }
     } finally {
         setLoading(false);
     }
@@ -246,11 +294,20 @@ function Configuracoes() {
               </button>
           </div>
           <div style={{ borderTop: "1px solid #f1f5f9", marginBottom: "20px" }}></div>
+          
           <div className="config-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "20px" }}>
             <div className="config-field">
               <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "#475569" }}>Nome Completo</label>
               <input type="text" name="nome" value={form.nome} onChange={handleChange} style={inputStyle} />
             </div>
+            
+            {/* 🌟 NOVO: CAMPO DA SURGITAG (Destacado no meio) 🌟 */}
+            <div className="config-field">
+              <label style={{ fontSize: "0.85rem", fontWeight: "800", color: "#6C63FF" }}>Identidade Única (SurgiTag)</label>
+              <input type="text" name="tag" value={form.tag} onChange={handleChange} placeholder="Ex: Carolina#123" style={{ ...inputStyle, border: "2px solid #6C63FF", background: "#f8fafc" }} />
+              <span style={{ fontSize: "0.7rem", color: "#94a3b8", display: "block", marginTop: "6px", fontWeight: "500" }}>Sem espaços. Usada para te encontrarem no chat.</span>
+            </div>
+
             <div className="config-field">
               <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "#475569" }}>Cargo / Especialidade</label>
               <input type="text" name="cargo" value={form.cargo} onChange={handleChange} style={inputStyle} />
@@ -382,7 +439,6 @@ function Configuracoes() {
                   <ul style={{ listStyle: "none", padding: 0, color: "#475569", display: "flex", flexDirection: "column", gap: "8px", fontSize: "0.9rem", marginBottom: "20px", fontWeight: "500" }}>
                       <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#6C63FF" strokeWidth={3} /> Até 10 Médicos</li>
                       <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#6C63FF" strokeWidth={3} /> Pacientes Ilimitados</li>
-                      {/* 👇 NOVO TEXTO AQUI 👇 */}
                       <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#6C63FF" strokeWidth={3} /> 2 Usuários (Acessos)</li>
                   </ul>
                   <a href="https://www.asaas.com/c/23vsipmr38k4f4a3" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "#6C63FF", color: "white", padding: "12px", borderRadius: "8px", fontWeight: "700", textDecoration: "none" }}>
@@ -396,7 +452,6 @@ function Configuracoes() {
                   <ul style={{ listStyle: "none", padding: 0, color: "#cbd5e1", display: "flex", flexDirection: "column", gap: "8px", fontSize: "0.9rem", marginBottom: "20px", fontWeight: "500" }}>
                       <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#10b981" strokeWidth={3} /> Médicos Ilimitados</li>
                       <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#10b981" strokeWidth={3} /> Usuários Ilimitados</li>
-                      {/* 👇 NOVO TEXTO AQUI 👇 */}
                       <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#10b981" strokeWidth={3} /> Gestão Colaborativa</li>
                   </ul>
                   <a href="https://www.asaas.com/c/ftgprtwo5xs0seyz" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "white", color: "#0f172a", padding: "12px", borderRadius: "8px", fontWeight: "800", textDecoration: "none", transition: "0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = "#e2e8f0"} onMouseOut={(e) => e.currentTarget.style.background = "white"}>
