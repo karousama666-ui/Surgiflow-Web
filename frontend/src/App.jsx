@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // Importação dos Contextos (Os nossos "Cérebros")
 import { AuthProvider } from "./context/AuthContext";
-import { ThemeProvider } from "./context/ThemeContext"; // 👈 NOVO: Cérebro do Tema
+import { ThemeProvider } from "./context/ThemeContext"; // Cérebro do Tema
 import { CirurgiasProvider } from "./context/CirurgiasContext";
 import { MedicosProvider } from "./context/MedicosContext";
 import { PedidosProvider } from "./context/PedidosContext";
@@ -59,7 +59,7 @@ const LayoutApp = ({ children }) => {
 function App() {
   return (
     <ThemeProvider>
-      {/* 👇 O TRATOR 2.0: REGRAS GLOBAIS DO DARK MODE 👇 */}
+      {/* 👇 O TRATOR 3.0: REGRAS GLOBAIS DO DARK MODE 👇 */}
       <style>
         {`
           /* Estilos base (Light) */
@@ -76,24 +76,28 @@ function App() {
           body.dark-mode .layout-app { background: #0f172a !important; }
           body.dark-mode .main-content { background: #0f172a !important; }
 
-          /* 🚜 O TRATOR 2.0: Caçador de fundos brancos e cinzas do React */
-          body.dark-mode [style*="background: white"],
-          body.dark-mode [style*="background-color: white"],
+          /* 🚜 O TRATOR 3.0: Caçador de fundos brancos, cinzas, maiúsculos e modais */
+          /* O 'i' no final de algumas regras faz ele ignorar maiúsculas/minúsculas! */
+          body.dark-mode [style*="background: white" i],
+          body.dark-mode [style*="background-color: white" i],
           body.dark-mode [style*="background: rgb(255, 255, 255)"],
           body.dark-mode [style*="background-color: rgb(255, 255, 255)"],
-          body.dark-mode [style*="background: rgb(248, 250, 252)"],
-          body.dark-mode [style*="background-color: rgb(248, 250, 252)"],
-          body.dark-mode [style*="background: rgb(241, 245, 249)"],
-          body.dark-mode [style*="background-color: rgb(241, 245, 249)"],
-          body.dark-mode [style*="background: #fff"],
-          body.dark-mode [style*="background-color: #fff"],
-          body.dark-mode [style*="background: #ffffff"],
-          body.dark-mode [style*="background-color: #ffffff"],
-          body.dark-mode [style*="background: #f8fafc"],
-          body.dark-mode [style*="background-color: #f8fafc"] {
+          body.dark-mode [style*="background: #fff" i],
+          body.dark-mode [style*="background-color: #fff" i],
+          body.dark-mode [style*="background: #ffffff" i],
+          body.dark-mode [style*="background-color: #ffffff" i],
+          body.dark-mode [style*="background: #f8fafc" i],
+          body.dark-mode [style*="background-color: #f8fafc" i],
+          body.dark-mode [style*="background: #f1f5f9" i],
+          body.dark-mode [style*="background-color: #f1f5f9" i],
+          /* Captura os Modais pelo comportamento */
+          body.dark-mode [role="dialog"],
+          body.dark-mode .modal,
+          body.dark-mode .modal-content,
+          body.dark-mode [class*="modal" i] {
             background-color: #1e293b !important;
             border-color: #334155 !important;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
           }
 
           /* Força Tabelas, Listas e Cabeçalhos a ficarem escuros */
@@ -121,18 +125,18 @@ function App() {
             color: #f8fafc !important;
           }
 
-          /* Preserva a cor de ícones SVG e status, mas ajusta textos normais */
+          /* Preserva a cor de ícones SVG, botões e status, mas ajusta textos normais */
           body.dark-mode div:not([style*="background: #6C63FF"]), 
           body.dark-mode span:not([style*="color: #10b981"]):not([style*="color: #ef4444"]) { 
             color: #e2e8f0;
           }
 
           /* Textos secundários (ex: CRM, datas, descrições) viram um cinza legível */
-          body.dark-mode p[style*="color: #64748b"],
-          body.dark-mode p[style*="color: #9CA3AF"],
-          body.dark-mode span[style*="color: #64748b"],
-          body.dark-mode div[style*="color: #64748b"],
-          body.dark-mode span[style*="color: #94a3b8"] {
+          body.dark-mode p[style*="color: #64748b" i],
+          body.dark-mode p[style*="color: #9CA3AF" i],
+          body.dark-mode span[style*="color: #64748b" i],
+          body.dark-mode div[style*="color: #64748b" i],
+          body.dark-mode span[style*="color: #94a3b8" i] {
             color: #94a3b8 !important;
           }
 
