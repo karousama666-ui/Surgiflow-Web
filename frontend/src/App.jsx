@@ -59,7 +59,7 @@ const LayoutApp = ({ children }) => {
 function App() {
   return (
     <ThemeProvider>
-      {/* 👇 INJETAMOS AQUI AS REGRAS GLOBAIS DO DARK MODE (O TRATOR) 👇 */}
+      {/* 👇 O TRATOR 2.0: REGRAS GLOBAIS DO DARK MODE 👇 */}
       <style>
         {`
           /* Estilos base (Light) */
@@ -76,7 +76,27 @@ function App() {
           body.dark-mode .layout-app { background: #0f172a !important; }
           body.dark-mode .main-content { background: #0f172a !important; }
 
-          /* 🚜 O TRATOR: Força TUDO que for card, tabela ou lista a ficar escuro */
+          /* 🚜 O TRATOR 2.0: Caçador de fundos brancos e cinzas do React */
+          body.dark-mode [style*="background: white"],
+          body.dark-mode [style*="background-color: white"],
+          body.dark-mode [style*="background: rgb(255, 255, 255)"],
+          body.dark-mode [style*="background-color: rgb(255, 255, 255)"],
+          body.dark-mode [style*="background: rgb(248, 250, 252)"],
+          body.dark-mode [style*="background-color: rgb(248, 250, 252)"],
+          body.dark-mode [style*="background: rgb(241, 245, 249)"],
+          body.dark-mode [style*="background-color: rgb(241, 245, 249)"],
+          body.dark-mode [style*="background: #fff"],
+          body.dark-mode [style*="background-color: #fff"],
+          body.dark-mode [style*="background: #ffffff"],
+          body.dark-mode [style*="background-color: #ffffff"],
+          body.dark-mode [style*="background: #f8fafc"],
+          body.dark-mode [style*="background-color: #f8fafc"] {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
+          }
+
+          /* Força Tabelas, Listas e Cabeçalhos a ficarem escuros */
           body.dark-mode table,
           body.dark-mode th,
           body.dark-mode td,
@@ -90,18 +110,6 @@ function App() {
             color: #f8fafc !important;
           }
 
-          /* Captura os fundos brancos colocados via style inline (Cards do Kanban e Lembretes) */
-          body.dark-mode div[style*="background: #fff"], 
-          body.dark-mode div[style*="background: rgb(255, 255, 255)"],
-          body.dark-mode div[style*="background-color: #fff"],
-          body.dark-mode div[style*="background-color: rgb(255, 255, 255)"],
-          body.dark-mode div[style*="background: white"],
-          body.dark-mode div[style*="background-color: white"] {
-            background-color: #1e293b !important; 
-            border-color: #334155 !important;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3) !important; /* Dá uma sombra mais escura */
-          }
-
           /* Ajusta os textos genéricos para claro */
           body.dark-mode h1,
           body.dark-mode h2,
@@ -113,15 +121,15 @@ function App() {
             color: #f8fafc !important;
           }
 
-          /* Ajusta textos dentro de DIVs e SPANs que possam estar escuros */
-          /* Ignora botões coloridos para não estragar o design deles */
+          /* Preserva a cor de ícones SVG e status, mas ajusta textos normais */
           body.dark-mode div:not([style*="background: #6C63FF"]), 
           body.dark-mode span:not([style*="color: #10b981"]):not([style*="color: #ef4444"]) { 
             color: #e2e8f0;
           }
 
-          /* Textos secundários (ex: CRM, datas, hospital) viram um cinza legível */
+          /* Textos secundários (ex: CRM, datas, descrições) viram um cinza legível */
           body.dark-mode p[style*="color: #64748b"],
+          body.dark-mode p[style*="color: #9CA3AF"],
           body.dark-mode span[style*="color: #64748b"],
           body.dark-mode div[style*="color: #64748b"],
           body.dark-mode span[style*="color: #94a3b8"] {
