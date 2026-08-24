@@ -53,7 +53,7 @@ function ChatbotFAQ() {
         onClick={() => setIsOpen(!isOpen)}
         style={{
           position: "fixed",
-          bottom: "30px",
+          bottom: "100px", // 👈 SUBIMOS O BOTÃO PARA NÃO COBRIR O CHAT DA EQUIPE
           right: "30px",
           width: "60px",
           height: "60px",
@@ -79,7 +79,7 @@ function ChatbotFAQ() {
       {isOpen && (
         <div style={{
           position: "fixed",
-          bottom: "100px",
+          bottom: "170px", // 👈 SUBIMOS A JANELA TAMBÉM
           right: "30px",
           width: "350px",
           height: "500px",
