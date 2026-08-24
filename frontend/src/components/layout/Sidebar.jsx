@@ -2,6 +2,7 @@ import React from 'react';
 import "./Sidebar.css";
 import Logo from "./Logo"; 
 import { NavLink } from "react-router-dom";
+import { useTheme } from "../../context/ThemeContext"; // 👈 NOVO: Puxa o cérebro do tema
 
 import {
   LayoutDashboard,
@@ -12,11 +13,16 @@ import {
   FileText,
   Settings,
   Contact,
-  X 
+  X,
+  Moon, // 👈 Ícone de Lua
+  Sun   // 👈 Ícone de Sol
 } from "lucide-react";
 
 function Sidebar({ isOpen, onClose }) {
   
+  // Puxa o estado atual (dark/light) e a função de trocar
+  const { theme, toggleTheme } = useTheme();
+
   // Estilo elegante para os títulos separadores do menu
   const categoryStyle = {
     fontSize: "0.75rem",
@@ -30,7 +36,6 @@ function Sidebar({ isOpen, onClose }) {
     display: "block"
   };
 
-  // 👇 A MÁGICA QUE FALTAVA: O estilo que deixa os botões alinhados e bonitos
   const navLinkStyle = ({ isActive }) => ({
     display: "flex",
     alignItems: "center",
@@ -42,8 +47,9 @@ function Sidebar({ isOpen, onClose }) {
     fontWeight: "600",
     fontSize: "0.95rem",
     transition: "all 0.2s ease",
-    color: isActive ? "#6C63FF" : "#64748b",
-    background: isActive ? "#eff6ff" : "transparent",
+    // 👇 Ajusta as cores do link dependendo do tema ativo 👇
+    color: isActive ? "#6C63FF" : (theme === 'dark' ? "#94a3b8" : "#64748b"),
+    background: isActive ? (theme === 'dark' ? "#1e1b4b" : "#eff6ff") : "transparent",
   });
 
   return (
@@ -56,8 +62,8 @@ function Sidebar({ isOpen, onClose }) {
           display: 'flex', 
           flexDirection: 'column', 
           height: '100vh',
-          width: '260px', /* Trava a largura no PC para não ser esmagado */
-          background: '#fff',
+          width: '260px', 
+          background: '#fff', // A classe CSS do App.jsx vai forçar o cinza chumbo se estiver dark
           borderRight: '1px solid #e2e8f0',
           flexShrink: 0
       }}>
@@ -119,6 +125,38 @@ function Sidebar({ isOpen, onClose }) {
             Configurações
           </NavLink>
         </nav>
+
+        {/* 👇 BOTÃO DE MODO ESCURO FIXO NO RODAPÉ DA SIDEBAR 👇 */}
+        <div style={{ padding: "15px", borderTop: "1px solid #e2e8f0", borderColor: theme === 'dark' ? "#334155" : "#e2e8f0" }}>
+          <button 
+            onClick={toggleTheme}
+            style={{
+              width: "100%",
+              background: theme === 'dark' ? "#0f172a" : "#f1f5f9",
+              border: "none",
+              color: theme === 'dark' ? "#e2e8f0" : "#475569",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              padding: "12px",
+              borderRadius: "10px",
+              transition: "0.2s",
+              fontWeight: "700",
+              fontSize: "0.9rem"
+            }}
+            onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.02)"}
+            onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
+          >
+            {theme === 'dark' ? (
+              <><Sun size={18} color="#facc15" /> Modo Claro</>
+            ) : (
+              <><Moon size={18} color="#6C63FF" /> Modo Escuro</>
+            )}
+          </button>
+        </div>
+
       </aside>
     </>
   )
