@@ -12,7 +12,9 @@ import { PacientesProvider } from "./context/PacientesContext";
 import RotaProtegida from "./components/RotaProtegida";
 import Sidebar from "./components/layout/Sidebar"; 
 import Header from "./components/layout/Header";  
-import ChatbotFAQ from "./components/ChatbotFAQ"; // 👈 NOVO: Importação do Chatbot
+
+// 👇 CORREÇÃO: Agora ele procura dentro da pasta 'layout' certinho!
+import ChatbotFAQ from "./components/layout/ChatbotFAQ"; 
 
 // ==========================================
 // IMPORTAÇÃO DE TODAS AS TELAS DO SISTEMA
@@ -53,7 +55,7 @@ const LayoutApp = ({ children }) => {
                     {children}
                 </main>
                 
-                {/* 👈 NOVO: O Chatbot flutuante renderizado aqui 👇 */}
+                {/* 👈 O Chatbot flutuante renderizado aqui 👇 */}
                 <ChatbotFAQ />
             </div>
         </div>
