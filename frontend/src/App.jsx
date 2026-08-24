@@ -59,10 +59,10 @@ const LayoutApp = ({ children }) => {
 function App() {
   return (
     <ThemeProvider>
-      {/* 👇 INJETAMOS AQUI AS REGRAS GLOBAIS DO DARK MODE 👇 */}
+      {/* 👇 INJETAMOS AQUI AS REGRAS GLOBAIS DO DARK MODE (O TRATOR) 👇 */}
       <style>
         {`
-          /* Estilos base (Light) mantidos via classes para facilitar o tema */
+          /* Estilos base (Light) */
           .layout-app { background: #f8fafc; }
           .main-content { background: #f1f5f9; }
 
@@ -76,36 +76,59 @@ function App() {
           body.dark-mode .layout-app { background: #0f172a !important; }
           body.dark-mode .main-content { background: #0f172a !important; }
 
-          /* Inverte as cores de TODOS os cards/painéis brancos do sistema */
-          body.dark-mode div[style*="background: #fff"], 
-          body.dark-mode div[style*="background: rgb(255, 255, 255)"],
-          body.dark-mode div[style*="background-color: #fff"],
-          body.dark-mode div[style*="background-color: rgb(255, 255, 255)"] {
-            background-color: #1e293b !important; 
+          /* 🚜 O TRATOR: Força TUDO que for card, tabela ou lista a ficar escuro */
+          body.dark-mode table,
+          body.dark-mode th,
+          body.dark-mode td,
+          body.dark-mode tr,
+          body.dark-mode tbody,
+          body.dark-mode thead,
+          body.dark-mode ul,
+          body.dark-mode li {
+            background-color: #1e293b !important;
             border-color: #334155 !important;
             color: #f8fafc !important;
           }
 
-          /* Ajusta os textos escuros dos cards para ficarem claros */
+          /* Captura os fundos brancos colocados via style inline (Cards do Kanban e Lembretes) */
+          body.dark-mode div[style*="background: #fff"], 
+          body.dark-mode div[style*="background: rgb(255, 255, 255)"],
+          body.dark-mode div[style*="background-color: #fff"],
+          body.dark-mode div[style*="background-color: rgb(255, 255, 255)"],
+          body.dark-mode div[style*="background: white"],
+          body.dark-mode div[style*="background-color: white"] {
+            background-color: #1e293b !important; 
+            border-color: #334155 !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3) !important; /* Dá uma sombra mais escura */
+          }
+
+          /* Ajusta os textos genéricos para claro */
           body.dark-mode h1,
           body.dark-mode h2,
           body.dark-mode h3,
           body.dark-mode h4,
           body.dark-mode p,
-          body.dark-mode span,
           body.dark-mode label,
           body.dark-mode strong {
-            color: #e2e8f0 !important;
+            color: #f8fafc !important;
           }
 
-          /* Textos que eram cinza claro viram um cinza legível */
+          /* Ajusta textos dentro de DIVs e SPANs que possam estar escuros */
+          /* Ignora botões coloridos para não estragar o design deles */
+          body.dark-mode div:not([style*="background: #6C63FF"]), 
+          body.dark-mode span:not([style*="color: #10b981"]):not([style*="color: #ef4444"]) { 
+            color: #e2e8f0;
+          }
+
+          /* Textos secundários (ex: CRM, datas, hospital) viram um cinza legível */
           body.dark-mode p[style*="color: #64748b"],
           body.dark-mode span[style*="color: #64748b"],
-          body.dark-mode div[style*="color: #64748b"] {
+          body.dark-mode div[style*="color: #64748b"],
+          body.dark-mode span[style*="color: #94a3b8"] {
             color: #94a3b8 !important;
           }
 
-          /* Campos de Input e Tabela no escuro */
+          /* Campos de Input, Select e Textarea no escuro */
           body.dark-mode input,
           body.dark-mode select,
           body.dark-mode textarea {
@@ -114,20 +137,10 @@ function App() {
             border-color: #334155 !important;
           }
 
-          body.dark-mode table th { color: #94a3b8 !important; }
-          body.dark-mode table td { color: #e2e8f0 !important; }
-          body.dark-mode table tr { border-bottom-color: #334155 !important; }
-
-          /* Sidebar e Modais no escuro */
-          body.dark-mode .sidebar {
+          /* Sidebar e Header no escuro */
+          body.dark-mode .sidebar, body.dark-mode header {
             background-color: #1e293b !important;
-            border-right-color: #334155 !important;
-          }
-          
-          /* Header no escuro (ajuste genérico) */
-          body.dark-mode header {
-            background-color: #1e293b !important;
-            border-bottom-color: #334155 !important;
+            border-color: #334155 !important;
           }
         `}
       </style>
