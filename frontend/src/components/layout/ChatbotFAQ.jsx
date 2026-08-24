@@ -53,8 +53,8 @@ function ChatbotFAQ() {
         onClick={() => setIsOpen(!isOpen)}
         style={{
           position: "fixed",
-          bottom: "30px", // 👈 Voltou pro chão
-          left: "290px", // 👈 Foi pra esquerda, do ladinho do menu principal
+          bottom: "30px",
+          left: "30px", // 👈 AGORA SIM! Encostado no canto esquerdo da tela
           width: "60px",
           height: "60px",
           borderRadius: "30px",
@@ -79,8 +79,8 @@ function ChatbotFAQ() {
       {isOpen && (
         <div style={{
           position: "fixed",
-          bottom: "100px", // 👈 Voltou pra altura normal
-          left: "290px", // 👈 Foi pra esquerda também
+          bottom: "100px", 
+          left: "30px", // 👈 Janela também encostada no canto esquerdo
           width: "350px",
           height: "500px",
           background: "white",
