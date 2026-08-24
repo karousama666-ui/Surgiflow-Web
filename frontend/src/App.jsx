@@ -12,8 +12,6 @@ import { PacientesProvider } from "./context/PacientesContext";
 import RotaProtegida from "./components/RotaProtegida";
 import Sidebar from "./components/layout/Sidebar"; 
 import Header from "./components/layout/Header";  
-
-// 👇 CORREÇÃO: Agora ele procura dentro da pasta 'layout' certinho!
 import ChatbotFAQ from "./components/layout/ChatbotFAQ"; 
 
 // ==========================================
@@ -31,6 +29,7 @@ import Medicos from "./pages/Medicos";
 import Pedidos from "./pages/Pedidos";
 import Relatorios from "./pages/Relatorios";
 import Configuracoes from "./pages/Configuracoes";
+import Chat from "./pages/Chat"; // 👈 NOVO: Importação da Tela de Chat!
 
 // ==========================================
 // O "MOLDE" DA PLATAFORMA (Menu, Topo e Fonte)
@@ -55,7 +54,7 @@ const LayoutApp = ({ children }) => {
                     {children}
                 </main>
                 
-                {/* 👈 O Chatbot flutuante renderizado aqui 👇 */}
+                {/* O Chatbot flutuante renderizado aqui */}
                 <ChatbotFAQ />
             </div>
         </div>
@@ -87,6 +86,9 @@ function App() {
                 <Route path="/pedidos" element={<RotaProtegida><LayoutApp><Pedidos /></LayoutApp></RotaProtegida>} />
                 <Route path="/relatorios" element={<RotaProtegida><LayoutApp><Relatorios /></LayoutApp></RotaProtegida>} />
                 <Route path="/configuracoes" element={<RotaProtegida><LayoutApp><Configuracoes /></LayoutApp></RotaProtegida>} />
+                
+                {/* 👈 NOVA ROTA DE CHAT AQUI 👇 */}
+                <Route path="/chat" element={<RotaProtegida><LayoutApp><Chat /></LayoutApp></RotaProtegida>} />
               </Routes>
 
               </PacientesProvider>

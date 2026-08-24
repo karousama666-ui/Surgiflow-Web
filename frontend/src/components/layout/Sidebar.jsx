@@ -12,7 +12,8 @@ import {
   FileText,
   Settings,
   Contact,
-  X 
+  X,
+  MessageSquareText // 👈 Ícone de Chat adicionado aqui!
 } from "lucide-react";
 
 function Sidebar({ isOpen, onClose }) {
@@ -99,6 +100,12 @@ function Sidebar({ isOpen, onClose }) {
           <NavLink to="/medicos" onClick={onClose} style={navLinkStyle}>
             <Users size={20} />
             Médicos
+          </NavLink>
+
+          {/* 👈 NOVO BOTÃO DE COMUNICAÇÃO AQUI 👇 */}
+          <NavLink to="/chat" onClick={onClose} style={navLinkStyle}>
+            <MessageSquareText size={20} />
+            Comunicação
           </NavLink>
 
           <NavLink to="/pedidos" onClick={onClose} style={navLinkStyle}>
