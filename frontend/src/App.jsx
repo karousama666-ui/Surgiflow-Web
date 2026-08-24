@@ -12,6 +12,7 @@ import { PacientesProvider } from "./context/PacientesContext";
 import RotaProtegida from "./components/RotaProtegida";
 import Sidebar from "./components/layout/Sidebar"; 
 import Header from "./components/layout/Header";  
+import ChatbotFAQ from "./components/ChatbotFAQ"; // 👈 NOVO: Importação do Chatbot
 
 // ==========================================
 // IMPORTAÇÃO DE TODAS AS TELAS DO SISTEMA
@@ -46,11 +47,14 @@ const LayoutApp = ({ children }) => {
         }}>
             <Sidebar isOpen={menuAberto} onClose={() => setMenuAberto(false)} />
             
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
                 <Header onMenuToggle={() => setMenuAberto(!menuAberto)} />
                 <main style={{ flex: 1, overflowY: "auto", padding: "24px", background: "#f1f5f9" }}>
                     {children}
                 </main>
+                
+                {/* 👈 NOVO: O Chatbot flutuante renderizado aqui 👇 */}
+                <ChatbotFAQ />
             </div>
         </div>
     );
