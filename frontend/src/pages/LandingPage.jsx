@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ShieldCheck, LayoutGrid, Users, CheckCircle2, Stethoscope, Building2 } from 'lucide-react';
+import { ArrowRight, ShieldCheck, LayoutGrid, MessageSquareText, CheckCircle2, Stethoscope, Building2 } from 'lucide-react'; // 👈 NOVO: Importamos o ícone MessageSquareText
 
 import logoSurgiFlow from '../assets/logo_vertical.png'; 
 import iconeFundo from '../assets/iconegrande.png'; 
@@ -50,13 +50,13 @@ function LandingPage() {
                     .bg-watermark { width: 300px; opacity: 0.06; } 
                 }
 
-                /* 👇 REGRAS EXCLUSIVAS PARA CELULAR (Evitar corte no botão) 👇 */
+                /* 👇 REGRAS EXCLUSIVAS PARA CELULAR 👇 */
                 @media (max-width: 600px) {
                     .landing-container { padding: 0 16px; }
                     .header-container { height: 75px; }
-                    .logo-img { height: 45px; } /* Logo menor no celular */
-                    .header-nav { gap: 12px; } /* Menos espaço entre botão e texto */
-                    .btn-login { padding: 8px 14px !important; font-size: 0.85rem !important; } /* Botão mais enxuto */
+                    .logo-img { height: 45px; } 
+                    .header-nav { gap: 12px; } 
+                    .btn-login { padding: 8px 14px !important; font-size: 0.85rem !important; } 
                     .header-link { font-size: 0.9rem !important; }
                     .hero-section { padding-top: 120px; }
                 }
@@ -79,7 +79,6 @@ function LandingPage() {
             </style>
 
             <header style={{ position: "fixed", top: 0, width: "100%", background: "rgba(255, 255, 255, 0.9)", backdropFilter: "blur(12px)", borderBottom: "1px solid #e2e8f0", zIndex: 100 }}>
-                {/* 👇 Cabeçalho usando as novas classes responsivas 👇 */}
                 <div className="landing-container header-container">
                     <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
                         <img src={logoSurgiFlow} alt="SurgiFlow Logo" className="logo-img" />
@@ -100,7 +99,7 @@ function LandingPage() {
                     </div>
                     <h1 className="hero-title">O fim do caos na sua agenda cirúrgica.</h1>
                     <p style={{ fontSize: "1.25rem", color: "#64748b", marginBottom: "40px", lineHeight: "1.6", fontWeight: "500" }}>
-                        Controle agendamentos, aprove OPMEs em formato Kanban e blinde sua operação com checklists pré-cirúrgicos e relatórios de compliance.
+                        Controle agendamentos, aprove OPMEs em formato Kanban e unifique sua equipe com um <strong>Chat Interno exclusivo</strong>. Tudo blindado por checklists cirúrgicos de alto nível.
                     </p>
                     <Link to="/cadastro" className="btn-primary" style={{ padding: "14px 28px", fontSize: "1.05rem", display: "inline-flex", width: "auto" }}>
                         Experimente Grátis <ArrowRight size={20} />
@@ -133,12 +132,13 @@ function LandingPage() {
                             <p style={{ color: "#475569", lineHeight: "1.6", fontWeight: "500" }}>Checklists inteligentes para validação de jejum, exames e termos antes do paciente pisar no hospital.</p>
                         </div>
 
+                        {/* 🌟 NOVO CARD: COMUNICAÇÃO INTEGRADA 🌟 */}
                         <div className="clean-card">
-                            <div style={{ background: "#fef3c7", width: "60px", height: "60px", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "24px" }}>
-                                <Users size={30} color="#f59e0b" />
+                            <div style={{ background: "#e0e7ff", width: "60px", height: "60px", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "24px" }}>
+                                <MessageSquareText size={30} color="#4f46e5" />
                             </div>
-                            <h3 style={{ fontSize: "1.3rem", fontWeight: "800", marginBottom: "15px", color: "#1e293b" }}>Gestão Colaborativa</h3>
-                            <p style={{ color: "#475569", lineHeight: "1.6", fontWeight: "500" }}>Conecte a recepção, o faturamento e o corpo clínico na mesma plataforma. Centralize a comunicação e elimine o caos do WhatsApp.</p>
+                            <h3 style={{ fontSize: "1.3rem", fontWeight: "800", marginBottom: "15px", color: "#1e293b" }}>Chat Interno Integrado</h3>
+                            <p style={{ color: "#475569", lineHeight: "1.6", fontWeight: "500" }}>Chega de grupos confusos no WhatsApp. Conecte sua equipe em um chat criptografado com envio de anexos e status em tempo real.</p>
                         </div>
                     </div>
                 </div>
@@ -175,7 +175,7 @@ function LandingPage() {
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> 1 Médico cadastrado</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Até 10 Pacientes</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Kanban de OPME</li>
-                                <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Relatórios de Agenda</li>
+                                <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Chat Integrado (Equipe)</li>
                             </ul>
                             <Link to="/cadastro" className="btn-outline" style={{ width: "100%" }}>Começar Grátis</Link>
                         </div>
@@ -191,6 +191,7 @@ function LandingPage() {
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#6C63FF" /> Pacientes Ilimitados</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#6C63FF" /> 2 Usuários (Acessos)</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#6C63FF" /> Kanban & Relatórios</li>
+                                <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#6C63FF" /> Chat Integrado c/ Anexos</li>
                             </ul>
                             <a href="https://www.asaas.com/c/23vsipmr38k4f4a3" target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ width: "100%" }}>Assinar Starter</a>
                         </div>
@@ -205,6 +206,7 @@ function LandingPage() {
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Pacientes Ilimitados</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Usuários Ilimitados</li>
                                 <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Kanban & Relatórios</li>
+                                <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><CheckCircle2 size={20} color="#10b981" /> Chat Interno Premium</li>
                             </ul>
                             <a href="https://www.asaas.com/c/ftgprtwo5xs0seyz" target="_blank" rel="noopener noreferrer" className="btn-premium" style={{ width: "100%" }}>Assinar Pro</a>
                         </div>
