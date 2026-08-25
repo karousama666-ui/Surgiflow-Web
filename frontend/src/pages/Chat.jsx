@@ -1,10 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, Search, Plus, User, Info, X, Check, Trash2, Bell, Loader2, Volume2 } from 'lucide-react';
+import { Send, Paperclip, Search, Plus, User, Info, X, Check, Trash2, Loader2, Volume2, Smile, ChevronDown } from 'lucide-react';
 import { supabase } from '../services/supabase'; 
 import { useAuth } from '../context/AuthContext'; 
 
-// Som de notificação
 const somNotificacao = new Audio("https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3");
+
+// 🌟 NOVO: CONFIGURAÇÃO DE CORES DOS STATUS
+const STATUS_CONFIG = {
+  online: { cor: '#10b981', label: 'Online' },
+  ocupado: { cor: '#ef4444', label: 'Ocupado' },
+  ausente: { cor: '#f59e0b', label: 'Ausente' },
+  almoco: { cor: '#8b5cf6', label: 'No Almoço' },
+  offline: { cor: '#94a3b8', label: 'Offline' }
+};
+
+// 🌟 NOVO: MINI TECLADO DE EMOJIS
+const EMOJIS = ['😀','😂','🤣','🥰','😍','😎','🤔','🙄','😴','😷','🤐','🙌','👍','👎','🙏','💪','🔥','🎉','❤️','💔','👀','✅','❌','💡','⭐'];
 
 function Chat() {
   const { usuario } = useAuth(); 
@@ -16,6 +27,11 @@ function Chat() {
   const [contatoAtivo, setContatoAtivo] = useState(null);
   const [meuPerfil, setMeuPerfil] = useState(null);
 
+  // 🌟 NOVO: Estados de Status e Emojis
+  const [meuStatus, setMeuStatus] = useState('online');
+  const [mostrarMenuStatus, setMostrarMenuStatus] = useState(false);
+  const [mostrarEmojis, setMostrarEmojis] = useState(false);
+
   const [modalAberto, setModalAberto] = useState(false);
   const [buscaTag, setBuscaTag] = useState('');
   const [resultadoBusca, setResultadoBusca] = useState(null);
@@ -24,16 +40,8 @@ function Chat() {
 
   const arquivoInputRef = useRef(null);
   const [enviandoAnexo, setEnviandoAnexo] = useState(false);
-  const [toast, setToast] = useState(null);
 
   const mensagensFimRef = useRef(null);
-  
-  // 🌟 O SEGREDO: Usamos um Ref para o Radar Global saber qual chat está aberto
-  const chatAtivoIdRef = useRef(null);
-
-  useEffect(() => {
-    chatAtivoIdRef.current = chatAtivoId;
-  }, [chatAtivoId]);
 
   useEffect(() => {
     mensagensFimRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -54,62 +62,57 @@ function Chat() {
         const primeiroNome = usuario.email.split('@')[0];
         const numeroAleatorio = Math.floor(1000 + Math.random() * 9000);
         const { data: novoPerfil } = await supabase.from('profiles').insert([{ 
-          id: usuario.id, surgitag: `${primeiroNome}#${numeroAleatorio}`, nome_completo: primeiroNome
+          id: usuario.id, surgitag: `${primeiroNome}#${numeroAleatorio}`, nome_completo: primeiroNome, status: 'online'
         }]).select().single();
         perfil = novoPerfil;
       }
       setMeuPerfil(perfil);
+      setMeuStatus(perfil.status || 'online');
       carregarListaDeContatos();
     };
     inicializar();
 
-    // Limpa os radares quando sair da tela
-    return () => { supabase.removeAllChannels(); };
+    // 🌟 NOVO: ESCUTAR MUDANÇAS DE STATUS DOS COLEGAS EM TEMPO REAL
+    const canalStatus = supabase.channel('status_radar')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, (payload) => {
+         // Atualiza a bolinha de cor na barra lateral na hora que o colega mudar!
+         setContatos(prev => prev.map(c => c.id === payload.new.id ? { ...c, status: payload.new.status } : c));
+         
+         // Se eu estiver com a conversa dessa pessoa aberta, atualiza o topo da tela
+         setContatoAtivo(prev => (prev && prev.id === payload.new.id) ? { ...prev, status: payload.new.status } : prev);
+      }).subscribe();
+
+    return () => supabase.removeChannel(canalStatus);
   }, [usuario]);
 
-  // 2️⃣ CARREGAR A BARRA LATERAL E LIGAR O RADAR GLOBAL
   const carregarListaDeContatos = async () => {
     const { data: meusChats } = await supabase.from('chat_participantes').select('chat_id').eq('user_id', usuario.id);
     if (!meusChats || meusChats.length === 0) return setContatos([]);
-    
     const chatIds = meusChats.map(c => c.chat_id);
+    
+    // Busca os participantes e também puxa a coluna de status deles
     const { data: outrosParticipantes } = await supabase
-      .from('chat_participantes').select('chat_id, profiles(id, nome_completo, surgitag)')
+      .from('chat_participantes').select('chat_id, profiles(id, nome_completo, surgitag, status)')
       .in('chat_id', chatIds).neq('user_id', usuario.id); 
 
     if (outrosParticipantes) {
       setContatos(outrosParticipantes.map(p => ({
-        chat_id: p.chat_id, id: p.profiles.id, nome: p.profiles.nome_completo, surgitag: p.profiles.surgitag
+        chat_id: p.chat_id, id: p.profiles.id, nome: p.profiles.nome_completo, surgitag: p.profiles.surgitag, status: p.profiles.status || 'offline'
       })));
     }
+  };
 
-    // 🌟 A MAGIA ACONTECE AQUI: O RADAR GLOBAL 🌟
-    supabase.removeAllChannels(); // Evita escutar duplicado
-    
-    supabase.channel('radar_global')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens' }, 
-      async (payload) => {
-        
-        // 1. A mensagem é para alguma das minhas conversas?
-        if (!chatIds.includes(payload.new.chat_id)) return;
-        
-        // 2. Fui eu que enviei de outra aba?
-        if (payload.new.sender_id === usuario.id) return;
+  // 🌟 NOVO: FUNÇÃO PARA MUDAR SEU PRÓPRIO STATUS
+  const handleMudarStatus = async (novoStatus) => {
+    setMeuStatus(novoStatus); // Atualiza na tela instantaneamente
+    setMostrarMenuStatus(false);
+    await supabase.from('profiles').update({ status: novoStatus }).eq('id', usuario.id); // Salva no banco
+  };
 
-        // 3. Busca quem enviou
-        const { data: sender } = await supabase.from('profiles').select('nome_completo').eq('id', payload.new.sender_id).single();
-        const nomePessoa = sender?.nome_completo || 'Membro da Equipe';
-
-        // 4. TOCA O SOM E MOSTRA O TOAST 🔔
-        somNotificacao.play().catch(e => console.log('Som bloqueado pelo navegador:', e));
-        setToast({ id: Date.now(), nome: nomePessoa, texto: payload.new.conteudo });
-        setTimeout(() => setToast(null), 4500);
-
-        // 5. Se eu estiver com a conversa dessa pessoa aberta na tela, adiciona o balão nela!
-        if (chatAtivoIdRef.current === payload.new.chat_id) {
-          setMensagens((prev) => [...prev, { ...payload.new, profiles: sender }]);
-        }
-      }).subscribe();
+  // 🌟 NOVO: FUNÇÃO PARA CLICAR NUM EMOJI
+  const adicionarEmoji = (emoji) => {
+    setMensagem(prev => prev + emoji);
+    setMostrarEmojis(false);
   };
 
   const handleBuscarSurgitag = async () => {
@@ -128,17 +131,15 @@ function Chat() {
     if (chatExistente) {
       alert("Vocês já possuem uma conversa ativa!");
       setModalAberto(false);
-      return abrirChat(chatExistente.chat_id, { nome: chatExistente.nome, surgitag: chatExistente.surgitag });
+      return abrirChat(chatExistente.chat_id, chatExistente);
     }
     const { data: novoChat } = await supabase.from('chats').insert([{}]).select().single();
     await supabase.from('chat_participantes').insert([
       { chat_id: novoChat.id, user_id: usuario.id }, { chat_id: novoChat.id, user_id: resultadoBusca.id }
     ]);
     setModalAberto(false); setBuscaTag(''); setResultadoBusca(null);
-    
-    // Recarrega os contatos (o que reinicia o Radar Global com a nova sala)
     carregarListaDeContatos();
-    abrirChat(novoChat.id, { nome: resultadoBusca.nome_completo, surgitag: resultadoBusca.surgitag });
+    abrirChat(novoChat.id, { id: resultadoBusca.id, nome: resultadoBusca.nome_completo, surgitag: resultadoBusca.surgitag, status: resultadoBusca.status });
   };
 
   // 5️⃣ ABRIR UM CHAT
@@ -149,9 +150,18 @@ function Chat() {
     const { data: historico } = await supabase
       .from('mensagens').select('*, profiles(nome_completo)').eq('chat_id', idDoChat).order('enviada_em', { ascending: true });
     setMensagens(historico || []);
+    
+    supabase.removeAllChannels(); // Remove o escutador do chat anterior
+
+    supabase.channel(`sala_${idDoChat}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens', filter: `chat_id=eq.${idDoChat}` }, 
+      async (payload) => {
+        if (payload.new.sender_id === usuario.id) return; // Ignora se fui eu
+        const { data: sender } = await supabase.from('profiles').select('nome_completo').eq('id', payload.new.sender_id).single();
+        setMensagens((prev) => [...prev, { ...payload.new, profiles: sender }]);
+      }).subscribe();
   };
 
-  // 6️⃣ ENVIAR MENSAGEM
   const handleEnviarMensagem = async (e) => {
     e.preventDefault();
     if (mensagem.trim() === '' || !chatAtivoId) return;
@@ -164,7 +174,6 @@ function Chat() {
     await supabase.from('mensagens').insert([{ chat_id: chatAtivoId, sender_id: usuario.id, conteudo: textoEnviado }]);
   };
 
-  // 7️⃣ ENVIAR ANEXO
   const handleUploadAnexo = async (e) => {
     const file = e.target.files[0];
     if (!file || !chatAtivoId) return;
@@ -202,38 +211,7 @@ function Chat() {
   return (
     <div style={{ display: 'flex', height: '100%', minHeight: '600px', background: 'white', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', overflow: 'hidden', position: 'relative' }}>
       
-      {/* 🌟 TOAST SUPER PODEROSO 🌟 */}
-      {toast && (
-        <div style={{
-          position: 'fixed', 
-          top: '20px', 
-          right: '20px', 
-          zIndex: 2147483647, 
-          background: '#1e293b', 
-          color: 'white', 
-          padding: '16px 24px', 
-          borderRadius: '12px', 
-          boxShadow: '0 20px 40px rgba(0,0,0,0.3)', 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '15px', 
-          animation: 'slideInToast 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
-          fontFamily: "'Montserrat', sans-serif",
-          borderLeft: '4px solid #10b981'
-        }}>
-          <div style={{ background: '#10b981', padding: '10px', borderRadius: '50%', display: 'flex' }}>
-            <Bell size={20} color="white" />
-          </div>
-          <div>
-            <h4 style={{ margin: '0 0 4px 0', fontSize: '1rem', fontWeight: '800' }}>{toast.nome}</h4>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: '#cbd5e1' }}>
-              {toast.texto.length > 35 ? toast.texto.substring(0,35) + '...' : toast.texto}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL DE BUSCA */}
+      {/* MODAL DE BUSCA (Mantido igual) */}
       {modalAberto && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(15, 23, 42, 0.7)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal-content" style={{ background: 'white', padding: '24px', borderRadius: '16px', width: '400px' }}>
@@ -262,25 +240,65 @@ function Chat() {
         </div>
       )}
 
-      {/* BARRA LATERAL */}
+      {/* 🔴 BARRA LATERAL (CONTATOS E STATUS) */}
       <div style={{ width: '320px', borderRight: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', background: '#f8fafc' }}>
         <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', background: 'white' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <div>
               <h2 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', color: '#1e293b', fontWeight: '700' }}>Equipe</h2>
               {meuPerfil && <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Minha Tag: <strong style={{ color: '#6C63FF', userSelect: 'all' }}>{meuPerfil.surgitag}</strong></span>}
             </div>
             <button onClick={() => setModalAberto(true)} style={{ background: '#6C63FF', color: 'white', border: 'none', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Plus size={18} /></button>
           </div>
+          
+          {/* 🌟 NOVO: O SEU SELETOR DE STATUS */}
+          <div style={{ position: 'relative', marginBottom: '15px' }}>
+            <button 
+              onClick={() => setMostrarMenuStatus(!mostrarMenuStatus)}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '6px 12px', borderRadius: '20px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '600', color: '#475569', transition: '0.2s' }}
+            >
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: STATUS_CONFIG[meuStatus].cor }} />
+              {STATUS_CONFIG[meuStatus].label}
+              <ChevronDown size={14} color="#94a3b8" />
+            </button>
+
+            {/* Menu Dropdown de Status */}
+            {mostrarMenuStatus && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '5px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', zIndex: 10, width: '150px' }}>
+                {Object.keys(STATUS_CONFIG).map(statusKey => (
+                  <div 
+                    key={statusKey} 
+                    onClick={() => handleMudarStatus(statusKey)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem', fontWeight: '500', color: '#334155' }}
+                    onMouseOver={(e) => e.currentTarget.style.background = '#f8fafc'}
+                    onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: STATUS_CONFIG[statusKey].cor }} />
+                    {STATUS_CONFIG[statusKey].label}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div style={{ position: 'relative' }}>
             <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '10px' }} />
             <input type="text" placeholder="Filtrar conversas..." style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px 8px 35px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.85rem' }} />
           </div>
         </div>
+
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {contatos.map(contato => (
             <div key={contato.chat_id} onClick={() => abrirChat(contato.chat_id, contato)} style={{ display: 'flex', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #e2e8f0', cursor: 'pointer', background: chatAtivoId === contato.chat_id ? '#eff6ff' : 'transparent', borderLeft: chatAtivoId === contato.chat_id ? '4px solid #6C63FF' : '4px solid transparent' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '20px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '12px' }}><User size={20} color="#64748b" /></div>
+              
+              {/* 🌟 NOVO: BOLINHA DE STATUS NA FOTO DO CONTATO */}
+              <div style={{ position: 'relative', marginRight: '12px' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '20px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <User size={20} color="#64748b" />
+                </div>
+                <div style={{ position: 'absolute', bottom: '-2px', right: '-2px', width: '14px', height: '14px', background: STATUS_CONFIG[contato.status]?.cor || '#94a3b8', borderRadius: '50%', border: '2px solid white' }} />
+              </div>
+
               <div>
                 <h4 style={{ margin: '0 0 2px 0', fontSize: '0.9rem', color: '#1e293b' }}>{contato.nome}</h4>
                 <p style={{ margin: 0, fontSize: '0.75rem', color: '#6C63FF', fontWeight: '600' }}>{contato.surgitag}</p>
@@ -290,14 +308,12 @@ function Chat() {
         </div>
       </div>
 
-      {/* ÁREA DO CHAT */}
+      {/* 🔴 ÁREA DO CHAT */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: chatAtivoId ? 'white' : '#f8fafc' }}>
         {!chatAtivoId ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
              <div style={{ width: '60px', height: '60px', background: '#e2e8f0', borderRadius: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px' }}><Info size={30} color="#64748b" /></div>
              <p style={{ margin: 0, fontWeight: '500' }}>Selecione um contato para iniciar a comunicação.</p>
-             
-             {/* 🌟 BOTÃO SECRETO PARA TESTAR ÁUDIO 🌟 */}
              <button onClick={testarSom} style={{ marginTop: '20px', background: 'transparent', color: '#6C63FF', border: '1px solid #6C63FF', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Volume2 size={18} /> Testar Áudio do Chat
              </button>
@@ -307,6 +323,13 @@ function Chat() {
             <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <h3 style={{ margin: 0, color: '#1e293b' }}>{contatoAtivo?.nome}</h3>
+                {/* Mostra o status também no cabeçalho do chat */}
+                {contatoAtivo?.status && (
+                  <span style={{ fontSize: '0.75rem', color: STATUS_CONFIG[contatoAtivo.status]?.cor, fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: STATUS_CONFIG[contatoAtivo.status]?.cor }} />
+                    {STATUS_CONFIG[contatoAtivo.status]?.label}
+                  </span>
+                )}
               </div>
               <button onClick={handleExcluirChat} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '8px', borderRadius: '8px', display: 'flex' }}><Trash2 size={20} /></button>
             </div>
@@ -340,14 +363,42 @@ function Chat() {
               <div ref={mensagensFimRef} />
             </div>
 
-            <div style={{ padding: '20px', borderTop: '1px solid #e2e8f0', background: 'white' }}>
+            <div style={{ padding: '20px', borderTop: '1px solid #e2e8f0', background: 'white', position: 'relative' }}>
+              
+              {/* 🌟 NOVO: CAIXA FLUTUANTE DE EMOJIS */}
+              {mostrarEmojis && (
+                <div style={{ position: 'absolute', bottom: '80px', left: '20px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '15px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px', zIndex: 10 }}>
+                  {EMOJIS.map(emoji => (
+                    <span 
+                      key={emoji} 
+                      onClick={() => adicionarEmoji(emoji)} 
+                      style={{ fontSize: '1.5rem', cursor: 'pointer', textAlign: 'center', transition: '0.2s', padding: '4px', borderRadius: '8px' }}
+                      onMouseOver={(e) => e.currentTarget.style.background = '#f1f5f9'}
+                      onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      {emoji}
+                    </span>
+                  ))}
+                </div>
+              )}
+
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#f1f5f9', padding: '8px 15px', borderRadius: '24px' }}>
+                
+                {/* Botão de Emoji */}
+                <button onClick={() => setMostrarEmojis(!mostrarEmojis)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: mostrarEmojis ? '#6C63FF' : '#64748b', display: 'flex', transition: '0.2s' }}>
+                  <Smile size={20} />
+                </button>
+
                 <input type="file" ref={arquivoInputRef} onChange={handleUploadAnexo} style={{ display: 'none' }} accept="image/*,application/pdf" />
                 <button onClick={() => arquivoInputRef.current.click()} disabled={enviandoAnexo} title="Anexar Imagem ou PDF" style={{ background: 'none', border: 'none', cursor: enviandoAnexo ? 'not-allowed' : 'pointer', color: enviandoAnexo ? '#cbd5e1' : '#64748b', display: 'flex' }}>
                   {enviandoAnexo ? <Loader2 size={20} className="lucide-spin" /> : <Paperclip size={20} />}
                 </button>
+                
                 <input type="text" placeholder="Digite sua mensagem..." value={mensagem} onChange={(e) => setMensagem(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleEnviarMensagem(e)} style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: '0.95rem', color: '#1e293b' }} />
-                <button onClick={handleEnviarMensagem} style={{ background: '#6C63FF', color: 'white', border: 'none', minWidth: '36px', height: '36px', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Send size={16} /></button>
+                
+                <button onClick={handleEnviarMensagem} style={{ background: '#6C63FF', color: 'white', border: 'none', minWidth: '36px', height: '36px', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                  <Send size={16} />
+                </button>
               </div>
             </div>
           </>
@@ -355,10 +406,6 @@ function Chat() {
       </div>
       
       <style>{`
-        @keyframes slideInToast {
-          0% { transform: translateX(100%) scale(0.5); opacity: 0; }
-          100% { transform: translateX(0) scale(1); opacity: 1; }
-        }
         .lucide-spin { animation: spin 2s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
       `}</style>
