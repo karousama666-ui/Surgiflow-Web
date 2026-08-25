@@ -24,23 +24,28 @@ function Chat() {
 
   const arquivoInputRef = useRef(null);
   const [enviandoAnexo, setEnviandoAnexo] = useState(false);
-  
-  // TOAST PROTEGIDO
   const [toast, setToast] = useState(null);
 
   const mensagensFimRef = useRef(null);
+  
+  // 🌟 O SEGREDO: Usamos um Ref para o Radar Global saber qual chat está aberto
+  const chatAtivoIdRef = useRef(null);
+
+  useEffect(() => {
+    chatAtivoIdRef.current = chatAtivoId;
+  }, [chatAtivoId]);
 
   useEffect(() => {
     mensagensFimRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [mensagens]);
 
-  // FUNÇÃO DE TESTE DE ÁUDIO (Para você clicar e ver se o Chrome libera)
   const testarSom = () => {
     somNotificacao.play()
       .then(() => alert("🔊 O som está funcionando perfeitamente!"))
-      .catch((e) => alert("❌ O navegador bloqueou o som. Verifique as permissões do site na barra de endereços."));
+      .catch((e) => alert("❌ O navegador bloqueou o som. Verifique as permissões."));
   };
 
+  // 1️⃣ CARREGAMENTO INICIAL
   useEffect(() => {
     if (!usuario) return;
     const inicializar = async () => {
@@ -57,11 +62,16 @@ function Chat() {
       carregarListaDeContatos();
     };
     inicializar();
+
+    // Limpa os radares quando sair da tela
+    return () => { supabase.removeAllChannels(); };
   }, [usuario]);
 
+  // 2️⃣ CARREGAR A BARRA LATERAL E LIGAR O RADAR GLOBAL
   const carregarListaDeContatos = async () => {
     const { data: meusChats } = await supabase.from('chat_participantes').select('chat_id').eq('user_id', usuario.id);
     if (!meusChats || meusChats.length === 0) return setContatos([]);
+    
     const chatIds = meusChats.map(c => c.chat_id);
     const { data: outrosParticipantes } = await supabase
       .from('chat_participantes').select('chat_id, profiles(id, nome_completo, surgitag)')
@@ -72,6 +82,34 @@ function Chat() {
         chat_id: p.chat_id, id: p.profiles.id, nome: p.profiles.nome_completo, surgitag: p.profiles.surgitag
       })));
     }
+
+    // 🌟 A MAGIA ACONTECE AQUI: O RADAR GLOBAL 🌟
+    supabase.removeAllChannels(); // Evita escutar duplicado
+    
+    supabase.channel('radar_global')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens' }, 
+      async (payload) => {
+        
+        // 1. A mensagem é para alguma das minhas conversas?
+        if (!chatIds.includes(payload.new.chat_id)) return;
+        
+        // 2. Fui eu que enviei de outra aba?
+        if (payload.new.sender_id === usuario.id) return;
+
+        // 3. Busca quem enviou
+        const { data: sender } = await supabase.from('profiles').select('nome_completo').eq('id', payload.new.sender_id).single();
+        const nomePessoa = sender?.nome_completo || 'Membro da Equipe';
+
+        // 4. TOCA O SOM E MOSTRA O TOAST 🔔
+        somNotificacao.play().catch(e => console.log('Som bloqueado pelo navegador:', e));
+        setToast({ id: Date.now(), nome: nomePessoa, texto: payload.new.conteudo });
+        setTimeout(() => setToast(null), 4500);
+
+        // 5. Se eu estiver com a conversa dessa pessoa aberta na tela, adiciona o balão nela!
+        if (chatAtivoIdRef.current === payload.new.chat_id) {
+          setMensagens((prev) => [...prev, { ...payload.new, profiles: sender }]);
+        }
+      }).subscribe();
   };
 
   const handleBuscarSurgitag = async () => {
@@ -97,11 +135,13 @@ function Chat() {
       { chat_id: novoChat.id, user_id: usuario.id }, { chat_id: novoChat.id, user_id: resultadoBusca.id }
     ]);
     setModalAberto(false); setBuscaTag(''); setResultadoBusca(null);
+    
+    // Recarrega os contatos (o que reinicia o Radar Global com a nova sala)
     carregarListaDeContatos();
     abrirChat(novoChat.id, { nome: resultadoBusca.nome_completo, surgitag: resultadoBusca.surgitag });
   };
 
-  // 5️⃣ ABRIR UM CHAT E OUVIR MENSAGENS (AGORA À PROVA DE FALHAS)
+  // 5️⃣ ABRIR UM CHAT
   const abrirChat = async (idDoChat, dadosDoContato) => {
     setChatAtivoId(idDoChat);
     setContatoAtivo(dadosDoContato);
@@ -109,59 +149,22 @@ function Chat() {
     const { data: historico } = await supabase
       .from('mensagens').select('*, profiles(nome_completo)').eq('chat_id', idDoChat).order('enviada_em', { ascending: true });
     setMensagens(historico || []);
-    supabase.removeAllChannels();
-
-    supabase.channel(`sala_${idDoChat}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens', filter: `chat_id=eq.${idDoChat}` }, 
-      async (payload) => {
-        
-        // Se fui eu mesmo que enviei, ele mostra na tela mas NÃO toca o som e não mostra o Toast
-        const fuiEu = payload.new.sender_id === usuario.id;
-
-        try {
-          const { data: sender } = await supabase.from('profiles').select('nome_completo').eq('id', payload.new.sender_id).single();
-          const nomePessoa = sender?.nome_completo || 'Membro da Equipe';
-          
-          setMensagens((prev) => {
-            // Evita duplicar a mensagem na tela se a "Atualização Otimista" já tiver desenhado ela
-            const jaExiste = prev.find(m => m.conteudo === payload.new.conteudo && m.sender_id === payload.new.sender_id);
-            if (jaExiste && fuiEu) return prev;
-            return [...prev, { ...payload.new, profiles: sender }];
-          });
-
-          // 🌟 DISPARA A NOTIFICAÇÃO SOMENTE SE NÃO FUI EU QUE ENVIEI 🌟
-          if (!fuiEu) {
-            somNotificacao.play().catch(e => console.error('Som bloqueado:', e));
-            
-            // Força o Toast a aparecer na marra
-            setToast({ id: Date.now(), nome: nomePessoa, texto: payload.new.conteudo });
-            
-            // Remove o Toast após 4 segundos
-            setTimeout(() => {
-              setToast(null);
-            }, 4000);
-          }
-
-        } catch (erro) {
-          console.error("Erro ao processar mensagem recebida:", erro);
-        }
-
-      }).subscribe();
   };
 
+  // 6️⃣ ENVIAR MENSAGEM
   const handleEnviarMensagem = async (e) => {
     e.preventDefault();
     if (mensagem.trim() === '' || !chatAtivoId) return;
     const textoEnviado = mensagem;
     setMensagem(''); 
     
-    // Atualização Otimista
     const novaMsgTemp = { id: Date.now(), chat_id: chatAtivoId, sender_id: usuario.id, conteudo: textoEnviado, enviada_em: new Date().toISOString() };
     setMensagens(prev => [...prev, novaMsgTemp]);
 
     await supabase.from('mensagens').insert([{ chat_id: chatAtivoId, sender_id: usuario.id, conteudo: textoEnviado }]);
   };
 
+  // 7️⃣ ENVIAR ANEXO
   const handleUploadAnexo = async (e) => {
     const file = e.target.files[0];
     if (!file || !chatAtivoId) return;
@@ -199,13 +202,13 @@ function Chat() {
   return (
     <div style={{ display: 'flex', height: '100%', minHeight: '600px', background: 'white', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', overflow: 'hidden', position: 'relative' }}>
       
-      {/* 🌟 TOAST SUPER PODEROSO (Posição Absoluta à Tela Inteira do Navegador) 🌟 */}
+      {/* 🌟 TOAST SUPER PODEROSO 🌟 */}
       {toast && (
         <div style={{
           position: 'fixed', 
           top: '20px', 
           right: '20px', 
-          zIndex: 2147483647, /* O z-index máximo permitido no CSS para ficar acima de TUDO */
+          zIndex: 2147483647, 
           background: '#1e293b', 
           color: 'white', 
           padding: '16px 24px', 
@@ -294,11 +297,10 @@ function Chat() {
              <div style={{ width: '60px', height: '60px', background: '#e2e8f0', borderRadius: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px' }}><Info size={30} color="#64748b" /></div>
              <p style={{ margin: 0, fontWeight: '500' }}>Selecione um contato para iniciar a comunicação.</p>
              
-             {/* 🌟 BOTÃO SECRETO PARA VOCÊ TESTAR SE SEU NAVEGADOR ESTÁ PERMITINDO ÁUDIO 🌟 */}
+             {/* 🌟 BOTÃO SECRETO PARA TESTAR ÁUDIO 🌟 */}
              <button onClick={testarSom} style={{ marginTop: '20px', background: 'transparent', color: '#6C63FF', border: '1px solid #6C63FF', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Volume2 size={18} /> Testar Áudio do Chat
              </button>
-
           </div>
         ) : (
           <>
