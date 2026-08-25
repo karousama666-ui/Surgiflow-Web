@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, Search, Plus, User, Info, X, Check, Trash2 } from 'lucide-react';
+import { Send, Paperclip, Search, Plus, User, Info, X, Check, Trash2, Bell, Loader2 } from 'lucide-react';
 import { supabase } from '../services/supabase'; 
 import { useAuth } from '../context/AuthContext'; 
+
+// Som de notificação (URL pública de um som suave)
+const somNotificacao = new Audio("https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3");
 
 function Chat() {
   const { usuario } = useAuth(); 
@@ -19,6 +22,11 @@ function Chat() {
   const [erroBusca, setErroBusca] = useState('');
   const [loadingBusca, setLoadingBusca] = useState(false);
 
+  // 🌟 NOVO: Estados de Anexo e Toast
+  const arquivoInputRef = useRef(null);
+  const [enviandoAnexo, setEnviandoAnexo] = useState(false);
+  const [toast, setToast] = useState(null);
+
   const mensagensFimRef = useRef(null);
 
   useEffect(() => {
@@ -28,103 +36,61 @@ function Chat() {
   // 1️⃣ CARREGAMENTO INICIAL
   useEffect(() => {
     if (!usuario) return;
-
     const inicializar = async () => {
       let { data: perfil } = await supabase.from('profiles').select('*').eq('id', usuario.id).single();
       if (!perfil) {
         const primeiroNome = usuario.email.split('@')[0];
         const numeroAleatorio = Math.floor(1000 + Math.random() * 9000);
         const { data: novoPerfil } = await supabase.from('profiles').insert([{ 
-          id: usuario.id, 
-          surgitag: `${primeiroNome}#${numeroAleatorio}`,
-          nome_completo: primeiroNome
+          id: usuario.id, surgitag: `${primeiroNome}#${numeroAleatorio}`, nome_completo: primeiroNome
         }]).select().single();
         perfil = novoPerfil;
       }
       setMeuPerfil(perfil);
       carregarListaDeContatos();
     };
-
     inicializar();
   }, [usuario]);
 
-  // 2️⃣ CARREGAR A BARRA LATERAL
   const carregarListaDeContatos = async () => {
     const { data: meusChats } = await supabase.from('chat_participantes').select('chat_id').eq('user_id', usuario.id);
-    if (!meusChats || meusChats.length === 0) {
-      setContatos([]);
-      return;
-    }
-
+    if (!meusChats || meusChats.length === 0) return setContatos([]);
     const chatIds = meusChats.map(c => c.chat_id);
-
     const { data: outrosParticipantes } = await supabase
-      .from('chat_participantes')
-      .select('chat_id, profiles(id, nome_completo, surgitag)')
-      .in('chat_id', chatIds)
-      .neq('user_id', usuario.id); 
+      .from('chat_participantes').select('chat_id, profiles(id, nome_completo, surgitag)')
+      .in('chat_id', chatIds).neq('user_id', usuario.id); 
 
     if (outrosParticipantes) {
-      const listaFormatada = outrosParticipantes.map(p => ({
-        chat_id: p.chat_id,
-        id: p.profiles.id,
-        nome: p.profiles.nome_completo,
-        surgitag: p.profiles.surgitag
-      }));
-      setContatos(listaFormatada);
+      setContatos(outrosParticipantes.map(p => ({
+        chat_id: p.chat_id, id: p.profiles.id, nome: p.profiles.nome_completo, surgitag: p.profiles.surgitag
+      })));
     }
   };
 
-  // 3️⃣ BUSCAR UM USUÁRIO PELA SURGITAG
   const handleBuscarSurgitag = async () => {
-    if (!buscaTag.includes('#')) {
-      setErroBusca('A SurgiTag precisa ter um # (Ex: Carolina#1234)');
-      return;
-    }
-
-    setLoadingBusca(true);
-    setErroBusca('');
-    setResultadoBusca(null);
-
+    if (!buscaTag.includes('#')) return setErroBusca('A SurgiTag precisa ter um # (Ex: Carolina#1234)');
+    setLoadingBusca(true); setErroBusca(''); setResultadoBusca(null);
     const { data, error } = await supabase.from('profiles').select('*').eq('surgitag', buscaTag.trim()).single();
-
-    if (error || !data) {
-      setErroBusca('Nenhum usuário encontrado com essa SurgiTag.');
-    } else if (data.id === usuario.id) {
-      setErroBusca('Você não pode adicionar a si mesmo.');
-    } else {
-      setResultadoBusca(data);
-    }
+    if (error || !data) setErroBusca('Nenhum usuário encontrado com essa SurgiTag.');
+    else if (data.id === usuario.id) setErroBusca('Você não pode adicionar a si mesmo.');
+    else setResultadoBusca(data);
     setLoadingBusca(false);
   };
 
-  // 4️⃣ ADICIONAR O CONTATO (CRIANDO A SALA)
   const handleAdicionarContato = async () => {
     if (!resultadoBusca) return;
-
-    // BLOQUEIO ANTI-DUPLICATA: Verifica se você já tem um chat com essa pessoa
     const chatExistente = contatos.find(c => c.id === resultadoBusca.id);
-    
     if (chatExistente) {
       alert("Vocês já possuem uma conversa ativa!");
       setModalAberto(false);
-      abrirChat(chatExistente.chat_id, { nome: chatExistente.nome, surgitag: chatExistente.surgitag });
-      return;
+      return abrirChat(chatExistente.chat_id, { nome: chatExistente.nome, surgitag: chatExistente.surgitag });
     }
-
-    // Se não existir, cria a sala vazia
     const { data: novoChat } = await supabase.from('chats').insert([{}]).select().single();
-
     await supabase.from('chat_participantes').insert([
-      { chat_id: novoChat.id, user_id: usuario.id },
-      { chat_id: novoChat.id, user_id: resultadoBusca.id }
+      { chat_id: novoChat.id, user_id: usuario.id }, { chat_id: novoChat.id, user_id: resultadoBusca.id }
     ]);
-
-    setModalAberto(false);
-    setBuscaTag('');
-    setResultadoBusca(null);
+    setModalAberto(false); setBuscaTag(''); setResultadoBusca(null);
     carregarListaDeContatos();
-    
     abrirChat(novoChat.id, { nome: resultadoBusca.nome_completo, surgitag: resultadoBusca.surgitag });
   };
 
@@ -134,95 +100,117 @@ function Chat() {
     setContatoAtivo(dadosDoContato);
     
     const { data: historico } = await supabase
-      .from('mensagens')
-      .select('*, profiles(nome_completo)')
-      .eq('chat_id', idDoChat)
-      .order('enviada_em', { ascending: true });
-    
+      .from('mensagens').select('*, profiles(nome_completo)').eq('chat_id', idDoChat).order('enviada_em', { ascending: true });
     setMensagens(historico || []);
-
     supabase.removeAllChannels();
 
     supabase.channel(`sala_${idDoChat}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens', filter: `chat_id=eq.${idDoChat}` }, 
       async (payload) => {
-        // ATUALIZAÇÃO OTIMISTA: Ignora mensagens que EU mesmo enviei via Realtime
-        if (payload.new.sender_id === usuario.id) return;
+        if (payload.new.sender_id === usuario.id) return; // Ignora se fui eu quem enviei
 
         const { data: sender } = await supabase.from('profiles').select('nome_completo').eq('id', payload.new.sender_id).single();
-        setMensagens((prev) => [...prev, { ...payload.new, profiles: sender }]);
+        const msgChegando = { ...payload.new, profiles: sender };
+        
+        setMensagens((prev) => [...prev, msgChegando]);
+
+        // 🌟 TOCA O SOM E MOSTRA O TOAST 🌟
+        somNotificacao.play().catch(() => console.log('Áudio bloqueado pelo navegador.'));
+        setToast({ nome: sender.nome_completo, texto: payload.new.conteudo });
+        setTimeout(() => setToast(null), 4000); // Some depois de 4 segundos
+
       }).subscribe();
   };
 
-  // 6️⃣ ENVIAR MENSAGEM (INSTANTÂNEO)
+  // 6️⃣ ENVIAR MENSAGEM DE TEXTO
   const handleEnviarMensagem = async (e) => {
     e.preventDefault();
     if (mensagem.trim() === '' || !chatAtivoId) return;
-
     const textoEnviado = mensagem;
     setMensagem(''); 
+    const novaMsgTemp = { id: Date.now(), chat_id: chatAtivoId, sender_id: usuario.id, conteudo: textoEnviado, enviada_em: new Date().toISOString() };
+    setMensagens(prev => [...prev, novaMsgTemp]);
 
-    // ATUALIZAÇÃO OTIMISTA: Coloca a mensagem na tela ANTES de salvar no banco
-    const novaMensagemTemporaria = {
-      id: Date.now(), // ID fake só pra não dar erro no map
-      chat_id: chatAtivoId,
-      sender_id: usuario.id,
-      conteudo: textoEnviado,
-      enviada_em: new Date().toISOString(),
-      profiles: { nome_completo: meuPerfil?.nome_completo || 'Você' }
-    };
-
-    setMensagens(prev => [...prev, novaMensagemTemporaria]);
-
-    // Manda pro banco "escondido"
-    await supabase.from('mensagens').insert([{
-      chat_id: chatAtivoId,
-      sender_id: usuario.id,
-      conteudo: textoEnviado
-    }]);
+    await supabase.from('mensagens').insert([{ chat_id: chatAtivoId, sender_id: usuario.id, conteudo: textoEnviado }]);
   };
 
-  // 7️⃣ EXCLUIR CHAT
-  const handleExcluirChat = async () => {
-    if (!window.confirm(`Tem certeza que deseja excluir toda a conversa com ${contatoAtivo?.nome}? Isso apagará todas as mensagens permanentemente.`)) {
-      return;
+  // 🌟 NOVO 7️⃣ ENVIAR ANEXO (PDF/IMAGEM)
+  const handleUploadAnexo = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !chatAtivoId) return;
+
+    setEnviandoAnexo(true);
+
+    // 1. Gera um nome único pro arquivo para não dar conflito
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const filePath = `${chatAtivoId}/${fileName}`; // Organiza por pasta de chat no banco
+
+    try {
+      // 2. Sobe para o Storage do Supabase (Bucket 'chat_anexos')
+      const { error: uploadError } = await supabase.storage.from('chat_anexos').upload(filePath, file);
+      if (uploadError) throw uploadError;
+
+      // 3. Pega o Link Público da imagem/PDF
+      const { data } = supabase.storage.from('chat_anexos').getPublicUrl(filePath);
+
+      // 4. Insere a mensagem no Chat com a URL
+      const conteudoMsg = `📎 ${file.name}`; // Texto bonitinho
+      
+      const novaMsgTemp = { id: Date.now(), chat_id: chatAtivoId, sender_id: usuario.id, conteudo: conteudoMsg, anexo_url: data.publicUrl, enviada_em: new Date().toISOString() };
+      setMensagens(prev => [...prev, novaMsgTemp]); // Atualiza tela na hora
+
+      await supabase.from('mensagens').insert([{
+        chat_id: chatAtivoId,
+        sender_id: usuario.id,
+        conteudo: conteudoMsg,
+        anexo_url: data.publicUrl
+      }]);
+
+    } catch (error) {
+      alert('Erro ao enviar anexo. Verifique se o arquivo não é muito grande.');
+      console.error(error);
+    } finally {
+      setEnviandoAnexo(false);
+      arquivoInputRef.current.value = ""; // Limpa o input
     }
+  };
 
-    // Deleta o chat do banco (O supabase apaga as mensagens e participantes em cascata)
+  const handleExcluirChat = async () => {
+    if (!window.confirm(`Tem certeza que deseja excluir toda a conversa com ${contatoAtivo?.nome}? Isso apagará todas as mensagens permanentemente.`)) return;
     await supabase.from('chats').delete().eq('id', chatAtivoId);
-
-    // Limpa a tela
-    setChatAtivoId(null);
-    setContatoAtivo(null);
-    setMensagens([]);
-    carregarListaDeContatos(); // Recarrega a barra lateral para sumir de lá
+    setChatAtivoId(null); setContatoAtivo(null); setMensagens([]); carregarListaDeContatos(); 
   };
 
   return (
     <div style={{ display: 'flex', height: '100%', minHeight: '600px', background: 'white', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', overflow: 'hidden', position: 'relative' }}>
       
-      {/* MODAL DE ADICIONAR CONTATO */}
+      {/* 🌟 NOTIFICAÇÃO FLUTUANTE (TOAST) 🌟 */}
+      {toast && (
+        <div style={{
+          position: 'absolute', top: '20px', right: '20px', zIndex: 100, background: '#1e293b', color: 'white', padding: '15px 20px', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: '15px', animation: 'slideIn 0.3s ease-out'
+        }}>
+          <div style={{ background: '#10b981', padding: '8px', borderRadius: '50%', display: 'flex' }}><Bell size={18} color="white" /></div>
+          <div>
+            <h4 style={{ margin: '0 0 4px 0', fontSize: '0.9rem', fontWeight: '700' }}>{toast.nome}</h4>
+            <p style={{ margin: 0, fontSize: '0.8rem', color: '#cbd5e1' }}>{toast.texto.length > 30 ? toast.texto.substring(0,30) + '...' : toast.texto}</p>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE BUSCA (Mantido igual) */}
       {modalAberto && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(15, 23, 42, 0.7)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-content" style={{ background: 'white', padding: '24px', borderRadius: '16px', width: '400px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+          <div className="modal-content" style={{ background: 'white', padding: '24px', borderRadius: '16px', width: '400px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ margin: 0, color: '#1e293b' }}>Adicionar à Equipe</h3>
               <X size={20} color="#64748b" style={{ cursor: 'pointer' }} onClick={() => setModalAberto(false)} />
             </div>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '15px' }}>Digite a SurgiTag única do profissional (Ex: Carolina#8249).</p>
             <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-              <input 
-                type="text" 
-                value={buscaTag}
-                onChange={(e) => setBuscaTag(e.target.value)}
-                placeholder="Ex: Murilo#1024"
-                style={{ flex: 1, boxSizing: 'border-box', padding: '10px 15px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
-              />
-              <button onClick={handleBuscarSurgitag} style={{ background: '#1e293b', color: 'white', border: 'none', padding: '0 15px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
-                {loadingBusca ? 'Buscando...' : 'Buscar'}
-              </button>
+              <input type="text" value={buscaTag} onChange={(e) => setBuscaTag(e.target.value)} placeholder="Ex: Murilo#1024" style={{ flex: 1, boxSizing: 'border-box', padding: '10px 15px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
+              <button onClick={handleBuscarSurgitag} style={{ background: '#1e293b', color: 'white', border: 'none', padding: '0 15px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>{loadingBusca ? 'Buscando...' : 'Buscar'}</button>
             </div>
-            {erroBusca && <p style={{ color: '#ef4444', fontSize: '0.8rem', margin: '0 0 15px 0' }}>{erroBusca}</p>}
+            {erroBusca && <p style={{ color: '#ef4444', fontSize: '0.8rem' }}>{erroBusca}</p>}
             {resultadoBusca && (
               <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -232,9 +220,7 @@ function Chat() {
                     <span style={{ fontSize: '0.75rem', color: '#6C63FF', fontWeight: '600' }}>{resultadoBusca.surgitag}</span>
                   </div>
                 </div>
-                <button onClick={handleAdicionarContato} style={{ background: '#10b981', color: 'white', border: 'none', width: '36px', height: '36px', borderRadius: '18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Check size={18} />
-                </button>
+                <button onClick={handleAdicionarContato} style={{ background: '#10b981', color: 'white', border: 'none', width: '36px', height: '36px', borderRadius: '18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Check size={18} /></button>
               </div>
             )}
           </div>
@@ -249,44 +235,28 @@ function Chat() {
               <h2 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', color: '#1e293b', fontWeight: '700' }}>Equipe</h2>
               {meuPerfil && <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Minha Tag: <strong style={{ color: '#6C63FF', userSelect: 'all' }}>{meuPerfil.surgitag}</strong></span>}
             </div>
-            <button onClick={() => setModalAberto(true)} style={{ background: '#6C63FF', color: 'white', border: 'none', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'} onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-              <Plus size={18} />
-            </button>
+            <button onClick={() => setModalAberto(true)} style={{ background: '#6C63FF', color: 'white', border: 'none', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Plus size={18} /></button>
           </div>
           <div style={{ position: 'relative' }}>
             <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '10px' }} />
             <input type="text" placeholder="Filtrar conversas..." style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px 8px 35px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.85rem' }} />
           </div>
         </div>
-
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          {contatos.length === 0 ? (
-            <div style={{ padding: '30px 20px', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
-              Nenhuma conversa iniciada.<br/>Clique no <b>+</b> para adicionar alguém.
-            </div>
-          ) : (
-            contatos.map(contato => (
-              <div 
-                key={contato.chat_id} 
-                onClick={() => abrirChat(contato.chat_id, contato)}
-                style={{ display: 'flex', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #e2e8f0', cursor: 'pointer', background: chatAtivoId === contato.chat_id ? '#eff6ff' : 'transparent', borderLeft: chatAtivoId === contato.chat_id ? '4px solid #6C63FF' : '4px solid transparent' }}
-              >
-                <div style={{ position: 'relative', marginRight: '12px' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '20px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><User size={20} color="#64748b" /></div>
-                </div>
-                <div>
-                  <h4 style={{ margin: '0 0 2px 0', fontSize: '0.9rem', color: '#1e293b' }}>{contato.nome || 'Usuário'}</h4>
-                  <p style={{ margin: 0, fontSize: '0.75rem', color: '#6C63FF', fontWeight: '600' }}>{contato.surgitag}</p>
-                </div>
+          {contatos.map(contato => (
+            <div key={contato.chat_id} onClick={() => abrirChat(contato.chat_id, contato)} style={{ display: 'flex', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #e2e8f0', cursor: 'pointer', background: chatAtivoId === contato.chat_id ? '#eff6ff' : 'transparent', borderLeft: chatAtivoId === contato.chat_id ? '4px solid #6C63FF' : '4px solid transparent' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '20px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '12px' }}><User size={20} color="#64748b" /></div>
+              <div>
+                <h4 style={{ margin: '0 0 2px 0', fontSize: '0.9rem', color: '#1e293b' }}>{contato.nome}</h4>
+                <p style={{ margin: 0, fontSize: '0.75rem', color: '#6C63FF', fontWeight: '600' }}>{contato.surgitag}</p>
               </div>
-            ))
-          )}
+            </div>
+          ))}
         </div>
       </div>
 
       {/* 🔴 ÁREA DO CHAT */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: chatAtivoId ? 'white' : '#f8fafc' }}>
-        
         {!chatAtivoId ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
              <div style={{ width: '60px', height: '60px', background: '#e2e8f0', borderRadius: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px' }}><Info size={30} color="#64748b" /></div>
@@ -297,19 +267,8 @@ function Chat() {
             <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <h3 style={{ margin: 0, color: '#1e293b' }}>{contatoAtivo?.nome}</h3>
-                <span style={{ fontSize: '0.75rem', padding: '2px 8px', background: '#e0e7ff', color: '#4338ca', borderRadius: '12px', fontWeight: '600' }}>Equipe</span>
               </div>
-              
-              {/* 👈 NOVO: BOTÃO LIXEIRA PARA APAGAR O CHAT 👇 */}
-              <button 
-                onClick={handleExcluirChat} 
-                title="Excluir Conversa"
-                style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', transition: '0.2s' }}
-                onMouseOver={(e) => e.currentTarget.style.background = '#fef2f2'}
-                onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
-              >
-                <Trash2 size={20} />
-              </button>
+              <button onClick={handleExcluirChat} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '8px', borderRadius: '8px', display: 'flex' }}><Trash2 size={20} /></button>
             </div>
 
             <div style={{ flex: 1, padding: '20px', overflowY: 'auto', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '15px' }}>
@@ -320,17 +279,24 @@ function Chat() {
                 return (
                   <div key={msg.id} style={{ alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '65%' }}>
                     <div style={{
-                      background: isMe ? '#6C63FF' : 'white',
-                      color: isMe ? 'white' : '#334155',
-                      padding: '12px 16px',
-                      borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                      border: isMe ? 'none' : '1px solid #e2e8f0',
-                      fontSize: '0.9rem',
-                      lineHeight: '1.4',
-                      wordBreak: 'break-word'
+                      background: isMe ? '#6C63FF' : 'white', color: isMe ? 'white' : '#334155',
+                      padding: '12px 16px', borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.05)', border: isMe ? 'none' : '1px solid #e2e8f0',
+                      fontSize: '0.9rem', lineHeight: '1.4', wordBreak: 'break-word'
                     }}>
-                      {msg.conteudo}
+                      
+                      {/* 🌟 NOVO: SE FOR ANEXO, MOSTRA COMO LINK CLICÁVEL */}
+                      {msg.anexo_url ? (
+                        <a href={msg.anexo_url} target="_blank" rel="noopener noreferrer" style={{ color: isMe ? 'white' : '#6C63FF', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600' }}>
+                          <div style={{ background: isMe ? 'rgba(255,255,255,0.2)' : '#eff6ff', padding: '8px', borderRadius: '8px', display: 'flex' }}>
+                            <Paperclip size={18} />
+                          </div>
+                          {msg.conteudo.replace('📎 ', '')}
+                        </a>
+                      ) : (
+                        msg.conteudo // Se não for anexo, mostra o texto normal
+                      )}
+
                     </div>
                     <span style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: '4px', display: 'block', textAlign: isMe ? 'right' : 'left' }}>{hora}</span>
                   </div>
@@ -341,7 +307,18 @@ function Chat() {
 
             <div style={{ padding: '20px', borderTop: '1px solid #e2e8f0', background: 'white' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#f1f5f9', padding: '8px 15px', borderRadius: '24px' }}>
-                <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex' }}><Paperclip size={20} /></button>
+                
+                {/* 🌟 NOVO: O BOTÃO E O INPUT INVISÍVEL DE ARQUIVO 🌟 */}
+                <input type="file" ref={arquivoInputRef} onChange={handleUploadAnexo} style={{ display: 'none' }} accept="image/*,application/pdf" />
+                <button 
+                  onClick={() => arquivoInputRef.current.click()} 
+                  disabled={enviandoAnexo}
+                  title="Anexar Imagem ou PDF"
+                  style={{ background: 'none', border: 'none', cursor: enviandoAnexo ? 'not-allowed' : 'pointer', color: enviandoAnexo ? '#cbd5e1' : '#64748b', display: 'flex' }}
+                >
+                  {enviandoAnexo ? <Loader2 size={20} className="lucide-spin" /> : <Paperclip size={20} />}
+                </button>
+
                 <input 
                   type="text" 
                   placeholder="Digite sua mensagem..." 
@@ -358,6 +335,16 @@ function Chat() {
           </>
         )}
       </div>
+      
+      {/* Classe CSS extra para a animação do Toast deslizar */}
+      <style>{`
+        @keyframes slideIn {
+          from { transform: translateY(-20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        .lucide-spin { animation: spin 2s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 }
