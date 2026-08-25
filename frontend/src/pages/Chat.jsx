@@ -185,15 +185,31 @@ function Chat() {
   return (
     <div style={{ display: 'flex', height: '100%', minHeight: '600px', background: 'white', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', overflow: 'hidden', position: 'relative' }}>
       
-      {/* 🌟 NOTIFICAÇÃO FLUTUANTE (TOAST) 🌟 */}
+      {/* 🌟 NOTIFICAÇÃO FLUTUANTE (TOAST) CORRIGIDA 🌟 */}
       {toast && (
         <div style={{
-          position: 'absolute', top: '20px', right: '20px', zIndex: 100, background: '#1e293b', color: 'white', padding: '15px 20px', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: '15px', animation: 'slideIn 0.3s ease-out'
+          position: 'fixed', /* 👈 Agora é fixed, escapa de qualquer caixa! */
+          top: '90px',       /* 👈 Fica no topo direito, abaixo do cabeçalho */
+          right: '30px', 
+          zIndex: 999999,    /* 👈 Camada altíssima pra ficar por cima de tudo */
+          background: '#1e293b', 
+          color: 'white', 
+          padding: '15px 20px', 
+          borderRadius: '12px', 
+          boxShadow: '0 10px 25px rgba(0,0,0,0.2)', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '15px', 
+          animation: 'slideIn 0.3s ease-out'
         }}>
-          <div style={{ background: '#10b981', padding: '8px', borderRadius: '50%', display: 'flex' }}><Bell size={18} color="white" /></div>
+          <div style={{ background: '#10b981', padding: '8px', borderRadius: '50%', display: 'flex' }}>
+            <Bell size={18} color="white" />
+          </div>
           <div>
             <h4 style={{ margin: '0 0 4px 0', fontSize: '0.9rem', fontWeight: '700' }}>{toast.nome}</h4>
-            <p style={{ margin: 0, fontSize: '0.8rem', color: '#cbd5e1' }}>{toast.texto.length > 30 ? toast.texto.substring(0,30) + '...' : toast.texto}</p>
+            <p style={{ margin: 0, fontSize: '0.8rem', color: '#cbd5e1' }}>
+              {toast.texto.length > 30 ? toast.texto.substring(0,30) + '...' : toast.texto}
+            </p>
           </div>
         </div>
       )}
