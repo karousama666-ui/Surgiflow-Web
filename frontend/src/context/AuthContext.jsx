@@ -6,17 +6,42 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
     const [usuario, setUsuario] = useState(null);
     const [loading, setLoading] = useState(true);
+    
+    // 👇 NOVO: O Estado que guarda de quem é a Clínica!
+    const [workspaceId, setWorkspaceId] = useState(null); 
 
     useEffect(() => {
         // 1. Força o React a ESPERAR o Supabase ir no cofre do navegador buscar a sessão
         supabase.auth.getSession().then(({ data: { session } }) => {
-            setUsuario(session?.user ?? null);
+            const user = session?.user ?? null;
+            setUsuario(user);
+            
+            // 👇 NOVO: Define a Chave Mestra logo no login!
+            if (user) {
+                // Tenta achar se o usuário tem um "Chefe" gravado nos metadados
+                const chefaoId = user.user_metadata?.conta_chefe_id;
+                // Se tiver chefe, o Workspace é o chefe. Se não, é o próprio usuário.
+                setWorkspaceId(chefaoId ? chefaoId : user.id);
+            } else {
+                setWorkspaceId(null);
+            }
+            
             setLoading(false);
         });
 
         // 2. O "Olheiro": Fica monitorando se a sessão expirou, se fez login em outra aba, etc.
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUsuario(session?.user ?? null);
+            const user = session?.user ?? null;
+            setUsuario(user);
+            
+            // 👇 NOVO: Mantém a Chave Mestra atualizada
+            if (user) {
+                const chefaoId = user.user_metadata?.conta_chefe_id;
+                setWorkspaceId(chefaoId ? chefaoId : user.id);
+            } else {
+                setWorkspaceId(null);
+            }
+            
             setLoading(false);
         });
 
@@ -49,7 +74,8 @@ export function AuthProvider({ children }) {
     };
 
     return (
-        <AuthContext.Provider value={{ usuario, login, logout, recuperarSenha, loading }}>
+        // 👇 NOVO: Exportamos o workspaceId para todos os outros Contextos usarem!
+        <AuthContext.Provider value={{ usuario, workspaceId, login, logout, recuperarSenha, loading }}>
             {/* O pulo do gato: O aplicativo inteiro SÓ carrega depois que o loading for false */}
             {!loading && children} 
         </AuthContext.Provider>
