@@ -1,4 +1,4 @@
-import { FileText, Eye, Building2, CalendarDays, UserRound, Clock, Package } from "lucide-react";
+import { FileText, Eye, Building2, CalendarDays, UserRound, Clock, Package, Syringe } from "lucide-react"; // 👈 Importamos o Syringe
 import "./PedidoCard.css";
 
 function PedidoCard({ cirurgia, pedido, onPreview }) {
@@ -53,6 +53,13 @@ function PedidoCard({ cirurgia, pedido, onPreview }) {
                 <p>
                     <Building2 size={16} />
                     <span>{cirurgia.hospital || "Hospital não informado"}</span>
+                </p>
+                {/* 🌟 NOVO: PROCEDIMENTO NO CARTÃO 🌟 */}
+                <p>
+                    <Syringe size={16} />
+                    <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "200px" }}>
+                        {cirurgia.procedimento || "Procedimento não informado"}
+                    </span>
                 </p>
                 <p>
                     <CalendarDays size={16} />

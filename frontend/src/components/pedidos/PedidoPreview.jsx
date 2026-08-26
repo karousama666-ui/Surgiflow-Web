@@ -4,7 +4,7 @@ import "./PedidoPreview.css";
 import logoDocumento from "../../assets/logopdf.png";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { User, Stethoscope, Building2, CalendarDays, Clock3, CircleCheck, FileText, Package } from "lucide-react";
+import { User, Stethoscope, Building2, CalendarDays, Clock3, CircleCheck, FileText, Package, Syringe } from "lucide-react"; // 👈 Importamos o Syringe
 import { usePedidos } from "../../context/PedidosContext";
 
 function PedidoPreview({ cirurgia, pedido, isOpen, onClose }) {
@@ -37,21 +37,17 @@ function PedidoPreview({ cirurgia, pedido, isOpen, onClose }) {
         setForm({ ...form, [e.target.name]: e.target.value });
     }
 
-    // A NOVA FUNÇÃO COM O CINTO DE SEGURANÇA (TRY...CATCH) 🛑
     async function handleSalvarOPME() {
         try {
             const dados = { ...form, cirurgia_id: cirurgia.id };
             if (pedido?.id) dados.id = pedido.id;
 
-            // Tenta salvar no Supabase...
             await salvarPedido(dados);
             
-            // Se deu certo, avisa o usuário e fecha o modal
             alert("✅ Pedido OPME salvo com sucesso!");
             onClose(); 
 
         } catch (error) {
-            // Se der erro de segurança (RLS) ou conexão, grita na tela!
             console.error("Erro ao salvar OPME:", error);
             alert("❌ Ops! Erro ao salvar o pedido: " + (error.message || "Verifique o console apertando F12"));
         }
@@ -87,24 +83,20 @@ function PedidoPreview({ cirurgia, pedido, isOpen, onClose }) {
 
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
-            {/* CONTAINER PRINCIPAL BLINDADO */}
             <div style={{ 
                 width: "100%", maxWidth: "650px", display: "flex", flexDirection: "column",
                 fontFamily: "'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                 color: "#1e293b"
             }}>
                 
-                {/* ÁREA COM ROLAGEM INTERNA */}
                 <div style={{ maxHeight: "70vh", overflowY: "auto", overflowX: "hidden", paddingRight: "10px" }}>
                     <div ref={pdfRef} style={{ background: "white", padding: "10px 15px" }}>
                         
-                        {/* CABEÇALHO */}
                         <div style={{ textAlign: "center", borderBottom: "1px solid #f1f5f9", paddingBottom: "20px", marginBottom: "25px" }}>
                             <img src={logoDocumento} alt="SurgiFlow" style={{ height: "45px", marginBottom: "15px", objectFit: "contain" }} onError={(e) => e.target.style.display = 'none'} />
                             <h2 style={{ fontSize: "1.4rem", fontWeight: "800", color: "#0f172a", margin: 0 }}>Pedido Cirúrgico / OPME</h2>
                         </div>
 
-                        {/* GRID DE INFORMAÇÕES DO PACIENTE */}
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "30px" }}>
                             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#6C63FF", fontSize: "0.85rem", fontWeight: "700", textTransform: "uppercase" }}>
@@ -134,6 +126,14 @@ function PedidoPreview({ cirurgia, pedido, isOpen, onClose }) {
                                 <span style={{ fontSize: "1.05rem", fontWeight: "600" }}>{cirurgia.convenio}</span>
                             </div>
 
+                            {/* 🌟 NOVO: CAMPO DE PROCEDIMENTO NA JANELA PDF 🌟 */}
+                            <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: "4px" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#6C63FF", fontSize: "0.85rem", fontWeight: "700", textTransform: "uppercase" }}>
+                                    <Syringe size={16} /> Procedimento Cirúrgico
+                                </div>
+                                <span style={{ fontSize: "1.05rem", fontWeight: "600" }}>{cirurgia.procedimento || "Não informado"}</span>
+                            </div>
+
                             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#6C63FF", fontSize: "0.85rem", fontWeight: "700", textTransform: "uppercase" }}>
                                     <CalendarDays size={16} /> Data
@@ -156,7 +156,6 @@ function PedidoPreview({ cirurgia, pedido, isOpen, onClose }) {
                             </div>
                         </div>
 
-                        {/* FORMULÁRIO OPME */}
                         <div style={{ borderTop: "2px solid #f1f5f9", paddingTop: "25px" }}>
                             <h3 style={{ color: "#0f172a", fontSize: "1.1rem", margin: "0 0 20px 0", display: "flex", alignItems: "center", gap: "8px", fontWeight: "700" }}>
                                 <Package size={20} color="#6C63FF" /> Especificações de OPME
@@ -185,14 +184,12 @@ function PedidoPreview({ cirurgia, pedido, isOpen, onClose }) {
                             </div>
                         </div>
 
-                        {/* RODAPÉ DO PDF */}
                         <div style={{ marginTop: "30px", textAlign: "center", color: "#94a3b8", fontSize: "0.8rem", fontWeight: "500" }}>
                             Documento gerado e auditado pelo <strong>SurgiFlow</strong>
                         </div>
                     </div>
                 </div>
 
-                {/* BOTÕES DE AÇÃO */}
                 <div style={{ display: "flex", gap: "15px", marginTop: "20px", paddingTop: "20px", borderTop: "1px solid #e2e8f0" }}>
                     <button
                         onClick={handleSalvarOPME}
