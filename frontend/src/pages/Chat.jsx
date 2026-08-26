@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, Search, Plus, User, Info, X, Check, Trash2, Loader2, Volume2, Smile, ChevronDown } from 'lucide-react';
+import { Send, Paperclip, Search, Plus, User, Info, X, Check, Trash2, Loader2, Volume2, Smile, ChevronDown, ArrowLeft } from 'lucide-react'; // 👈 NOVO: Importamos o ArrowLeft
 import { supabase } from '../services/supabase'; 
 import { useAuth } from '../context/AuthContext'; 
 
 const somNotificacao = new Audio("https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3");
 
-// 🌟 NOVO: CONFIGURAÇÃO DE CORES DOS STATUS
+// 🌟 CONFIGURAÇÃO DE CORES DOS STATUS
 const STATUS_CONFIG = {
   online: { cor: '#10b981', label: 'Online' },
   ocupado: { cor: '#ef4444', label: 'Ocupado' },
@@ -14,7 +14,7 @@ const STATUS_CONFIG = {
   offline: { cor: '#94a3b8', label: 'Offline' }
 };
 
-// 🌟 NOVO: MINI TECLADO DE EMOJIS
+// 🌟 MINI TECLADO DE EMOJIS
 const EMOJIS = ['😀','😂','🤣','🥰','😍','😎','🤔','🙄','😴','😷','🤐','🙌','👍','👎','🙏','💪','🔥','🎉','❤️','💔','👀','✅','❌','💡','⭐'];
 
 function Chat() {
@@ -27,7 +27,6 @@ function Chat() {
   const [contatoAtivo, setContatoAtivo] = useState(null);
   const [meuPerfil, setMeuPerfil] = useState(null);
 
-  // 🌟 NOVO: Estados de Status e Emojis
   const [meuStatus, setMeuStatus] = useState('online');
   const [mostrarMenuStatus, setMostrarMenuStatus] = useState(false);
   const [mostrarEmojis, setMostrarEmojis] = useState(false);
@@ -53,7 +52,6 @@ function Chat() {
       .catch((e) => alert("❌ O navegador bloqueou o som. Verifique as permissões."));
   };
 
-  // 1️⃣ CARREGAMENTO INICIAL
   useEffect(() => {
     if (!usuario) return;
     const inicializar = async () => {
@@ -72,13 +70,9 @@ function Chat() {
     };
     inicializar();
 
-    // 🌟 NOVO: ESCUTAR MUDANÇAS DE STATUS DOS COLEGAS EM TEMPO REAL
     const canalStatus = supabase.channel('status_radar')
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, (payload) => {
-         // Atualiza a bolinha de cor na barra lateral na hora que o colega mudar!
          setContatos(prev => prev.map(c => c.id === payload.new.id ? { ...c, status: payload.new.status } : c));
-         
-         // Se eu estiver com a conversa dessa pessoa aberta, atualiza o topo da tela
          setContatoAtivo(prev => (prev && prev.id === payload.new.id) ? { ...prev, status: payload.new.status } : prev);
       }).subscribe();
 
@@ -90,7 +84,6 @@ function Chat() {
     if (!meusChats || meusChats.length === 0) return setContatos([]);
     const chatIds = meusChats.map(c => c.chat_id);
     
-    // Busca os participantes e também puxa a coluna de status deles
     const { data: outrosParticipantes } = await supabase
       .from('chat_participantes').select('chat_id, profiles(id, nome_completo, surgitag, status)')
       .in('chat_id', chatIds).neq('user_id', usuario.id); 
@@ -102,14 +95,12 @@ function Chat() {
     }
   };
 
-  // 🌟 NOVO: FUNÇÃO PARA MUDAR SEU PRÓPRIO STATUS
   const handleMudarStatus = async (novoStatus) => {
-    setMeuStatus(novoStatus); // Atualiza na tela instantaneamente
+    setMeuStatus(novoStatus); 
     setMostrarMenuStatus(false);
-    await supabase.from('profiles').update({ status: novoStatus }).eq('id', usuario.id); // Salva no banco
+    await supabase.from('profiles').update({ status: novoStatus }).eq('id', usuario.id); 
   };
 
-  // 🌟 NOVO: FUNÇÃO PARA CLICAR NUM EMOJI
   const adicionarEmoji = (emoji) => {
     setMensagem(prev => prev + emoji);
     setMostrarEmojis(false);
@@ -142,7 +133,6 @@ function Chat() {
     abrirChat(novoChat.id, { id: resultadoBusca.id, nome: resultadoBusca.nome_completo, surgitag: resultadoBusca.surgitag, status: resultadoBusca.status });
   };
 
-  // 5️⃣ ABRIR UM CHAT
   const abrirChat = async (idDoChat, dadosDoContato) => {
     setChatAtivoId(idDoChat);
     setContatoAtivo(dadosDoContato);
@@ -151,12 +141,12 @@ function Chat() {
       .from('mensagens').select('*, profiles(nome_completo)').eq('chat_id', idDoChat).order('enviada_em', { ascending: true });
     setMensagens(historico || []);
     
-    supabase.removeAllChannels(); // Remove o escutador do chat anterior
+    supabase.removeAllChannels(); 
 
     supabase.channel(`sala_${idDoChat}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens', filter: `chat_id=eq.${idDoChat}` }, 
       async (payload) => {
-        if (payload.new.sender_id === usuario.id) return; // Ignora se fui eu
+        if (payload.new.sender_id === usuario.id) return; 
         const { data: sender } = await supabase.from('profiles').select('nome_completo').eq('id', payload.new.sender_id).single();
         setMensagens((prev) => [...prev, { ...payload.new, profiles: sender }]);
       }).subscribe();
@@ -209,19 +199,19 @@ function Chat() {
   };
 
   return (
-    <div style={{ display: 'flex', height: '100%', minHeight: '600px', background: 'white', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', overflow: 'hidden', position: 'relative' }}>
+    <div className="chat-container" style={{ display: 'flex', height: '100%', minHeight: '600px', background: 'white', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', overflow: 'hidden', position: 'relative' }}>
       
-      {/* MODAL DE BUSCA (Mantido igual) */}
+      {/* MODAL DE BUSCA RESPONSIVO */}
       {modalAberto && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(15, 23, 42, 0.7)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-content" style={{ background: 'white', padding: '24px', borderRadius: '16px', width: '400px' }}>
+          <div className="modal-content" style={{ background: 'white', padding: '24px', borderRadius: '16px', width: '90%', maxWidth: '400px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ margin: 0, color: '#1e293b' }}>Adicionar à Equipe</h3>
               <X size={20} color="#64748b" style={{ cursor: 'pointer' }} onClick={() => setModalAberto(false)} />
             </div>
             <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
               <input type="text" value={buscaTag} onChange={(e) => setBuscaTag(e.target.value)} placeholder="Ex: Murilo#1024" style={{ flex: 1, boxSizing: 'border-box', padding: '10px 15px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
-              <button onClick={handleBuscarSurgitag} style={{ background: '#1e293b', color: 'white', border: 'none', padding: '0 15px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>{loadingBusca ? 'Buscando...' : 'Buscar'}</button>
+              <button onClick={handleBuscarSurgitag} style={{ background: '#1e293b', color: 'white', border: 'none', padding: '0 15px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>{loadingBusca ? '...' : 'Buscar'}</button>
             </div>
             {erroBusca && <p style={{ color: '#ef4444', fontSize: '0.8rem' }}>{erroBusca}</p>}
             {resultadoBusca && (
@@ -241,7 +231,7 @@ function Chat() {
       )}
 
       {/* 🔴 BARRA LATERAL (CONTATOS E STATUS) */}
-      <div style={{ width: '320px', borderRight: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', background: '#f8fafc' }}>
+      <div className={`chat-sidebar ${chatAtivoId ? 'oculto-mobile' : ''}`} style={{ width: '320px', borderRight: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', background: '#f8fafc', flexShrink: 0 }}>
         <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', background: 'white' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <div>
@@ -251,7 +241,6 @@ function Chat() {
             <button onClick={() => setModalAberto(true)} style={{ background: '#6C63FF', color: 'white', border: 'none', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Plus size={18} /></button>
           </div>
           
-          {/* 🌟 NOVO: O SEU SELETOR DE STATUS */}
           <div style={{ position: 'relative', marginBottom: '15px' }}>
             <button 
               onClick={() => setMostrarMenuStatus(!mostrarMenuStatus)}
@@ -262,7 +251,6 @@ function Chat() {
               <ChevronDown size={14} color="#94a3b8" />
             </button>
 
-            {/* Menu Dropdown de Status */}
             {mostrarMenuStatus && (
               <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '5px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', zIndex: 10, width: '150px' }}>
                 {Object.keys(STATUS_CONFIG).map(statusKey => (
@@ -290,15 +278,12 @@ function Chat() {
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {contatos.map(contato => (
             <div key={contato.chat_id} onClick={() => abrirChat(contato.chat_id, contato)} style={{ display: 'flex', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #e2e8f0', cursor: 'pointer', background: chatAtivoId === contato.chat_id ? '#eff6ff' : 'transparent', borderLeft: chatAtivoId === contato.chat_id ? '4px solid #6C63FF' : '4px solid transparent' }}>
-              
-              {/* 🌟 NOVO: BOLINHA DE STATUS NA FOTO DO CONTATO */}
               <div style={{ position: 'relative', marginRight: '12px' }}>
                 <div style={{ width: '40px', height: '40px', borderRadius: '20px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <User size={20} color="#64748b" />
                 </div>
                 <div style={{ position: 'absolute', bottom: '-2px', right: '-2px', width: '14px', height: '14px', background: STATUS_CONFIG[contato.status]?.cor || '#94a3b8', borderRadius: '50%', border: '2px solid white' }} />
               </div>
-
               <div>
                 <h4 style={{ margin: '0 0 2px 0', fontSize: '0.9rem', color: '#1e293b' }}>{contato.nome}</h4>
                 <p style={{ margin: 0, fontSize: '0.75rem', color: '#6C63FF', fontWeight: '600' }}>{contato.surgitag}</p>
@@ -309,7 +294,7 @@ function Chat() {
       </div>
 
       {/* 🔴 ÁREA DO CHAT */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: chatAtivoId ? 'white' : '#f8fafc' }}>
+      <div className={`chat-main ${!chatAtivoId ? 'oculto-mobile' : ''}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', background: chatAtivoId ? 'white' : '#f8fafc', minWidth: 0 }}>
         {!chatAtivoId ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
              <div style={{ width: '60px', height: '60px', background: '#e2e8f0', borderRadius: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px' }}><Info size={30} color="#64748b" /></div>
@@ -322,8 +307,11 @@ function Chat() {
           <>
             <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {/* 🌟 NOVO: BOTÃO VOLTAR NO CELULAR */}
+                <button className="btn-voltar-mobile" onClick={() => setChatAtivoId(null)} style={{ background: 'transparent', border: 'none', padding: 0, color: '#64748b', cursor: 'pointer' }}>
+                   <ArrowLeft size={24} />
+                </button>
                 <h3 style={{ margin: 0, color: '#1e293b' }}>{contatoAtivo?.nome}</h3>
-                {/* Mostra o status também no cabeçalho do chat */}
                 {contatoAtivo?.status && (
                   <span style={{ fontSize: '0.75rem', color: STATUS_CONFIG[contatoAtivo.status]?.cor, fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: STATUS_CONFIG[contatoAtivo.status]?.cor }} />
@@ -340,7 +328,7 @@ function Chat() {
                 const hora = new Date(msg.enviada_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
                 return (
-                  <div key={msg.id} style={{ alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '65%' }}>
+                  <div key={msg.id} style={{ alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '85%' }}>
                     <div style={{
                       background: isMe ? '#6C63FF' : 'white', color: isMe ? 'white' : '#334155',
                       padding: '12px 16px', borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
@@ -363,11 +351,11 @@ function Chat() {
               <div ref={mensagensFimRef} />
             </div>
 
-            <div style={{ padding: '20px', borderTop: '1px solid #e2e8f0', background: 'white', position: 'relative' }}>
+            <div style={{ padding: '15px', borderTop: '1px solid #e2e8f0', background: 'white', position: 'relative' }}>
               
-              {/* 🌟 NOVO: CAIXA FLUTUANTE DE EMOJIS */}
+              {/* 🌟 CAIXA FLUTUANTE DE EMOJIS (Responsiva) */}
               {mostrarEmojis && (
-                <div style={{ position: 'absolute', bottom: '80px', left: '20px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '15px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px', zIndex: 10 }}>
+                <div className="emoji-picker-mobile" style={{ position: 'absolute', bottom: '80px', left: '20px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '15px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px', zIndex: 10 }}>
                   {EMOJIS.map(emoji => (
                     <span 
                       key={emoji} 
@@ -382,9 +370,7 @@ function Chat() {
                 </div>
               )}
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#f1f5f9', padding: '8px 15px', borderRadius: '24px' }}>
-                
-                {/* Botão de Emoji */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f1f5f9', padding: '8px 12px', borderRadius: '24px' }}>
                 <button onClick={() => setMostrarEmojis(!mostrarEmojis)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: mostrarEmojis ? '#6C63FF' : '#64748b', display: 'flex', transition: '0.2s' }}>
                   <Smile size={20} />
                 </button>
@@ -394,7 +380,7 @@ function Chat() {
                   {enviandoAnexo ? <Loader2 size={20} className="lucide-spin" /> : <Paperclip size={20} />}
                 </button>
                 
-                <input type="text" placeholder="Digite sua mensagem..." value={mensagem} onChange={(e) => setMensagem(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleEnviarMensagem(e)} style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: '0.95rem', color: '#1e293b' }} />
+                <input type="text" placeholder="Digite..." value={mensagem} onChange={(e) => setMensagem(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleEnviarMensagem(e)} style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: '0.95rem', color: '#1e293b', minWidth: '50px' }} />
                 
                 <button onClick={handleEnviarMensagem} style={{ background: '#6C63FF', color: 'white', border: 'none', minWidth: '36px', height: '36px', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                   <Send size={16} />
@@ -405,9 +391,42 @@ function Chat() {
         )}
       </div>
       
+      {/* 📱 REGRAS DE CSS PARA RESPONSIVIDADE MOBILE 📱 */}
       <style>{`
         .lucide-spin { animation: spin 2s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .btn-voltar-mobile { display: none !important; }
+
+        @media (max-width: 768px) {
+          .chat-container {
+            border-radius: 0 !important;
+            min-height: calc(100vh - 140px) !important;
+          }
+          .chat-sidebar {
+            width: 100% !important;
+            border-right: none !important;
+          }
+          .chat-main {
+            width: 100% !important;
+          }
+          .oculto-mobile {
+            display: none !important;
+          }
+          .btn-voltar-mobile {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            margin-right: 5px;
+          }
+          .emoji-picker-mobile {
+            left: 5px !important;
+            right: 5px !important;
+            bottom: 70px !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            width: auto !important;
+          }
+        }
       `}</style>
     </div>
   );
