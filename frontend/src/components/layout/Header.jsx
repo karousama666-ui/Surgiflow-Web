@@ -1,19 +1,16 @@
-import { useState, useMemo, useEffect, useRef } from "react"; 
+import { useState, useEffect, useRef } from "react"; 
 import { useAuth } from "../../context/AuthContext";
-import { useCirurgias } from "../../context/CirurgiasContext";
-import { usePedidos } from "../../context/PedidosContext";
+import { useNotificacoes } from "../../context/NotificacoesContext"; // 👈 NOVO: O Cérebro das Notificações!
 import { useLocation } from "react-router-dom";
-// 👇 Importamos o ícone 'Menu' (Hambúrguer)
-import { Bell, LogOut, AlertCircle, PackageSearch, CheckCircle2, BellOff, Menu } from "lucide-react";
+import { Bell, LogOut, AlertCircle, PackageSearch, CheckCircle2, BellOff, Menu, Check } from "lucide-react";
 import { supabase } from "../../services/supabase.js"; 
 
-// 👇 Recebemos a função onMenuToggle por propriedade
 function Header({ onMenuToggle }) {
     const { logout } = useAuth(); 
     const location = useLocation();
     
-    const { listaCirurgias = [] } = useCirurgias() || {};
-    const { listaPedidos = [] } = usePedidos() || {};
+    // 👇 Puxamos as notificações REAIS do banco de dados!
+    const { notificacoes, naoLidas, marcarComoLida, marcarTodasComoLidas } = useNotificacoes();
 
     const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
     const notificacaoRef = useRef(null);
@@ -46,19 +43,18 @@ function Header({ onMenuToggle }) {
         buscarUsuarioLogado();
     }, []);
 
+    // Fecha o menu de notificações se clicar fora dele
     useEffect(() => {
         function lidarComCliqueFora(event) {
             if (notificacaoRef.current && !notificacaoRef.current.contains(event.target)) {
                 setNotificacoesAbertas(false);
             }
         }
-
         if (notificacoesAbertas) {
             document.addEventListener("mousedown", lidarComCliqueFora);
         } else {
             document.removeEventListener("mousedown", lidarComCliqueFora);
         }
-
         return () => document.removeEventListener("mousedown", lidarComCliqueFora);
     }, [notificacoesAbertas]);
 
@@ -68,58 +64,24 @@ function Header({ onMenuToggle }) {
         return path.charAt(0).toUpperCase() + path.slice(1);
     };
 
-    const notificacoesReais = useMemo(() => {
-        const alertas = [];
-        let idCounter = 1;
+    // Função auxiliar para tentar descobrir o ícone pela palavra-chave
+    const descobrirIcone = (texto) => {
+        const t = texto.toLowerCase();
+        if (t.includes("opme")) return <PackageSearch size={18} color="#f59e0b" style={{ flexShrink: 0 }} />;
+        return <AlertCircle size={18} color="#6C63FF" style={{ flexShrink: 0 }} />;
+    };
 
-        const opmesPendentes = listaPedidos.filter(p => {
-            const status = p.status ? p.status.toLowerCase() : "";
-            return status.includes("aguardando") || status.includes("aprovação") || status.includes("aprovacao");
-        });
-        
-        opmesPendentes.forEach(opme => {
-            const cirurgia = listaCirurgias.find(c => String(c.id) === String(opme.cirurgia_id));
-            const nomePaciente = cirurgia ? cirurgia.paciente : "Paciente não identificado";
-            
-            alertas.push({
-                id: idCounter++,
-                tipo: "opme",
-                texto: `OPME ${opme.status}: ${nomePaciente}`,
-                tempo: "Requer atenção"
-            });
-        });
-
-        const cirurgiasPendentes = listaCirurgias.filter(c => {
-            const status = c.status ? c.status.toLowerCase().trim() : "";
-            return status === "pendente";
-        });
-        
-        cirurgiasPendentes.forEach(cirurgia => {
-            let dataFormatada = "Data a definir";
-            if (cirurgia.data_cirurgia) {
-                const partes = cirurgia.data_cirurgia.split(" ")[0].split("-");
-                if (partes.length === 3) dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
-            }
-
-            alertas.push({
-                id: idCounter++,
-                tipo: "cirurgia",
-                texto: `Cirurgia pendente de confirmação: ${cirurgia.paciente}`,
-                tempo: `Para: ${dataFormatada}`
-            });
-        });
-
-        return alertas.slice(0, 5); 
-    }, [listaCirurgias, listaPedidos]);
-
-    const temAlerta = notificacoesReais.length > 0;
+    // Formata o tempo de forma amigável (Ex: "10:30")
+    const formatarHora = (dataString) => {
+        const data = new Date(dataString);
+        return data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    };
 
     return (
         <header style={{ 
             display: "flex", justifyContent: "space-between", alignItems: "center", 
             padding: "20px 30px", background: "#fff", borderBottom: "1px solid #e2e8f0" 
         }}>
-            {/* 👇 ADICIONAMOS O BOTÃO HAMBÚRGUER AQUI 👇 */}
             <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
                 <button 
                     className="mobile-menu-btn" 
@@ -148,56 +110,75 @@ function Header({ onMenuToggle }) {
                         onClick={() => setNotificacoesAbertas(!notificacoesAbertas)}
                         style={{ 
                             background: notificacoesAbertas ? "#f1f5f9" : "none", 
-                            border: "none", cursor: "pointer", color: temAlerta && notificacoesAtivas ? "#1e293b" : "#64748b", 
+                            border: "none", cursor: "pointer", color: (naoLidas > 0 && notificacoesAtivas) ? "#1e293b" : "#64748b", 
                             padding: "8px", borderRadius: "50%", transition: "0.2s",
                             display: "flex", alignItems: "center", justifyContent: "center"
                         }}
                     >
                         <Bell size={22} />
-                        {temAlerta && notificacoesAtivas && (
-                            <span style={{ position: "absolute", top: "5px", right: "6px", background: "#ef4444", width: "10px", height: "10px", borderRadius: "50%", border: "2px solid #fff" }}></span>
+                        {/* 🔴 A Bolinha Vermelha com o número! */}
+                        {naoLidas > 0 && notificacoesAtivas && (
+                            <span style={{ position: "absolute", top: "-2px", right: "-2px", background: "#ef4444", color: "white", fontSize: "0.65rem", fontWeight: "bold", width: "16px", height: "16px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #fff" }}>
+                                {naoLidas}
+                            </span>
                         )}
                     </button>
 
                     {notificacoesAbertas && (
                         <div className="notificacoes-dropdown" style={{ 
-                            position: "absolute", top: "45px", right: "0", width: "340px", 
+                            position: "absolute", top: "45px", right: "0", width: "350px", 
                             background: "#fff", borderRadius: "12px", boxShadow: "0 10px 25px rgba(0,0,0,0.1)", 
                             border: "1px solid #e2e8f0", zIndex: 9999, overflow: "hidden" 
                         }}>
-                            <div style={{ background: "#f8fafc", padding: "12px 16px", borderBottom: "1px solid #e2e8f0", fontWeight: "700", color: "#1e293b", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                Alertas do Sistema
-                                {notificacoesAtivas && <span style={{ fontSize: "0.75rem", background: "#e2e8f0", color: "#475569", padding: "2px 8px", borderRadius: "10px" }}>{notificacoesReais.length}</span>}
+                            <div style={{ background: "#f8fafc", padding: "12px 16px", borderBottom: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <span style={{ fontWeight: "700", color: "#1e293b" }}>Alertas do Sistema</span>
+                                {naoLidas > 0 && (
+                                    <button onClick={marcarTodasComoLidas} style={{ background: "transparent", border: "none", color: "#6C63FF", fontSize: "0.75rem", fontWeight: "600", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px" }}>
+                                        <Check size={14} /> Marcar todas como lidas
+                                    </button>
+                                )}
                             </div>
                             
-                            <div style={{ maxHeight: "320px", overflowY: "auto" }}>
+                            <div style={{ maxHeight: "350px", overflowY: "auto" }}>
                                 {!notificacoesAtivas ? (
                                     <div style={{ padding: "30px 20px", textAlign: "center", color: "#94a3b8" }}>
                                         <BellOff size={30} color="#cbd5e1" style={{ margin: "0 auto 10px auto" }} />
                                         <p style={{ margin: 0, fontSize: "0.9rem" }}>Notificações desativadas nas Configurações.</p>
                                     </div>
-                                ) : temAlerta ? (
-                                    notificacoesReais.map(notif => (
-                                        <div key={notif.id} style={{ 
-                                            padding: "15px 16px", borderBottom: "1px solid #f1f5f9", 
-                                            display: "flex", gap: "12px", alignItems: "flex-start",
-                                            transition: "background 0.2s", cursor: "pointer"
-                                        }} onMouseOver={(e) => e.currentTarget.style.background = "#f8fafc"} onMouseOut={(e) => e.currentTarget.style.background = "#fff"}>
-                                            {notif.tipo === "opme" && <PackageSearch size={18} color="#f59e0b" style={{ marginTop: "2px", flexShrink: 0 }} />}
-                                            {notif.tipo === "cirurgia" && <AlertCircle size={18} color="#ef4444" style={{ marginTop: "2px", flexShrink: 0 }} />}
+                                ) : notificacoes.length > 0 ? (
+                                    notificacoes.map(notif => (
+                                        <div 
+                                            key={notif.id} 
+                                            onClick={() => !notif.lida && marcarComoLida(notif.id)}
+                                            style={{ 
+                                                padding: "15px 16px", borderBottom: "1px solid #f1f5f9", 
+                                                display: "flex", gap: "12px", alignItems: "flex-start",
+                                                background: notif.lida ? "#ffffff" : "#eff6ff", // Azul clarinho se não foi lida
+                                                transition: "background 0.2s", cursor: notif.lida ? "default" : "pointer"
+                                            }}
+                                            onMouseOver={(e) => { if(!notif.lida) e.currentTarget.style.background = "#e0e7ff" }} 
+                                            onMouseOut={(e) => { if(!notif.lida) e.currentTarget.style.background = "#eff6ff" }}
+                                        >
+                                            {descobrirIcone(notif.texto)}
                                             
-                                            <div>
-                                                <p style={{ margin: "0 0 4px 0", fontSize: "0.85rem", color: "#334155", lineHeight: "1.4", fontWeight: "500" }}>
+                                            <div style={{ flex: 1 }}>
+                                                <p style={{ margin: "0 0 4px 0", fontSize: "0.85rem", color: "#334155", lineHeight: "1.4", fontWeight: notif.lida ? "500" : "700" }}>
                                                     {notif.texto}
                                                 </p>
-                                                <span style={{ fontSize: "0.75rem", color: "#ef4444", fontWeight: "600" }}>{notif.tempo}</span>
+                                                <span style={{ fontSize: "0.75rem", color: "#94a3b8", fontWeight: "500" }}>
+                                                    {formatarHora(notif.data_criacao)}
+                                                </span>
                                             </div>
+                                            
+                                            {!notif.lida && (
+                                                <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#6C63FF", marginTop: "4px" }}></div>
+                                            )}
                                         </div>
                                     ))
                                 ) : (
                                     <div style={{ padding: "30px 20px", textAlign: "center", color: "#94a3b8" }}>
                                         <CheckCircle2 size={30} color="#10b981" style={{ margin: "0 auto 10px auto", opacity: 0.5 }} />
-                                        <p style={{ margin: 0, fontSize: "0.9rem" }}>Nenhuma pendência!<br/>O fluxo cirúrgico está em dia.</p>
+                                        <p style={{ margin: 0, fontSize: "0.9rem" }}>Sua caixa de entrada está vazia.<br/>O fluxo cirúrgico está em dia.</p>
                                     </div>
                                 )}
                             </div>

@@ -7,6 +7,7 @@ import { CirurgiasProvider } from "./context/CirurgiasContext";
 import { MedicosProvider } from "./context/MedicosContext";
 import { PedidosProvider } from "./context/PedidosContext";
 import { PacientesProvider } from "./context/PacientesContext"; 
+import { NotificacoesProvider } from "./context/NotificacoesContext"; // 👈 NOVO: O Cérebro das Notificações!
 
 // Importação do Segurança da Rota e Componentes Visuais
 import RotaProtegida from "./components/RotaProtegida";
@@ -32,7 +33,7 @@ import Pedidos from "./pages/Pedidos";
 import Relatorios from "./pages/Relatorios";
 import Configuracoes from "./pages/Configuracoes";
 import Chat from "./pages/Chat"; 
-import Planos from "./pages/Planos"; // 👈 NOVO: A Tela de Paywall
+import Planos from "./pages/Planos"; 
 
 // ==========================================
 // O "MOLDE" DA PLATAFORMA (Menu, Topo e Fonte)
@@ -75,6 +76,7 @@ function App() {
           <MedicosProvider>
             <PedidosProvider>
               <PacientesProvider> 
+              <NotificacoesProvider> {/* 👈 O Cérebro das Notificações ativado aqui! */}
               
               <Routes>
                 {/* 🔴 ROTAS PÚBLICAS (Telas Cheias) */}
@@ -96,9 +98,10 @@ function App() {
                 <Route path="/relatorios" element={<RotaProtegida><LayoutApp><Relatorios /></LayoutApp></RotaProtegida>} />
                 <Route path="/configuracoes" element={<RotaProtegida><LayoutApp><Configuracoes /></LayoutApp></RotaProtegida>} />
                 <Route path="/chat" element={<RotaProtegida><LayoutApp><Chat /></LayoutApp></RotaProtegida>} />
-                <Route path="/planos" element={<RotaProtegida><LayoutApp><Planos /></LayoutApp></RotaProtegida>} /> {/* 👈 O Check-out está online! */}
+                <Route path="/planos" element={<RotaProtegida><LayoutApp><Planos /></LayoutApp></RotaProtegida>} />
               </Routes>
 
+              </NotificacoesProvider>
               </PacientesProvider>
             </PedidosProvider>
           </MedicosProvider>
