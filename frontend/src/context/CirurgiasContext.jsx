@@ -1,21 +1,18 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "../services/supabase";
-import { useAuth } from "./AuthContext"; // 👈 NOVO: Importamos o AuthContext para roubar o Workspace ID
+import { useAuth } from "./AuthContext"; 
 
 const CirurgiasContext = createContext();
 
 export function CirurgiasProvider({ children }) {
     const [listaCirurgias, setListaCirurgias] = useState([]);
-    
-    // 👈 NOVO: Pega o workspaceId do dono da clínica
     const { workspaceId } = useAuth(); 
 
     useEffect(() => {
-        // Só tenta carregar as cirurgias SE já tiver descoberto quem é o dono do Workspace
         if (workspaceId) {
             carregarCirurgias();
         } else {
-            setListaCirurgias([]); // Zera a lista se fizer logout
+            setListaCirurgias([]); 
         }
     }, [workspaceId]);
 
@@ -23,17 +20,46 @@ export function CirurgiasProvider({ children }) {
         const { data, error } = await supabase
             .from("cirurgias")
             .select(`*, medicos ( nome )`)
-            .eq('user_id', workspaceId) // 👈 O SEGREDO: Só busca as cirurgias desta clínica!
+            .eq('user_id', workspaceId) 
             .order('id', { ascending: false });
 
-        if (error) console.error("Erro ao carregar cirurgias:", error.message);
-        else setListaCirurgias(data || []);
+        if (error) {
+            console.error("Erro ao carregar cirurgias:", error.message);
+        } else {
+            setListaCirurgias(data || []);
+            
+            // 🔔 LÓGICA DO SINO: CIRURGIAS DE HOJE
+            if (data && data.length > 0) {
+                // Pega a data de hoje no formato YYYY-MM-DD
+                const dataAtual = new Date();
+                const hoje = dataAtual.getFullYear() + "-" + String(dataAtual.getMonth() + 1).padStart(2, '0') + "-" + String(dataAtual.getDate()).padStart(2, '0');
+                
+                // Filtra quantas cirurgias estão marcadas para hoje
+                const cirurgiasHoje = data.filter(c => c.data_cirurgia && c.data_cirurgia.startsWith(hoje));
+                
+                if (cirurgiasHoje.length > 0) {
+                    // REGRA ANTI-SPAM: Verifica no banco se já enviamos esse lembrete hoje
+                    const { data: jaNotificou } = await supabase
+                        .from("notificacoes")
+                        .select("id")
+                        .eq("user_id", workspaceId)
+                        .like("texto", "%Cirurgias de hoje%")
+                        .gte("data_criacao", hoje + "T00:00:00Z");
+
+                    if (!jaNotificou || jaNotificou.length === 0) {
+                        await supabase.from("notificacoes").insert([{
+                            user_id: workspaceId,
+                            texto: `📅 Lembrete: Cirurgias de hoje! Você tem ${cirurgiasHoje.length} cirurgia(s) agendada(s) para hoje.`
+                        }]);
+                    }
+                }
+            }
+        }
     }
 
     async function adicionarCirurgia(novaCirurgia) {
         const { id, medicos, ...dados } = novaCirurgia; 
         
-        // 👈 NOVO: Carimba a nova cirurgia com o ID do dono da clínica
         const cirurgiaCarimbada = {
             ...dados,
             user_id: workspaceId 
@@ -49,6 +75,12 @@ export function CirurgiasProvider({ children }) {
             throw error; 
         } else {
             setListaCirurgias([data[0], ...listaCirurgias]);
+            
+            // 🔔 BÔNUS: Avisa a equipe que uma nova cirurgia foi agendada!
+            await supabase.from("notificacoes").insert([{
+                user_id: workspaceId,
+                texto: `🏥 Nova Cirurgia: Foi agendada uma cirurgia para o(a) paciente ${dados.paciente}.`
+            }]);
         }
     }
 
@@ -57,7 +89,7 @@ export function CirurgiasProvider({ children }) {
             .from("cirurgias")
             .update(dadosAtualizados)
             .eq("id", id)
-            .eq("user_id", workspaceId) // 👈 Garante que só pode editar cirurgia da própria clínica
+            .eq("user_id", workspaceId) 
             .select(`*, medicos ( nome )`); 
 
         if (error) {
@@ -75,7 +107,7 @@ export function CirurgiasProvider({ children }) {
             .from("cirurgias")
             .delete()
             .eq("id", id)
-            .eq("user_id", workspaceId); // 👈 Proteção extra de exclusão
+            .eq("user_id", workspaceId); 
             
         if (error) alert("Erro ao excluir: " + error.message);
         else setListaCirurgias(listaCirurgias.filter(c => c.id !== id));
