@@ -1,6 +1,5 @@
 import { useState } from "react";
-// Se quiser fazer o redirecionamento para a tela de pagamento depois, descomente a linha abaixo:
-// import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom"; // 👈 NOVO: O "motorista" que leva pra tela de planos
 import { useCirurgias } from "../context/CirurgiasContext";
 import AgendaTable from "../components/agenda/AgendaTable";
 import SearchBar from "../components/agenda/SearchBar";
@@ -11,9 +10,10 @@ function Agenda() {
     const [modalOpen, setModalOpen] = useState(false);
     const [cirurgiaEditando, setCirurgiaEditando] = useState(null);
     
-    // const navigate = useNavigate(); // Descomente quando for criar a tela de Planos
+    // 👈 NOVO: Inicializa o "motorista"
+    const navigate = useNavigate(); 
 
-    // Puxamos as novas funções poderosas do nosso Contexto!
+    // Puxamos as funções do nosso Contexto
     const { listaCirurgias, adicionarCirurgia, editarCirurgia, excluirCirurgia } = useCirurgias();
 
     // Filtra pelo nome do paciente
@@ -34,24 +34,23 @@ function Agenda() {
             <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "20px" }}>
                 <button
                     onClick={() => {
-                        // 🛑 A BARREIRA (PAYWALL) COMEÇA AQUI 🛑
+                        // 🛑 A BARREIRA (PAYWALL) 🛑
                         if (listaCirurgias.length >= 10) {
-                            alert("🔒 Limite do Plano Grátis atingido!\n\nVocê já possui 10 cirurgias cadastradas. Assine o plano Premium para cadastros ilimitados.");
-                            
-                            // Quando você tiver a tela de checkout/planos criada, você usa isso:
-                            // navigate('/planos'); 
-                            
-                            return; // O 'return' expulsa o usuário da função. O modal não vai abrir!
+                            navigate('/planos'); // 👈 Joga o usuário pra tela de Planos
+                            return; // Expulsa da função, não abre o modal
                         }
-                        // 🟢 SE PASSOU DA BARREIRA, CONTINUA NORMALMENTE 🟢
 
-                        setCirurgiaEditando(null); // Garante que o modal abra vazio
+                        // 🟢 SE PASSOU DA BARREIRA, CONTINUA NORMALMENTE 🟢
+                        setCirurgiaEditando(null); 
                         setModalOpen(true);
                     }}
                     style={{
                         background: "#6C63FF", color: "#fff", border: "none",
-                        padding: "12px 20px", borderRadius: "10px", fontWeight: "600", cursor: "pointer"
+                        padding: "12px 20px", borderRadius: "10px", fontWeight: "600", cursor: "pointer",
+                        boxShadow: "0 4px 10px rgba(108, 99, 255, 0.3)", transition: "0.2s"
                     }}
+                    onMouseOver={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
+                    onMouseOut={(e) => e.currentTarget.style.transform = "translateY(0)"}
                 >
                     + Nova Cirurgia
                 </button>
@@ -65,7 +64,6 @@ function Agenda() {
                     editarCirurgia(id, { status: novoStatus });
                 }}
                 
-                // 👇 AQUI ESTÁ A NOVA TRAVA DE SEGURANÇA! 👇
                 onDelete={(id) => {
                     const confirmacao = window.confirm("⚠️ Tem certeza que deseja excluir esta cirurgia? Esta ação não poderá ser desfeita.");
                     if (confirmacao) {
@@ -94,7 +92,6 @@ function Agenda() {
                         } else {
                             await adicionarCirurgia(dados);
                         }
-                        // Só fecha o modal DEPOIS que o banco confirmar o salvamento!
                         setModalOpen(false);
                         setCirurgiaEditando(null);
                     } catch (erro) {

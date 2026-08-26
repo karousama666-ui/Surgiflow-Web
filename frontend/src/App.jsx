@@ -22,7 +22,7 @@ import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
 import NovaSenha from "./pages/NovaSenha"; 
-import Onboarding from "./pages/Onboarding"; // 👈 NOVO: Importamos o Tapete Vermelho!
+import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Agenda from "./pages/Agenda";
 import Calendario from "./pages/Calendario";
@@ -32,6 +32,7 @@ import Pedidos from "./pages/Pedidos";
 import Relatorios from "./pages/Relatorios";
 import Configuracoes from "./pages/Configuracoes";
 import Chat from "./pages/Chat"; 
+import Planos from "./pages/Planos"; // 👈 NOVO: A Tela de Paywall
 
 // ==========================================
 // O "MOLDE" DA PLATAFORMA (Menu, Topo e Fonte)
@@ -95,6 +96,7 @@ function App() {
                 <Route path="/relatorios" element={<RotaProtegida><LayoutApp><Relatorios /></LayoutApp></RotaProtegida>} />
                 <Route path="/configuracoes" element={<RotaProtegida><LayoutApp><Configuracoes /></LayoutApp></RotaProtegida>} />
                 <Route path="/chat" element={<RotaProtegida><LayoutApp><Chat /></LayoutApp></RotaProtegida>} />
+                <Route path="/planos" element={<RotaProtegida><LayoutApp><Planos /></LayoutApp></RotaProtegida>} /> {/* 👈 O Check-out está online! */}
               </Routes>
 
               </PacientesProvider>
