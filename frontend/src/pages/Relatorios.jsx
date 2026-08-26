@@ -111,11 +111,17 @@ function Relatorios() {
             if (!medicoSelecionado || !dataDiario) return;
             setLoadingDiario(true);
             
-            // Busca diretamente no contexto da memória (mais rápido)
-            const cirurgiasFiltradas = listaCirurgias.filter(c => 
-                c.data_cirurgia === dataDiario && 
-                String(c.medico_id) === String(medicoSelecionado)
-            );
+            // 🛡️ Filtro Blindado
+            const cirurgiasFiltradas = listaCirurgias.filter(c => {
+                // 1. A data bate? (usamos startsWith para ignorar as horas e o fuso horário, se houver)
+                const dataBate = c.data_cirurgia && c.data_cirurgia.startsWith(dataDiario);
+
+                // 2. O médico bate? (Procura o ID na coluna principal ou dentro do objeto associado)
+                const idDoMedicoNaCirurgia = String(c.medico_id || c.medicos?.id || c.id_medico);
+                const medicoBate = idDoMedicoNaCirurgia === String(medicoSelecionado);
+
+                return dataBate && medicoBate;
+            });
 
             // Anexa os materiais se existirem
             const cirurgiasComMateriais = cirurgiasFiltradas.map(cirurgia => {
@@ -155,7 +161,6 @@ function Relatorios() {
         setCopiado(true);
         setTimeout(() => setCopiado(false), 3000);
     };
-
 
     // ========================================================
     // 🎨 ESTILOS REUTILIZÁVEIS
