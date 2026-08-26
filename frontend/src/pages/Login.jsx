@@ -26,7 +26,30 @@ function Login() {
             if (login) {
                 await login(email, senha);
             }
-            navigate("/dashboard");
+
+            // 🛑 O LEÃO DE CHÁCARA DO ONBOARDING 🛑
+            // Assim que logar, pegamos a identidade da pessoa
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            if (user) {
+                // Consultamos a ficha dela no banco
+                const { data: perfil } = await supabase
+                    .from('profiles')
+                    .select('onboarding_concluido')
+                    .eq('id', user.id)
+                    .single();
+
+                // Se terminou o Onboarding, vai pro painel. Senão, volta pro Tapete Vermelho!
+                if (perfil && perfil.onboarding_concluido) {
+                    navigate("/dashboard");
+                } else {
+                    navigate("/onboarding");
+                }
+            } else {
+                // Fallback de segurança
+                navigate("/dashboard");
+            }
+
         } catch (error) {
             console.error("Erro detalhado ao fazer login:", error);
             if (error.message && (error.message.includes("Failed to fetch") || error.message.includes("TIMED_OUT"))) {
@@ -74,7 +97,6 @@ function Login() {
 
     return (
         <>
-            {/* 👇 MÁGICA DA RESPONSIVIDADE INJETADA AQUI 👇 */}
             <style>
                 {`
                 .login-wrapper {
@@ -115,17 +137,17 @@ function Login() {
                 /* REGRAS PARA CELULARES E TABLETS */
                 @media (max-width: 1024px) {
                     .login-left-panel {
-                        display: none !important; /* Esconde o vídeo e o texto grande */
+                        display: none !important; 
                     }
                     .login-wrapper {
-                        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); /* Fundo escuro e premium */
+                        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); 
                         justify-content: center;
                         align-items: center;
                         padding: 20px;
                     }
                     .login-right-panel {
                         max-width: 100%;
-                        border-radius: 24px; /* Arredonda o card no celular */
+                        border-radius: 24px; 
                         padding: 40px 30px;
                         box-shadow: 0 20px 40px rgba(0,0,0,0.4);
                         height: auto;
