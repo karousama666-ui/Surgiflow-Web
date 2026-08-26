@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Bot, User, ChevronRight } from 'lucide-react';
+import { MessageSquare, X, Bot, ChevronRight } from 'lucide-react';
 
 function ChatbotFAQ() {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,19 +16,19 @@ function ChatbotFAQ() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Base de Conhecimento (Perguntas e Respostas)
+  // 🌟 BASE DE CONHECIMENTO (Perguntas e Respostas) ATUALIZADA 🌟
   const faqDatabase = [
+    {
+      question: "Como enviar a agenda pelo WhatsApp?",
+      answer: "Vá no menu 'Relatórios' e clique na aba 'Agenda Diária (WhatsApp)'. Escolha a data e o médico, depois clique em 'Copiar Texto' para colar no grupo ou 'Salvar PDF'."
+    },
     {
       question: "Como mover um pedido de OPME?",
       answer: "É simples! Acesse a tela de 'Pedidos' no menu lateral e clique e arraste o card do paciente de uma coluna para a outra (ex: de 'Orçamento' para 'Aprovado')."
     },
     {
-      question: "Como adiciono alguém da minha equipe?",
-      answer: "Vá em 'Configurações' > 'Equipe e Acessos'. Preencha os dados do membro e clique em Adicionar. Lembre-se: o plano Free não permite adição de equipe."
-    },
-    {
       question: "Onde vejo os relatórios da RDC?",
-      answer: "Os relatórios ficam na aba 'Relatórios' do menu principal. Eles reúnem os dados da agenda e de aprovação para auditorias (Disponível nos planos premium)."
+      answer: "Os relatórios ficam na aba 'Relatórios' do menu principal (na aba 'Visão Analítica'). Eles reúnem dados da agenda e de aprovação para auditorias."
     },
     {
       question: "Como mudar de Plano?",
@@ -54,7 +54,7 @@ function ChatbotFAQ() {
         style={{
           position: "fixed",
           bottom: "30px",
-          left: "30px", // 👈 AGORA SIM! Encostado no canto esquerdo da tela
+          left: "30px", // Encostado no canto esquerdo da tela
           width: "60px",
           height: "60px",
           borderRadius: "30px",
@@ -80,7 +80,7 @@ function ChatbotFAQ() {
         <div style={{
           position: "fixed",
           bottom: "100px", 
-          left: "30px", // 👈 Janela também encostada no canto esquerdo
+          left: "30px", 
           width: "350px",
           height: "500px",
           background: "white",
@@ -144,7 +144,7 @@ function ChatbotFAQ() {
           {/* Área de Opções Rápidas (Botões) */}
           <div style={{ padding: "15px", borderTop: "1px solid #e2e8f0", background: "white" }}>
             <p style={{ fontSize: "0.8rem", color: "#64748b", margin: "0 0 10px 0", fontWeight: "600", textAlign: "center" }}>Dúvidas Frequentes:</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "150px", overflowY: "auto" }}>
               {faqDatabase.map((faq, i) => (
                 <button
                   key={i}
