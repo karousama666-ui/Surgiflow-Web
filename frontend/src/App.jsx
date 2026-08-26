@@ -13,7 +13,7 @@ import RotaProtegida from "./components/RotaProtegida";
 import Sidebar from "./components/layout/Sidebar"; 
 import Header from "./components/layout/Header";  
 import ChatbotFAQ from "./components/layout/ChatbotFAQ"; 
-import GlobalChatNotificador from "./components/layout/GlobalChatNotificador"; // 👈 NOVO: Importação do Notificador Global
+import GlobalChatNotificador from "./components/layout/GlobalChatNotificador";
 
 // ==========================================
 // IMPORTAÇÃO DE TODAS AS TELAS DO SISTEMA
@@ -22,6 +22,7 @@ import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
 import NovaSenha from "./pages/NovaSenha"; 
+import Onboarding from "./pages/Onboarding"; // 👈 NOVO: Importamos o Tapete Vermelho!
 import Dashboard from "./pages/Dashboard";
 import Agenda from "./pages/Agenda";
 import Calendario from "./pages/Calendario";
@@ -58,7 +59,7 @@ const LayoutApp = ({ children }) => {
                 {/* O Chatbot flutuante renderizado aqui */}
                 <ChatbotFAQ />
 
-                {/* 👈 NOVO: O Alarme Global do Chat 👇 */}
+                {/* O Alarme Global do Chat */}
                 <GlobalChatNotificador />
             </div>
         </div>
@@ -80,6 +81,9 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/cadastro" element={<Cadastro />} />
                 <Route path="/nova-senha" element={<NovaSenha />} />
+
+                {/* 🟡 ROTA DE TRANSIÇÃO (Protegida, mas sem o menu lateral) */}
+                <Route path="/onboarding" element={<RotaProtegida><Onboarding /></RotaProtegida>} />
 
                 {/* 🟢 ROTAS PROTEGIDAS (Com o Molde Aplicado) */}
                 <Route path="/dashboard" element={<RotaProtegida><LayoutApp><Dashboard /></LayoutApp></RotaProtegida>} />
