@@ -113,17 +113,13 @@ function Relatorios() {
             
             // 🛡️ Filtro Blindado
             const cirurgiasFiltradas = listaCirurgias.filter(c => {
-                // 1. A data bate? (usamos startsWith para ignorar as horas e o fuso horário, se houver)
                 const dataBate = c.data_cirurgia && c.data_cirurgia.startsWith(dataDiario);
-
-                // 2. O médico bate? (Procura o ID na coluna principal ou dentro do objeto associado)
                 const idDoMedicoNaCirurgia = String(c.medico_id || c.medicos?.id || c.id_medico);
                 const medicoBate = idDoMedicoNaCirurgia === String(medicoSelecionado);
 
                 return dataBate && medicoBate;
             });
 
-            // Anexa os materiais se existirem
             const cirurgiasComMateriais = cirurgiasFiltradas.map(cirurgia => {
                 const pedidoVinculado = listaPedidos.find(p => String(p.cirurgia_id) === String(cirurgia.id));
                 return { ...cirurgia, materiais: pedidoVinculado?.materiais || 'Nenhum material listado' };
@@ -150,7 +146,7 @@ function Relatorios() {
                 texto += `*${index + 1}️⃣ Paciente:* ${c.paciente_nome}\n`;
                 texto += `*⏰ Horário:* ${c.horario || 'A confirmar'}\n`;
                 texto += `*🏥 Hospital:* ${c.hospital || 'A confirmar'}\n`;
-                texto += `*🔪 Procedimento:* ${c.procedimento || 'Não informado'}\n`;
+                texto += `*💉 Procedimento:* ${c.procedimento || 'Não informado'}\n`; // 👈 Aqui estava a faca kkk
                 if (c.convenio) texto += `*💳 Convênio:* ${c.convenio}\n`;
                 texto += `*📦 OPME:* ${c.materiais}\n`;
                 texto += `-----------------------------------\n`;
@@ -423,7 +419,7 @@ function Relatorios() {
                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.9rem' }}>
                                                 <div><strong style={{ color: '#475569' }}>🏥 Hospital:</strong> <span style={{ color: '#1e293b', fontWeight: '600' }}>{c.hospital}</span></div>
                                                 <div><strong style={{ color: '#475569' }}>💳 Convênio:</strong> <span style={{ color: '#1e293b', fontWeight: '600' }}>{c.convenio}</span></div>
-                                                <div style={{ gridColumn: '1 / -1' }}><strong style={{ color: '#475569' }}>🔪 Procedimento:</strong> <span style={{ color: '#1e293b', fontWeight: '600' }}>{c.procedimento}</span></div>
+                                                <div style={{ gridColumn: '1 / -1' }}><strong style={{ color: '#475569' }}>💉 Procedimento:</strong> <span style={{ color: '#1e293b', fontWeight: '600' }}>{c.procedimento}</span></div> {/* 👈 Aqui também! */}
                                                 <div style={{ gridColumn: '1 / -1' }}><strong style={{ color: '#475569' }}>📦 OPME:</strong> <span style={{ color: '#1e293b', fontWeight: '600' }}>{c.materiais}</span></div>
                                             </div>
                                         </div>
