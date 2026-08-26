@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { User, Mail, Lock, FileText, ArrowRight, ShieldCheck, Eye, EyeOff } from "lucide-react"; // 👈 Ícones adicionados
+import { User, Mail, Lock, FileText, ArrowRight, ShieldCheck, Eye, EyeOff, FileCheck2 } from "lucide-react"; 
 import logoSurgiFlow from "../assets/logopdf.png"; 
 
 // O CAMINHO CORRIGIDO E DEFINITIVO PARA O SUPABASE! 🎯
@@ -14,8 +14,10 @@ function Cadastro() {
         senha: ""
     });
     
-    // 👇 ESTADO: Controla a visibilidade da senha
+    // 👇 ESTADOS DE CONTROLE 👇
     const [mostrarSenha, setMostrarSenha] = useState(false); 
+    const [aceitouTermos, setAceitouTermos] = useState(false); // NOVO: Controle da LGPD
+    const [loading, setLoading] = useState(false);
 
     const navigate = useNavigate();
 
@@ -36,10 +38,19 @@ function Cadastro() {
     const handleCadastro = async (e) => {
         e.preventDefault();
         
+        // 1. Validação do CPF
         if (form.cpf.length !== 14) {
             alert("Por favor, insira um CPF válido com 11 dígitos.");
             return;
         }
+
+        // 2. Validação da LGPD (Segurança Jurídica)
+        if (!aceitouTermos) {
+            alert("⚠️ Você precisa ler e concordar com os Termos de Uso e Política de Privacidade para criar uma conta.");
+            return;
+        }
+
+        setLoading(true);
 
         try {
             // Chamada oficial para o banco de dados criar o usuário
@@ -60,13 +71,14 @@ function Cadastro() {
                 return;
             }
 
-            // Sucesso!
-            alert("Conta criada com sucesso! Bem-vindo(a) ao SurgiFlow.");
-            navigate("/"); // Redireciona para a tela de Login
+            // Sucesso! Joga o usuário direto para o "Tapete Vermelho"
+            navigate("/onboarding"); 
             
         } catch (err) {
             console.error("Erro inesperado no cadastro:", err);
             alert("Ocorreu um erro no servidor. Tente novamente.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -87,7 +99,8 @@ function Cadastro() {
             <div style={{ 
                 background: "rgba(255, 255, 255, 0.95)", padding: "40px 50px", borderRadius: "24px", 
                 boxShadow: "0 20px 40px rgba(0,0,0,0.2)", width: "100%", maxWidth: "450px", 
-                textAlign: "center", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.5)"
+                textAlign: "center", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.5)",
+                maxHeight: '90vh', overflowY: 'auto' // Evita quebrar em telas pequenas
             }}>
                 
                 <img src={logoSurgiFlow} alt="SurgiFlow Logo" style={{ height: "55px", marginBottom: "10px", objectFit: "contain" }} onError={(e) => { e.target.style.display = 'none' }} />
@@ -132,7 +145,6 @@ function Cadastro() {
                         />
                     </div>
 
-                    {/* 👇 CAIXA DE SENHA COM O OLHINHO 👇 */}
                     <div style={{ position: "relative" }}>
                         <Lock size={20} color="#94a3b8" style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)" }} />
                         
@@ -145,13 +157,12 @@ function Cadastro() {
                             required 
                             minLength="6"
                             style={{ 
-                                width: "100%", padding: "14px 45px 14px 45px", borderRadius: "12px", // 👈 Ajuste de padding
+                                width: "100%", padding: "14px 45px 14px 45px", borderRadius: "12px",
                                 border: "1px solid #cbd5e1", fontSize: "0.95rem", outline: "none", boxSizing: "border-box", 
                                 background: "#f8fafc", color: "#1e293b", fontFamily: "inherit" 
                             }}
                         />
                         
-                        {/* Botão invisível do olhinho */}
                         <button
                             type="button"
                             onClick={() => setMostrarSenha(!mostrarSenha)}
@@ -167,22 +178,35 @@ function Cadastro() {
                         </button>
                     </div>
 
-                    <button type="submit" 
+                    {/* 🌟 NOVO: CHECKBOX DA LGPD 🌟 */}
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginTop: '5px', textAlign: 'left', background: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                        <div 
+                            onClick={() => setAceitouTermos(!aceitouTermos)}
+                            style={{ width: '22px', height: '22px', borderRadius: '6px', background: aceitouTermos ? '#10b981' : 'white', border: aceitouTermos ? '1px solid #10b981' : '2px solid #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, transition: '0.2s' }}
+                        >
+                            {aceitouTermos && <FileCheck2 size={14} color="white" strokeWidth={3} />}
+                        </div>
+                        <label onClick={() => setAceitouTermos(!aceitouTermos)} style={{ fontSize: '0.8rem', color: '#475569', lineHeight: '1.4', cursor: 'pointer', userSelect: 'none' }}>
+                            Li e concordo com os <a href="#" onClick={(e) => { e.preventDefault(); alert("Os Termos de Uso serão abertos aqui."); }} style={{ color: '#6C63FF', fontWeight: '600', textDecoration: 'none' }}>Termos de Serviço</a> e a <a href="#" onClick={(e) => { e.preventDefault(); alert("A Política de Privacidade será aberta aqui."); }} style={{ color: '#6C63FF', fontWeight: '600', textDecoration: 'none' }}>Política de Privacidade (LGPD)</a>.
+                        </label>
+                    </div>
+
+                    <button type="submit" disabled={loading}
                         style={{ 
-                            background: "#6C63FF", color: "white", padding: "15px", borderRadius: "12px", border: "none", 
-                            fontSize: "1rem", fontWeight: "700", cursor: "pointer", display: "flex", justifyContent: "center", 
-                            alignItems: "center", gap: "10px", boxShadow: "0 4px 14px rgba(108, 99, 255, 0.4)", 
+                            background: loading ? "#94a3b8" : "#6C63FF", color: "white", padding: "15px", borderRadius: "12px", border: "none", 
+                            fontSize: "1rem", fontWeight: "700", cursor: loading ? "wait" : "pointer", display: "flex", justifyContent: "center", 
+                            alignItems: "center", gap: "10px", boxShadow: loading ? "none" : "0 4px 14px rgba(108, 99, 255, 0.4)", 
                             transition: "0.2s", marginTop: "5px", fontFamily: "inherit"
                         }}
-                        onMouseOver={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
-                        onMouseOut={(e) => e.currentTarget.style.transform = "translateY(0)"}
+                        onMouseOver={(e) => { if(!loading) e.currentTarget.style.transform = "translateY(-2px)" }}
+                        onMouseOut={(e) => { if(!loading) e.currentTarget.style.transform = "translateY(0)" }}
                     >
-                        Criar Conta Grátis <ArrowRight size={20} />
+                        {loading ? "Criando ambiente..." : "Criar Conta Grátis"} {!loading && <ArrowRight size={20} />}
                     </button>
                 </form>
 
                 <div style={{ marginTop: "20px", fontSize: "0.9rem", color: "#64748b" }}>
-                    Já possui uma conta? <Link to="/" style={{ color: "#6C63FF", textDecoration: "none", fontWeight: "700", fontFamily: "inherit" }}>Faça Login</Link>
+                    Já possui uma conta? <Link to="/login" style={{ color: "#6C63FF", textDecoration: "none", fontWeight: "700", fontFamily: "inherit" }}>Faça Login</Link>
                 </div>
             </div>
         </div>
