@@ -5,9 +5,19 @@ import { useNavigate } from 'react-router-dom';
 function Planos() {
     const navigate = useNavigate();
 
-    // 👇 AQUI VOCÊ COLOCA OS SEUS LINKS REAIS DO ASAAS 👇
-    const linkAsaasStarter = "https://www.asaas.com/c/seu-link-starter";
-    const linkAsaasPro = "https://www.asaas.com/c/seu-link-pro";
+    // ==========================================
+    // 💰 CONFIGURAÇÃO DOS PLANOS E LINKS DO ASAAS
+    // ==========================================
+    const CONFIG = {
+        starter: {
+            valor: "149,90", // 👈 TROQUE PARA O VALOR REAL AQUI (ex: "97", "197")
+            link: "https://www.asaas.com/c/seu-link-starter" // 👈 COLE SEU LINK AQUI
+        },
+        pro: {
+            valor: "399,90", // 👈 TROQUE PARA O VALOR REAL AQUI
+            link: "https://www.asaas.com/c/seu-link-pro" // 👈 COLE SEU LINK AQUI
+        }
+    };
 
     return (
         <div style={{ padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', fontFamily: "'Montserrat', 'Inter', sans-serif" }}>
@@ -36,7 +46,7 @@ function Planos() {
                         <h2 style={{ margin: '0 0 10px 0', fontSize: '1.5rem', color: '#1e293b', fontWeight: '800' }}>Starter</h2>
                         <p style={{ color: '#64748b', fontSize: '0.95rem', margin: '0 0 20px 0' }}>Para médicos e pequenas equipes que buscam organização essencial.</p>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                            <span style={{ fontSize: '2.5rem', fontWeight: '800', color: '#0f172a' }}>R$ 147</span>
+                            <span style={{ fontSize: '2.5rem', fontWeight: '800', color: '#0f172a' }}>R$ {CONFIG.starter.valor}</span>
                             <span style={{ color: '#64748b', fontWeight: '500' }}>/mês</span>
                         </div>
                     </div>
@@ -49,7 +59,7 @@ function Planos() {
                         ))}
                     </ul>
 
-                    <a href={linkAsaasStarter} target="_blank" rel="noopener noreferrer" style={{ background: '#f1f5f9', color: '#1e293b', textAlign: 'center', padding: '16px', borderRadius: '12px', textDecoration: 'none', fontWeight: '700', transition: '0.2s' }} onMouseOver={(e) => { e.currentTarget.style.background = '#e2e8f0' }} onMouseOut={(e) => { e.currentTarget.style.background = '#f1f5f9' }}>
+                    <a href={CONFIG.starter.link} target="_blank" rel="noopener noreferrer" style={{ background: '#f1f5f9', color: '#1e293b', textAlign: 'center', padding: '16px', borderRadius: '12px', textDecoration: 'none', fontWeight: '700', transition: '0.2s' }} onMouseOver={(e) => { e.currentTarget.style.background = '#e2e8f0' }} onMouseOut={(e) => { e.currentTarget.style.background = '#f1f5f9' }}>
                         Assinar Starter
                     </a>
                 </div>
@@ -64,7 +74,7 @@ function Planos() {
                         <h2 style={{ margin: '0 0 10px 0', fontSize: '1.5rem', color: 'white', fontWeight: '800' }}>Pro</h2>
                         <p style={{ color: '#94a3b8', fontSize: '0.95rem', margin: '0 0 20px 0' }}>Para clínicas estruturadas que precisam de controle total e auditoria.</p>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                            <span style={{ fontSize: '2.5rem', fontWeight: '800', color: 'white' }}>R$ 297</span>
+                            <span style={{ fontSize: '2.5rem', fontWeight: '800', color: 'white' }}>R$ {CONFIG.pro.valor}</span>
                             <span style={{ color: '#94a3b8', fontWeight: '500' }}>/mês</span>
                         </div>
                     </div>
@@ -77,7 +87,7 @@ function Planos() {
                         ))}
                     </ul>
 
-                    <a href={linkAsaasPro} target="_blank" rel="noopener noreferrer" style={{ background: '#6C63FF', color: 'white', textAlign: 'center', padding: '16px', borderRadius: '12px', textDecoration: 'none', fontWeight: '700', transition: '0.2s', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }} onMouseOver={(e) => { e.currentTarget.style.background = '#5b54e5' }} onMouseOut={(e) => { e.currentTarget.style.background = '#6C63FF' }}>
+                    <a href={CONFIG.pro.link} target="_blank" rel="noopener noreferrer" style={{ background: '#6C63FF', color: 'white', textAlign: 'center', padding: '16px', borderRadius: '12px', textDecoration: 'none', fontWeight: '700', transition: '0.2s', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }} onMouseOver={(e) => { e.currentTarget.style.background = '#5b54e5' }} onMouseOut={(e) => { e.currentTarget.style.background = '#6C63FF' }}>
                         Assinar Pro <ArrowRight size={18} />
                     </a>
                 </div>

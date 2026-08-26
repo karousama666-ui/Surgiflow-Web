@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, Search, Plus, User, Info, X, Check, Trash2, Loader2, Volume2, Smile, ChevronDown, ArrowLeft } from 'lucide-react'; // 👈 NOVO: Importamos o ArrowLeft
+import { useNavigate } from 'react-router-dom'; // 👈 Motorista do Paywall
+import { Send, Paperclip, Search, Plus, User, Info, X, Check, Trash2, Loader2, Volume2, Smile, ChevronDown, ArrowLeft } from 'lucide-react';
 import { supabase } from '../services/supabase'; 
 import { useAuth } from '../context/AuthContext'; 
 
@@ -19,6 +20,8 @@ const EMOJIS = ['😀','😂','🤣','🥰','😍','😎','🤔','🙄','😴','
 
 function Chat() {
   const { usuario } = useAuth(); 
+  const navigate = useNavigate(); // 👈 Inicializa o Motorista
+  
   const [mensagem, setMensagem] = useState('');
   const [mensagens, setMensagens] = useState([]);
   
@@ -36,6 +39,9 @@ function Chat() {
   const [resultadoBusca, setResultadoBusca] = useState(null);
   const [erroBusca, setErroBusca] = useState('');
   const [loadingBusca, setLoadingBusca] = useState(false);
+
+  // 👇 ESTADO DO PLANO DO USUÁRIO
+  const [planoAtual, setPlanoAtual] = useState("free");
 
   const arquivoInputRef = useRef(null);
   const [enviandoAnexo, setEnviandoAnexo] = useState(false);
@@ -60,12 +66,16 @@ function Chat() {
         const primeiroNome = usuario.email.split('@')[0];
         const numeroAleatorio = Math.floor(1000 + Math.random() * 9000);
         const { data: novoPerfil } = await supabase.from('profiles').insert([{ 
-          id: usuario.id, surgitag: `${primeiroNome}#${numeroAleatorio}`, nome_completo: primeiroNome, status: 'online'
+          id: usuario.id, surgitag: `${primeiroNome}#${numeroAleatorio}`, nome_completo: primeiroNome, status: 'online', plano: 'free'
         }]).select().single();
         perfil = novoPerfil;
       }
       setMeuPerfil(perfil);
       setMeuStatus(perfil.status || 'online');
+      
+      // Armazena o plano atual
+      setPlanoAtual(perfil.plano || 'free');
+      
       carregarListaDeContatos();
     };
     inicializar();
@@ -93,6 +103,26 @@ function Chat() {
         chat_id: p.chat_id, id: p.profiles.id, nome: p.profiles.nome_completo, surgitag: p.profiles.surgitag, status: p.profiles.status || 'offline'
       })));
     }
+  };
+
+  // 🛑 A TRAVA FINANCEIRA DO CHAT (LEÃO DE CHÁCARA) 🛑
+  const handleAbrirModalAdicionar = () => {
+    // Regra do Plano Free: Chat bloqueado (0 contatos)
+    if (planoAtual === 'free') {
+        alert("🔒 Recurso Premium!\n\nO Chat Seguro da Equipe não está disponível no plano gratuito. Faça o upgrade para o plano Starter e converse com sua equipe.");
+        navigate('/planos'); // Joga pro paywall
+        return;
+    }
+
+    // Regra do Plano Starter: Máximo de 2 contatos na equipe
+    if (planoAtual === 'starter' && contatos.length >= 2) {
+        alert("🔒 Limite de Equipe Atingido!\n\nSeu plano Starter permite conversar com até 2 membros. Faça o upgrade para o plano Pro para adicionar membros ilimitados.");
+        navigate('/planos'); // Joga pro paywall
+        return;
+    }
+
+    // Se passou na catraca, abre o modal
+    setModalAberto(true);
   };
 
   const handleMudarStatus = async (novoStatus) => {
@@ -238,7 +268,9 @@ function Chat() {
               <h2 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', color: '#1e293b', fontWeight: '700' }}>Equipe</h2>
               {meuPerfil && <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Minha Tag: <strong style={{ color: '#6C63FF', userSelect: 'all' }}>{meuPerfil.surgitag}</strong></span>}
             </div>
-            <button onClick={() => setModalAberto(true)} style={{ background: '#6C63FF', color: 'white', border: 'none', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Plus size={18} /></button>
+            
+            {/* 👇 O GATILHO DA BARREIRA ESTÁ EXATAMENTE AQUI 👇 */}
+            <button onClick={handleAbrirModalAdicionar} style={{ background: '#6C63FF', color: 'white', border: 'none', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s', boxShadow: '0 2px 8px rgba(108, 99, 255, 0.3)' }} onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.05)"} onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}><Plus size={18} /></button>
           </div>
           
           <div style={{ position: 'relative', marginBottom: '15px' }}>
@@ -307,7 +339,6 @@ function Chat() {
           <>
             <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                {/* 🌟 NOVO: BOTÃO VOLTAR NO CELULAR */}
                 <button className="btn-voltar-mobile" onClick={() => setChatAtivoId(null)} style={{ background: 'transparent', border: 'none', padding: 0, color: '#64748b', cursor: 'pointer' }}>
                    <ArrowLeft size={24} />
                 </button>
@@ -353,7 +384,6 @@ function Chat() {
 
             <div style={{ padding: '15px', borderTop: '1px solid #e2e8f0', background: 'white', position: 'relative' }}>
               
-              {/* 🌟 CAIXA FLUTUANTE DE EMOJIS (Responsiva) */}
               {mostrarEmojis && (
                 <div className="emoji-picker-mobile" style={{ position: 'absolute', bottom: '80px', left: '20px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '15px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px', zIndex: 10 }}>
                   {EMOJIS.map(emoji => (
@@ -391,7 +421,6 @@ function Chat() {
         )}
       </div>
       
-      {/* 📱 REGRAS DE CSS PARA RESPONSIVIDADE MOBILE 📱 */}
       <style>{`
         .lucide-spin { animation: spin 2s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }

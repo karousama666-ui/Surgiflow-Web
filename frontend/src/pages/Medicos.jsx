@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { supabase } from "../services/supabase"; // Importe a conexão com o Supabase
+import { useNavigate } from "react-router-dom"; // 👈 NOVO: Importamos o motorista
+import { supabase } from "../services/supabase"; 
 import { useMedicos } from "../context/MedicosContext";
 import MedicoModal from "../components/modal/MedicoModal";
 import { Search, Plus, Pencil, Trash2, Phone, Stethoscope, MessageCircle } from "lucide-react";
 
 function Medicos() {
     const { listaMedicos, adicionarMedico, editarMedico, excluirMedico } = useMedicos();
+    const navigate = useNavigate(); // 👈 NOVO: Inicializamos o motorista
     
     const [pesquisa, setPesquisa] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
@@ -44,17 +46,20 @@ function Medicos() {
 
     const handleAbrirModalNovo = () => {
         // 🚨 TRAVAS DE LIMITES POR PLANO 🚨
+        
+        // Regra do Plano Free (Limite: 1 Médico)
         if (planoAtual === 'free' && listaMedicos.length >= 1) {
-            alert("🔒 Limite do Plano Free atingido!\n\nVocê já tem 1 médico cadastrado. Faça o upgrade para o plano Starter na tela de Configurações para adicionar até 10 médicos.");
+            navigate('/planos'); // 👈 Joga o usuário para o Paywall
             return;
         }
 
+        // Regra do Plano Starter (Limite: 10 Médicos)
         if (planoAtual === 'starter' && listaMedicos.length >= 10) {
-            alert("🔒 Limite do Plano Starter atingido!\n\nVocê atingiu o limite de 10 médicos. Faça o upgrade para o Clinic Pro na tela de Configurações para cadastros ilimitados.");
+            navigate('/planos'); // 👈 Joga o usuário para o Paywall
             return;
         }
 
-        // Se passou pelas travas, abre o modal normalmente
+        // 🟢 Se passou pelas travas, abre o modal normalmente
         setMedicoEditando(null);
         setModalOpen(true);
     };

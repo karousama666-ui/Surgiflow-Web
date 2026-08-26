@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // 👈 NOVO: Importamos o motorista
 import { supabase } from "../services/supabase"; 
 import { useAuth } from '../context/AuthContext'; 
 import { User, Building, ShieldCheck, CreditCard, Save, Check, Users, UserPlus, Trash2, ArrowUpCircle } from "lucide-react";
@@ -34,19 +35,21 @@ const CustomCheckbox = ({ label, name, checked, onChange }) => {
 // ==========================================
 function Configuracoes() {
   const { logout } = useAuth(); 
+  const navigate = useNavigate(); // 👈 Inicializa o motorista
+  
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState(null); 
   const [membrosEquipe, setMembrosEquipe] = useState([]); 
   const [planoAtual, setPlanoAtual] = useState("free"); 
-  const [tagOriginal, setTagOriginal] = useState(""); // 👈 NOVO: Guarda a tag original para comparar
+  const [tagOriginal, setTagOriginal] = useState(""); 
   
   const [novoMembro, setNovoMembro] = useState({ nome: "", email: "", cargo: "", senha: "" }); 
 
-  // STATUS LIMPO (Agora inclui a 'tag')
+  // STATUS LIMPO
   const [form, setForm] = useState({
     nome: "", cargo: "", registro: "", email: "", telefone: "", empresa: "", cnpj: "",
     notificacoesEmail: true, notificacoesSistema: true, notificacoesWhatsapp: true,
-    tag: "" // 👈 NOVO
+    tag: "" 
   });
 
   // ==========================================
@@ -72,7 +75,7 @@ function Configuracoes() {
                   setPlanoAtual("free");
               }
 
-              // 👈 NOVO: BUSCA A SURGITAG NA TABELA PROFILES
+              // BUSCA A SURGITAG NA TABELA PROFILES
               const { data: tagData } = await supabase
                   .from('profiles')
                   .select('surgitag')
@@ -95,7 +98,7 @@ function Configuracoes() {
                   notificacoesEmail: user.user_metadata?.notificacoesEmail ?? true,
                   notificacoesSistema: user.user_metadata?.notificacoesSistema ?? true,
                   notificacoesWhatsapp: user.user_metadata?.notificacoesWhatsapp ?? true,
-                  tag: tagAtual // 👈 NOVO: Preenche o campo da Tag
+                  tag: tagAtual 
               }));
 
               // Carrega a equipe
@@ -119,20 +122,26 @@ function Configuracoes() {
   // LÓGICA DA EQUIPE (Com Trava de Plano)
   // ==========================================
   async function handleAdicionarMembro() {
-      if (!novoMembro.nome || !novoMembro.email || !novoMembro.senha || novoMembro.senha.length < 6) {
-          alert("Preencha Nome, E-mail e uma Senha Inicial (mínimo 6 caracteres).");
-          return;
-      }
+      // 🚨 AS TRAVAS DO PAYWALL 🚨
       
-      // TRAVA DO PLANO FREE
+      // TRAVA DO PLANO FREE (Só permite 1 usuário: o dono. Logo, 0 membros na equipe)
       if (planoAtual === "free") {
-          alert("🔒 Recurso Premium!\n\nFaça o Upgrade para o plano Starter ou Clinic Pro na aba de Assinaturas para adicionar usuários à sua equipe.");
+          alert("🔒 Recurso Premium!\n\nFaça o Upgrade para o plano Starter ou Pro na aba de Assinaturas para adicionar usuários à sua equipe.");
+          navigate('/planos'); // 👈 Joga pro Paywall
           return;
       }
 
-      // TRAVA DO PLANO STARTER (Limite de 2 usuários)
-      if (planoAtual === "starter" && membrosEquipe.length >= 2) {
-          alert("🔒 Limite do Plano Starter atingido!\n\nVocê atingiu o limite de 2 acessos para a equipe. Faça o upgrade para o Clinic Pro para adicionar usuários ilimitados.");
+      // TRAVA DO PLANO STARTER (Até 2 usuários: o dono + 1 membro)
+      // Se ele já tiver 1 membro na equipe e tentar adicionar outro, trava!
+      if (planoAtual === "starter" && membrosEquipe.length >= 1) {
+          alert("🔒 Limite do Plano Starter atingido!\n\nVocê atingiu o limite de 2 acessos (Você + 1). Faça o upgrade para o Clinic Pro para adicionar usuários ilimitados.");
+          navigate('/planos'); // 👈 Joga pro Paywall
+          return;
+      }
+
+      // 🟢 Se passou nas catracas, segue para criar o usuário
+      if (!novoMembro.nome || !novoMembro.email || !novoMembro.senha || novoMembro.senha.length < 6) {
+          alert("Preencha Nome, E-mail e uma Senha Inicial (mínimo 6 caracteres).");
           return;
       }
 
@@ -194,7 +203,6 @@ function Configuracoes() {
   async function handleSave(e) {
     e.preventDefault();
 
-    // 👈 NOVO: VALIDAÇÕES DA SURGITAG
     if (form.tag.trim() === '') {
         alert("❌ A SurgiTag não pode ser vazia.");
         return;
@@ -207,7 +215,6 @@ function Configuracoes() {
     setLoading(true);
 
     try {
-        // 1. Atualiza as configurações padrões do Auth
         const { error: authError } = await supabase.auth.updateUser({
             data: { 
                 nome: form.nome, cargo: form.cargo, registro: form.registro, telefone: form.telefone,
@@ -217,15 +224,12 @@ function Configuracoes() {
         });
         if (authError) throw authError;
 
-        // 2. 👈 NOVO: Atualiza a SurgiTag se ela tiver sido alterada
         if (form.tag !== tagOriginal) {
-            // Usamos 'upsert' porque o usuário pode não ter aberto o chat ainda para o registro existir
             const { error: tagError } = await supabase
                 .from('profiles')
                 .upsert({ id: userId, surgitag: form.tag.trim(), nome_completo: form.nome });
             
             if (tagError) {
-                // Erro 23505 é o código do banco de dados quando uma regra 'UNIQUE' é violada (já existe!)
                 if (tagError.code === '23505') { 
                     throw new Error("TAG_DUPLICADA");
                 }
@@ -301,7 +305,6 @@ function Configuracoes() {
               <input type="text" name="nome" value={form.nome} onChange={handleChange} style={inputStyle} />
             </div>
             
-            {/* 🌟 NOVO: CAMPO DA SURGITAG (Destacado no meio) 🌟 */}
             <div className="config-field">
               <label style={{ fontSize: "0.85rem", fontWeight: "800", color: "#6C63FF" }}>Identidade Única (SurgiTag)</label>
               <input type="text" name="tag" value={form.tag} onChange={handleChange} placeholder="Ex: Carolina#123" style={{ ...inputStyle, border: "2px solid #6C63FF", background: "#f8fafc" }} />
@@ -441,9 +444,9 @@ function Configuracoes() {
                       <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#6C63FF" strokeWidth={3} /> Pacientes Ilimitados</li>
                       <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#6C63FF" strokeWidth={3} /> 2 Usuários (Acessos)</li>
                   </ul>
-                  <a href="https://www.asaas.com/c/23vsipmr38k4f4a3" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "#6C63FF", color: "white", padding: "12px", borderRadius: "8px", fontWeight: "700", textDecoration: "none" }}>
+                  <button type="button" onClick={() => navigate('/planos')} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "#6C63FF", color: "white", padding: "12px", border: "none", cursor: "pointer", borderRadius: "8px", fontWeight: "700" }}>
                       <ArrowUpCircle size={18} /> Assinar Starter
-                  </a>
+                  </button>
               </div>
 
               {/* Box Upgrade Pro */}
@@ -454,9 +457,9 @@ function Configuracoes() {
                       <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#10b981" strokeWidth={3} /> Usuários Ilimitados</li>
                       <li style={{ display: "flex", alignItems: "center", gap: "8px" }}><Check size={16} color="#10b981" strokeWidth={3} /> Gestão Colaborativa</li>
                   </ul>
-                  <a href="https://www.asaas.com/c/ftgprtwo5xs0seyz" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "white", color: "#0f172a", padding: "12px", borderRadius: "8px", fontWeight: "800", textDecoration: "none", transition: "0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = "#e2e8f0"} onMouseOut={(e) => e.currentTarget.style.background = "white"}>
+                  <button type="button" onClick={() => navigate('/planos')} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "white", color: "#0f172a", padding: "12px", border: "none", cursor: "pointer", borderRadius: "8px", fontWeight: "800" }}>
                       <ArrowUpCircle size={18} /> Assinar Clinic Pro
-                  </a>
+                  </button>
               </div>
           </div>
         </div>
