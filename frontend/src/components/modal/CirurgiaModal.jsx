@@ -3,9 +3,9 @@ import Modal from "./Modal";
 import { useMedicos } from "../../context/MedicosContext";
 import { usePacientes } from "../../context/PacientesContext"; 
 import { supabase } from "../../services/supabase"; 
-import { User, Hospital, FileText, Calendar, Clock, UploadCloud, FileCheck, X, Eye, Trash2, CheckSquare, Syringe, FileEdit } from "lucide-react"; // 👈 Importamos Syringe para o ícone de procedimento
+import { User, Hospital, FileText, Calendar, Clock, UploadCloud, FileCheck, X, Eye, Trash2, CheckSquare, Syringe, FileEdit } from "lucide-react";
 
-// 👇 COMPONENTE NOVO: Visual Premium para os checkboxes do checklist
+// COMPONENTE NOVO: Visual Premium para os checkboxes do checklist
 const CustomCheck = ({ label, field, checked, onChange }) => (
     <label style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer", userSelect: "none" }}>
         <div style={{
@@ -13,7 +13,8 @@ const CustomCheck = ({ label, field, checked, onChange }) => (
             background: checked ? "#10b981" : "#ffffff",
             border: checked ? "1px solid #10b981" : "1px solid #cbd5e1",
             display: "flex", justifyContent: "center", alignItems: "center",
-            transition: "all 0.2s ease"
+            transition: "all 0.2s ease",
+            flexShrink: 0
         }}>
             {checked && <FileCheck size={14} color="white" strokeWidth={3} />}
         </div>
@@ -32,7 +33,7 @@ function NovaCirurgiaForm({ onSave, dados }) {
         medicoId: "",
         hospital: "",
         convenio: "",
-        procedimento: "", // 👈 NOVO: Estado do procedimento
+        procedimento: "", 
         data: "",
         horario: "",
         anexo_url: null,     
@@ -58,7 +59,7 @@ function NovaCirurgiaForm({ onSave, dados }) {
                 medicoId: dados.medico_id || "", 
                 hospital: dados.hospital || "",
                 convenio: dados.convenio || "",
-                procedimento: dados.procedimento || "", // 👈 NOVO: Puxa o procedimento ao editar
+                procedimento: dados.procedimento || "", 
                 data: dataSeparada,
                 horario: horaSeparada,
                 anexo_url: dados.anexo_url || null, 
@@ -119,7 +120,7 @@ function NovaCirurgiaForm({ onSave, dados }) {
                 medico_id: form.medicoId ? Number(form.medicoId) : null,
                 hospital: form.hospital,
                 convenio: form.convenio,
-                procedimento: form.procedimento, // 👈 NOVO: Envia para o Supabase
+                procedimento: form.procedimento, 
                 data_cirurgia: (form.data && form.horario) ? `${form.data} ${form.horario}` : null,
                 status: dados ? dados.status : "Pendente",
                 anexo_url: linkFinalDoAnexo,
@@ -153,256 +154,236 @@ function NovaCirurgiaForm({ onSave, dados }) {
     };
 
     return (
-        <form style={{ display: "flex", flexDirection: "column", gap: "20px", fontFamily: "'Inter', system-ui, sans-serif" }}>
+        <form style={{ display: "flex", flexDirection: "column", fontFamily: "'Inter', system-ui, sans-serif" }}>
             
-            {/* Campo Inteligente de Paciente */}
-            <div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                    <label style={labelStyle}>Paciente</label>
-                    <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>Não encontrou? Cadastre no menu Fichas.</span>
-                </div>
-                <div style={{ position: "relative" }}>
-                    <User size={18} color="#94a3b8" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", zIndex: 2 }} />
-                    <select 
-                        name="paciente" 
-                        value={form.paciente} 
-                        onChange={handleChange}
-                        style={{ ...inputPremiumStyle, cursor: "pointer", appearance: "none", position: "relative" }}
-                        onFocus={(e) => e.target.style.border = "1px solid #6C63FF"}
-                        onBlur={(e) => e.target.style.border = "1px solid #e2e8f0"}
-                    >
-                        <option value="" disabled>Selecione o paciente cadastrado...</option>
-                        {listaPacientes.map(pac => (
-                            <option key={pac.id} value={pac.nome}>
-                                {pac.nome} {pac.cpf ? `(CPF: ${pac.cpf})` : ""}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-            </div>
-
-            {/* Médico Responsável */}
-            <div>
-                <label style={labelStyle}>Médico Responsável</label>
-                <div style={{ position: "relative" }}>
-                    <select name="medicoId" value={form.medicoId} onChange={handleMedicoChange}
-                        style={{ ...inputPremiumStyle, padding: "12px 14px", cursor: "pointer", appearance: "none" }}
-                        onFocus={(e) => e.target.style.border = "1px solid #6C63FF"}
-                        onBlur={(e) => e.target.style.border = "1px solid #e2e8f0"}
-                    >
-                        <option value="" disabled>Selecione um médico</option>
-                        {listaMedicos.map(medico => (
-                            <option key={medico.id} value={medico.id}>
-                                {medico.nome}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-            </div>
-
-            {/* Hospital e Convênio */}
-            <div style={{ display: "flex", gap: "15px" }}>
-                <div style={{ flex: 1 }}>
-                    <label style={labelStyle}>Hospital</label>
+            {/* 🌟 O SEGREDO AQUI: DIV COM SCROLL E ALTURA MÁXIMA 🌟 */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px", maxHeight: "55vh", overflowY: "auto", paddingRight: "10px", paddingBottom: "10px" }}>
+                
+                {/* Campo Inteligente de Paciente */}
+                <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                        <label style={labelStyle}>Paciente</label>
+                        <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>Não encontrou? Cadastre no menu Fichas.</span>
+                    </div>
                     <div style={{ position: "relative" }}>
-                        <Hospital size={18} color="#94a3b8" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)" }} />
-                        <input type="text" name="hospital" placeholder="Ex: Sírio Libanês" value={form.hospital} onChange={handleChange}
-                            style={inputPremiumStyle}
+                        <User size={18} color="#94a3b8" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", zIndex: 2 }} />
+                        <select 
+                            name="paciente" 
+                            value={form.paciente} 
+                            onChange={handleChange}
+                            style={{ ...inputPremiumStyle, cursor: "pointer", appearance: "none", position: "relative" }}
                             onFocus={(e) => e.target.style.border = "1px solid #6C63FF"}
                             onBlur={(e) => e.target.style.border = "1px solid #e2e8f0"}
-                        />
+                        >
+                            <option value="" disabled>Selecione o paciente cadastrado...</option>
+                            {listaPacientes.map(pac => (
+                                <option key={pac.id} value={pac.nome}>
+                                    {pac.nome} {pac.cpf ? `(CPF: ${pac.cpf})` : ""}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                 </div>
-                <div style={{ flex: 1 }}>
-                    <label style={labelStyle}>Convênio</label>
+
+                {/* Médico Responsável */}
+                <div>
+                    <label style={labelStyle}>Médico Responsável</label>
                     <div style={{ position: "relative" }}>
-                        <FileText size={18} color="#94a3b8" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)" }} />
-                        <input type="text" name="convenio" placeholder="Ex: Bradesco" value={form.convenio} onChange={handleChange}
-                            style={inputPremiumStyle}
+                        <select name="medicoId" value={form.medicoId} onChange={handleMedicoChange}
+                            style={{ ...inputPremiumStyle, padding: "12px 14px", cursor: "pointer", appearance: "none" }}
                             onFocus={(e) => e.target.style.border = "1px solid #6C63FF"}
                             onBlur={(e) => e.target.style.border = "1px solid #e2e8f0"}
-                        />
+                        >
+                            <option value="" disabled>Selecione um médico</option>
+                            {listaMedicos.map(medico => (
+                                <option key={medico.id} value={medico.id}>
+                                    {medico.nome}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                 </div>
-            </div>
 
-            {/* 👇 NOVO: CAMPO DE PROCEDIMENTO 👇 */}
-            <div>
-                <label style={labelStyle}>Procedimento Cirúrgico</label>
-                <div style={{ position: "relative" }}>
-                    <Syringe size={18} color="#94a3b8" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)" }} />
-                    <input type="text" name="procedimento" placeholder="Ex: Artroplastia Total do Joelho" value={form.procedimento} onChange={handleChange}
-                        style={inputPremiumStyle}
-                        onFocus={(e) => e.target.style.border = "1px solid #6C63FF"}
-                        onBlur={(e) => e.target.style.border = "1px solid #e2e8f0"}
-                    />
-                </div>
-            </div>
-
-            {/* Data e Hora */}
-            <div style={{ display: "flex", gap: "15px" }}>
-                <div style={{ flex: 1 }}>
-                    <label style={labelStyle}>Data da Cirurgia</label>
-                    <div style={{ position: "relative" }}>
-                        <Calendar size={18} color="#94a3b8" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)" }} />
-                        <input type="date" name="data" value={form.data} onChange={handleChange}
-                            style={inputPremiumStyle}
-                            onFocus={(e) => e.target.style.border = "1px solid #6C63FF"}
-                            onBlur={(e) => e.target.style.border = "1px solid #e2e8f0"}
-                        />
-                    </div>
-                </div>
-                <div style={{ flex: 1 }}>
-                    <label style={labelStyle}>Horário</label>
-                    <div style={{ position: "relative" }}>
-                        <Clock size={18} color="#94a3b8" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)" }} />
-                        <input type="time" name="horario" value={form.horario} onChange={handleChange}
-                            style={inputPremiumStyle}
-                            onFocus={(e) => e.target.style.border = "1px solid #6C63FF"}
-                            onBlur={(e) => e.target.style.border = "1px solid #e2e8f0"}
-                        />
-                    </div>
-                </div>
-            </div>
-
-            {/* ESCUDO ANTI-CANCELAMENTO */}
-            <div style={{ border: "1px solid #e2e8f0", borderRadius: "12px", padding: "20px", background: "#f8fafc" }}>
-                <h3 style={{ fontSize: "1rem", color: "#0f172a", margin: "0 0 15px 0", display: "flex", alignItems: "center", gap: "8px", fontWeight: "700" }}>
-                    <CheckSquare size={18} color="#10b981" /> Checklist de Validação
-                </h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px", background: "#fff", padding: "15px", borderRadius: "10px", border: "1px solid #cbd5e1" }}>
-                    <CustomCheck label="Jejum confirmado com paciente" field="jejum" checked={checklist.jejum} onChange={handleChecklistChange} />
-                    <CustomCheck label="Exames Pré-Operatórios recebidos" field="exames" checked={checklist.exames} onChange={handleChecklistChange} />
-                    <CustomCheck label="Termo de Consentimento Assinado" field="termo" checked={checklist.termo} onChange={handleChecklistChange} />
-                </div>
-            </div>
-
-            {/* Anexo de Documentos Moderno */}
-            <div>
-                <label style={labelStyle}>Anexo de Documentos / Pedido</label>
-                <div style={{
-                    position: "relative", 
-                    border: (form.novo_arquivo || form.anexo_url) ? "1.5px solid #10b981" : "1.5px dashed #cbd5e1", 
-                    borderRadius: "12px", 
-                    padding: (form.novo_arquivo || form.anexo_url) ? "15px" : "20px", 
-                    textAlign: "center", 
-                    background: (form.novo_arquivo || form.anexo_url) ? "#ecfdf5" : "#f8fafc", 
-                    transition: "all 0.2s ease"
-                }}
-                onMouseOver={(e) => { 
-                    if(!form.novo_arquivo && !form.anexo_url) {
-                        e.currentTarget.style.borderColor = "#6C63FF"; 
-                        e.currentTarget.style.background = "#eff6ff"; 
-                    }
-                }}
-                onMouseOut={(e) => { 
-                    if(!form.novo_arquivo && !form.anexo_url) {
-                        e.currentTarget.style.borderColor = "#cbd5e1"; 
-                        e.currentTarget.style.background = "#f8fafc"; 
-                    }
-                }}
-                >
-                    {/* ESTADO 1: Tem arquivo salvo no banco (Cirurgia Antiga) */}
-                    {form.anexo_url && !form.novo_arquivo && (
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", zIndex: 10 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                                <FileCheck size={24} color="#10b981" />
-                                <span style={{ fontSize: "0.95rem", color: "#065f46", fontWeight: "600" }}>Documento Salvo</span>
-                            </div>
-                            <div style={{ display: "flex", gap: "8px" }}>
-                                <button type="button" onClick={() => window.open(form.anexo_url, "_blank")} title="Visualizar" style={{ background: "white", border: "1px solid #10b981", color: "#10b981", display: "flex", padding: "8px", borderRadius: "8px", cursor: "pointer", transition: "0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = "#dcfce7"} onMouseOut={(e) => e.currentTarget.style.background = "white"}>
-                                    <Eye size={16} />
-                                </button>
-                                <button type="button" onClick={() => setForm({ ...form, anexo_url: null })} title="Remover" style={{ background: "white", border: "1px solid #fca5a5", color: "#ef4444", display: "flex", padding: "8px", borderRadius: "8px", cursor: "pointer", transition: "0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = "#fee2e2"} onMouseOut={(e) => e.currentTarget.style.background = "white"}>
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* ESTADO 2: Acabou de selecionar um arquivo */}
-                    {form.novo_arquivo && (
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", zIndex: 10 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "10px", overflow: "hidden" }}>
-                                <FileCheck size={24} color="#10b981" />
-                                <span style={{ fontSize: "0.95rem", color: "#065f46", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "250px" }}>
-                                    {form.novo_arquivo.name}
-                                </span>
-                            </div>
-                            
-                            <button
-                                type="button"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setForm({ ...form, novo_arquivo: null }); 
-                                }}
-                                style={{ background: "white", border: "1px solid #fca5a5", cursor: "pointer", color: "#ef4444", display: "flex", alignItems: "center", justifyContent: "center", padding: "6px", borderRadius: "50%", transition: "0.2s" }}
-                                onMouseOver={(e) => e.currentTarget.style.background = "#fee2e2"}
-                                onMouseOut={(e) => e.currentTarget.style.background = "white"}
-                            >
-                                <X size={16} strokeWidth={3} />
-                            </button>
-                        </div>
-                    )}
-
-                    {/* ESTADO 3: Caixa Vazia esperando clique */}
-                    {!form.anexo_url && !form.novo_arquivo && (
-                        <>
-                            <UploadCloud size={24} color="#6C63FF" style={{ marginBottom: "8px" }} />
-                            <p style={{ margin: "0", fontSize: "0.9rem", color: "#475569", fontWeight: "500" }}>
-                                Clique para selecionar o PDF/Imagem
-                            </p>
-                            <input 
-                                type="file" 
-                                id="file-upload" 
-                                accept=".pdf,image/*" 
-                                style={{ display: "none" }} 
-                                onChange={(e) => {
-                                    if (e.target.files && e.target.files[0]) {
-                                        setForm({ ...form, novo_arquivo: e.target.files[0] });
-                                    }
-                                }}
+                {/* Hospital e Convênio */}
+                <div style={{ display: "flex", gap: "15px" }}>
+                    <div style={{ flex: 1 }}>
+                        <label style={labelStyle}>Hospital</label>
+                        <div style={{ position: "relative" }}>
+                            <Hospital size={18} color="#94a3b8" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)" }} />
+                            <input type="text" name="hospital" placeholder="Ex: Sírio Libanês" value={form.hospital} onChange={handleChange}
+                                style={inputPremiumStyle}
+                                onFocus={(e) => e.target.style.border = "1px solid #6C63FF"}
+                                onBlur={(e) => e.target.style.border = "1px solid #e2e8f0"}
                             />
-                            <label htmlFor="file-upload" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", cursor: "pointer" }}></label>
-                        </>
-                    )}
+                        </div>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <label style={labelStyle}>Convênio</label>
+                        <div style={{ position: "relative" }}>
+                            <FileText size={18} color="#94a3b8" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)" }} />
+                            <input type="text" name="convenio" placeholder="Ex: Bradesco" value={form.convenio} onChange={handleChange}
+                                style={inputPremiumStyle}
+                                onFocus={(e) => e.target.style.border = "1px solid #6C63FF"}
+                                onBlur={(e) => e.target.style.border = "1px solid #e2e8f0"}
+                            />
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            {/* Botão Salvar conectado ao Loader */}
-            <button
-                type="button"
-                onClick={handleSalvar}
-                disabled={isUploading}
-                style={{
-                    background: isUploading ? "#94a3b8" : "#6C63FF", color: "white", border: "none", borderRadius: "10px",
-                    padding: "14px", fontWeight: "700", fontSize: "1rem", cursor: isUploading ? "wait" : "pointer",
-                    marginTop: "10px", transition: "0.2s", boxShadow: isUploading ? "none" : "0 4px 14px rgba(108, 99, 255, 0.4)", fontFamily: "inherit"
-                }}
-                onMouseOver={(e) => { if (!isUploading) e.currentTarget.style.transform = "translateY(-2px)" }}
-                onMouseOut={(e) => { if (!isUploading) e.currentTarget.style.transform = "translateY(0)" }}
-            >
-                {isUploading ? "Salvando Anexo..." : (dados ? "Salvar Alterações" : "Cadastrar Cirurgia")}
-            </button>
+                {/* CAMPO DE PROCEDIMENTO */}
+                <div>
+                    <label style={labelStyle}>Procedimento Cirúrgico</label>
+                    <div style={{ position: "relative" }}>
+                        <Syringe size={18} color="#94a3b8" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)" }} />
+                        <input type="text" name="procedimento" placeholder="Ex: Artroplastia Total do Joelho" value={form.procedimento} onChange={handleChange}
+                            style={inputPremiumStyle}
+                            onFocus={(e) => e.target.style.border = "1px solid #6C63FF"}
+                            onBlur={(e) => e.target.style.border = "1px solid #e2e8f0"}
+                        />
+                    </div>
+                </div>
+
+                {/* Data e Hora */}
+                <div style={{ display: "flex", gap: "15px" }}>
+                    <div style={{ flex: 1 }}>
+                        <label style={labelStyle}>Data da Cirurgia</label>
+                        <div style={{ position: "relative" }}>
+                            <Calendar size={18} color="#94a3b8" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)" }} />
+                            <input type="date" name="data" value={form.data} onChange={handleChange}
+                                style={inputPremiumStyle}
+                                onFocus={(e) => e.target.style.border = "1px solid #6C63FF"}
+                                onBlur={(e) => e.target.style.border = "1px solid #e2e8f0"}
+                            />
+                        </div>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <label style={labelStyle}>Horário</label>
+                        <div style={{ position: "relative" }}>
+                            <Clock size={18} color="#94a3b8" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)" }} />
+                            <input type="time" name="horario" value={form.horario} onChange={handleChange}
+                                style={inputPremiumStyle}
+                                onFocus={(e) => e.target.style.border = "1px solid #6C63FF"}
+                                onBlur={(e) => e.target.style.border = "1px solid #e2e8f0"}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* ESCUDO ANTI-CANCELAMENTO */}
+                <div style={{ border: "1px solid #e2e8f0", borderRadius: "12px", padding: "20px", background: "#f8fafc" }}>
+                    <h3 style={{ fontSize: "1rem", color: "#0f172a", margin: "0 0 15px 0", display: "flex", alignItems: "center", gap: "8px", fontWeight: "700" }}>
+                        <CheckSquare size={18} color="#10b981" /> Checklist de Validação
+                    </h3>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "12px", background: "#fff", padding: "15px", borderRadius: "10px", border: "1px solid #cbd5e1" }}>
+                        <CustomCheck label="Jejum confirmado com paciente" field="jejum" checked={checklist.jejum} onChange={handleChecklistChange} />
+                        <CustomCheck label="Exames Pré-Operatórios recebidos" field="exames" checked={checklist.exames} onChange={handleChecklistChange} />
+                        <CustomCheck label="Termo de Consentimento Assinado" field="termo" checked={checklist.termo} onChange={handleChecklistChange} />
+                    </div>
+                </div>
+
+                {/* Anexo de Documentos */}
+                <div>
+                    <label style={labelStyle}>Anexo de Documentos / Pedido</label>
+                    <div style={{
+                        position: "relative", 
+                        border: (form.novo_arquivo || form.anexo_url) ? "1.5px solid #10b981" : "1.5px dashed #cbd5e1", 
+                        borderRadius: "12px", 
+                        padding: (form.novo_arquivo || form.anexo_url) ? "15px" : "20px", 
+                        textAlign: "center", 
+                        background: (form.novo_arquivo || form.anexo_url) ? "#ecfdf5" : "#f8fafc", 
+                        transition: "all 0.2s ease"
+                    }}
+                    onMouseOver={(e) => { 
+                        if(!form.novo_arquivo && !form.anexo_url) {
+                            e.currentTarget.style.borderColor = "#6C63FF"; 
+                            e.currentTarget.style.background = "#eff6ff"; 
+                        }
+                    }}
+                    onMouseOut={(e) => { 
+                        if(!form.novo_arquivo && !form.anexo_url) {
+                            e.currentTarget.style.borderColor = "#cbd5e1"; 
+                            e.currentTarget.style.background = "#f8fafc"; 
+                        }
+                    }}
+                    >
+                        {form.anexo_url && !form.novo_arquivo && (
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", zIndex: 10 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                    <FileCheck size={24} color="#10b981" />
+                                    <span style={{ fontSize: "0.95rem", color: "#065f46", fontWeight: "600" }}>Documento Salvo</span>
+                                </div>
+                                <div style={{ display: "flex", gap: "8px" }}>
+                                    <button type="button" onClick={() => window.open(form.anexo_url, "_blank")} title="Visualizar" style={{ background: "white", border: "1px solid #10b981", color: "#10b981", display: "flex", padding: "8px", borderRadius: "8px", cursor: "pointer", transition: "0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = "#dcfce7"} onMouseOut={(e) => e.currentTarget.style.background = "white"}>
+                                        <Eye size={16} />
+                                    </button>
+                                    <button type="button" onClick={() => setForm({ ...form, anexo_url: null })} title="Remover" style={{ background: "white", border: "1px solid #fca5a5", color: "#ef4444", display: "flex", padding: "8px", borderRadius: "8px", cursor: "pointer", transition: "0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = "#fee2e2"} onMouseOut={(e) => e.currentTarget.style.background = "white"}>
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {form.novo_arquivo && (
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", zIndex: 10 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "10px", overflow: "hidden" }}>
+                                    <FileCheck size={24} color="#10b981" />
+                                    <span style={{ fontSize: "0.95rem", color: "#065f46", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "250px" }}>
+                                        {form.novo_arquivo.name}
+                                    </span>
+                                </div>
+                                <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setForm({ ...form, novo_arquivo: null }); }} style={{ background: "white", border: "1px solid #fca5a5", cursor: "pointer", color: "#ef4444", display: "flex", alignItems: "center", justifyContent: "center", padding: "6px", borderRadius: "50%", transition: "0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = "#fee2e2"} onMouseOut={(e) => e.currentTarget.style.background = "white"}>
+                                    <X size={16} strokeWidth={3} />
+                                </button>
+                            </div>
+                        )}
+
+                        {!form.anexo_url && !form.novo_arquivo && (
+                            <>
+                                <UploadCloud size={24} color="#6C63FF" style={{ marginBottom: "8px" }} />
+                                <p style={{ margin: "0", fontSize: "0.9rem", color: "#475569", fontWeight: "500" }}>
+                                    Clique para selecionar o PDF/Imagem
+                                </p>
+                                <input type="file" id="file-upload" accept=".pdf,image/*" style={{ display: "none" }} onChange={(e) => { if (e.target.files && e.target.files[0]) { setForm({ ...form, novo_arquivo: e.target.files[0] }); } }} />
+                                <label htmlFor="file-upload" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", cursor: "pointer" }}></label>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div> {/* 👈 FIM DA ÁREA COM SCROLL */}
+
+            {/* 🌟 BOTÃO SALVAR FIXO NO RODAPÉ DO MODAL 🌟 */}
+            <div style={{ paddingTop: "15px", marginTop: "10px", borderTop: "1px solid #e2e8f0" }}>
+                <button
+                    type="button"
+                    onClick={handleSalvar}
+                    disabled={isUploading}
+                    style={{
+                        width: "100%", // 👈 Ocupa 100% do rodapé
+                        background: isUploading ? "#94a3b8" : "#6C63FF", color: "white", border: "none", borderRadius: "10px",
+                        padding: "14px", fontWeight: "700", fontSize: "1rem", cursor: isUploading ? "wait" : "pointer",
+                        transition: "0.2s", boxShadow: isUploading ? "none" : "0 4px 14px rgba(108, 99, 255, 0.4)", fontFamily: "inherit"
+                    }}
+                    onMouseOver={(e) => { if (!isUploading) e.currentTarget.style.transform = "translateY(-2px)" }}
+                    onMouseOut={(e) => { if (!isUploading) e.currentTarget.style.transform = "translateY(0)" }}
+                >
+                    {isUploading ? "Salvando Anexo..." : (dados ? "Salvar Alterações" : "Cadastrar Cirurgia")}
+                </button>
+            </div>
         </form>
     );
 }
 
 function CirurgiaModal({ isOpen, onClose, cirurgia, onSave }) {
-    // Estado para controlar qual aba está aberta
-    const [abaAtiva, setAbaAtiva] = useState("dados"); // "dados" ou "historico"
+    const [abaAtiva, setAbaAtiva] = useState("dados");
     const [historico, setHistorico] = useState([]);
     const [carregandoHistorico, setCarregandoHistorico] = useState(false);
 
-    // Reseta a aba para "dados" sempre que o modal fechar ou abrir
     useEffect(() => {
         if (isOpen) {
             setAbaAtiva("dados");
         }
     }, [isOpen]);
 
-    // Busca o histórico no Supabase quando o usuário clica na aba "Histórico"
     useEffect(() => {
         if (abaAtiva === "historico" && cirurgia?.id) {
             buscarHistorico();
@@ -427,7 +408,6 @@ function CirurgiaModal({ isOpen, onClose, cirurgia, onSave }) {
         }
     }
 
-    // Função "Interceptadora" de Salvamento (Gera o rastro na auditoria)
     const handleSalvarComAuditoria = async (dadosDoFormulario) => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
@@ -474,7 +454,7 @@ function CirurgiaModal({ isOpen, onClose, cirurgia, onSave }) {
                 </h2>
 
                 {cirurgia && (
-                    <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", marginBottom: "20px" }}>
+                    <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", marginBottom: "15px" }}>
                         <div style={tabStyle(abaAtiva === "dados")} onClick={() => setAbaAtiva("dados")}>
                             <FileEdit size={18} /> Dados da Cirurgia
                         </div>
