@@ -29,7 +29,6 @@ const CustomCheck = ({ label, field, checked, onChange }) => (
 // COMPONENTE: MINI AGENDA (OUTLOOK STYLE)
 // ==========================================
 const MiniAgendaDia = ({ dataSelecionada, horarioSelecionado }) => {
-    // 👇 Adicionei horários até as 23h para as cirurgias noturnas não cortarem!
     const horas = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
 
     let topPosition = -1;
@@ -58,7 +57,6 @@ const MiniAgendaDia = ({ dataSelecionada, horarioSelecionado }) => {
                 </div>
             </div>
 
-            {/* 👇 O segredo pro Scroll da agenda não quebrar o layout todo */}
             <div style={{ flex: 1, overflowY: "auto", position: "relative", padding: "10px 0", background: "#fdfdfd" }}>
                 {horas.map(hora => (
                     <div key={hora} style={{ display: "flex", height: "40px", borderBottom: "1px solid #f1f5f9" }}>
@@ -171,14 +169,14 @@ function NovaCirurgiaForm({ onSave, dados }) {
     const iconStyle = { position: "absolute", left: "5px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" };
 
     return (
-        <form style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
+        <form style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
             
             <div className="outlook-split-view" style={{ 
                 display: "grid", 
                 gridTemplateColumns: "1.5fr 1fr", 
                 gap: "25px", 
                 flex: 1, 
-                minHeight: 0, // 👈 Blinda o layout contra vazamentos de conteúdo!
+                minHeight: 0, 
                 overflow: "hidden"
             }}>
                 
@@ -293,11 +291,11 @@ function NovaCirurgiaForm({ onSave, dados }) {
                 </div>
             </div>
 
-            {/* BOTÃO SALVAR: Agora com fundo branco blindado e z-index para nada passar por baixo! */}
+            {/* BOTÃO SALVAR REPOSICIONADO PARA FICAR PRESO NO FUNDO */}
             <div style={{ 
-                padding: "15px 0 5px 0", marginTop: "10px", 
+                paddingTop: "15px", marginTop: "15px", 
                 borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "flex-end", 
-                flexShrink: 0, background: "white", position: "relative", zIndex: 20 
+                flexShrink: 0, background: "white"
             }}>
                 <button
                     type="button" onClick={handleSalvar} disabled={isUploading}
@@ -378,10 +376,15 @@ function CirurgiaModal({ isOpen, onClose, cirurgia, onSave }) {
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
             
+            {/* 🌟 MÁGICA 1: ZERANDO O PADDING DO MODAL NATIVO PRA NÃO VAZAR 🌟 */}
             <style>{`
                 .modal {
                     max-width: 950px !important;
                     width: 95% !important;
+                    padding: 0 !important; 
+                    overflow: hidden !important; 
+                    display: flex !important;
+                    flex-direction: column !important;
                 }
                 
                 @media (max-width: 768px) {
@@ -394,8 +397,16 @@ function CirurgiaModal({ isOpen, onClose, cirurgia, onSave }) {
                 }
             `}</style>
 
-            {/* Ajuste suave na altura máxima do Modal para evitar cortes no botão inferior */}
-            <div style={{ fontFamily: "'Segoe UI', 'Inter', sans-serif", display: "flex", flexDirection: "column", height: "100%", maxHeight: "80vh", minHeight: "65vh" }}>
+            {/* 🌟 MÁGICA 2: TRAZENDO O CONTROLE DO PADDING PRA CÁ COM BOX-SIZING 🌟 */}
+            <div style={{ 
+                fontFamily: "'Segoe UI', 'Inter', sans-serif", 
+                display: "flex", 
+                flexDirection: "column", 
+                height: "85vh", 
+                maxHeight: "800px", 
+                padding: "24px", 
+                boxSizing: "border-box" 
+            }}>
                 
                 <h2 style={{ color: "#1e293b", marginTop: 0, marginBottom: "5px", fontSize: "1.3rem", fontWeight: "700" }}>
                     {cirurgia ? `Detalhes do Evento: ${cirurgia.paciente}` : "Novo Evento Cirúrgico"}
