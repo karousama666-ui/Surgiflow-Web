@@ -12,7 +12,7 @@ const CustomCheck = ({ label, field, checked, onChange }) => (
     <label style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer", userSelect: "none", padding: "8px", borderRadius: "8px", transition: "0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = "#f8fafc"} onMouseOut={(e) => e.currentTarget.style.background = "transparent"}>
         <div style={{
             width: "20px", height: "20px", borderRadius: "6px",
-            background: checked ? "#0078d4" : "#ffffff", // Azul Outlook
+            background: checked ? "#0078d4" : "#ffffff", 
             border: checked ? "1px solid #0078d4" : "1px solid #cbd5e1",
             display: "flex", justifyContent: "center", alignItems: "center",
             transition: "all 0.2s ease",
@@ -47,7 +47,7 @@ const MiniAgendaDia = ({ dataSelecionada, horarioSelecionado }) => {
     return (
         <div style={{ 
             background: "white", border: "1px solid #e2e8f0", borderRadius: "12px", 
-            overflow: "hidden", display: "flex", flexDirection: "column", height: "100%", minHeight: "400px",
+            overflow: "hidden", display: "flex", flexDirection: "column", height: "100%",
             boxShadow: "0 4px 6px rgba(0,0,0,0.02)"
         }}>
             <div style={{ background: "#f8fafc", padding: "12px", borderBottom: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -94,7 +94,7 @@ const MiniAgendaDia = ({ dataSelecionada, horarioSelecionado }) => {
 };
 
 // ==========================================
-// FORMULÁRIO PRINCIPAL (LADO ESQUERDO)
+// FORMULÁRIO PRINCIPAL
 // ==========================================
 function NovaCirurgiaForm({ onSave, dados }) {
     const { listaMedicos } = useMedicos();
@@ -171,10 +171,17 @@ function NovaCirurgiaForm({ onSave, dados }) {
     return (
         <form style={{ display: "flex", flexDirection: "column", height: "100%" }}>
             
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "25px", flex: 1, minHeight: 0 }}>
+            {/* 🌟 A MÁGICA ESTÁ AQUI: GRID TRAVADO (Não quebra mais!) 🌟 */}
+            <div className="outlook-split-view" style={{ 
+                display: "grid", 
+                gridTemplateColumns: "1.5fr 1fr", // Esquerda maior, direita menor
+                gap: "25px", 
+                flex: 1, 
+                minHeight: 0 // Essencial para o scroll interno funcionar
+            }}>
                 
-                {/* LADO ESQUERDO: DADOS */}
-                <div style={{ flex: "1 1 500px", overflowY: "auto", paddingRight: "10px", display: "flex", flexDirection: "column", gap: "20px", paddingBottom: "10px" }}>
+                {/* COLUNA ESQUERDA: DADOS CLÍNICOS (Rola sozinha) */}
+                <div style={{ overflowY: "auto", paddingRight: "15px", display: "flex", flexDirection: "column", gap: "20px" }}>
                     
                     <div style={{ borderBottom: "2px solid #f1f5f9", paddingBottom: "15px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}>
@@ -189,27 +196,27 @@ function NovaCirurgiaForm({ onSave, dados }) {
                             </div>
                         </div>
 
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
-                            <div style={{ flex: "1 1 200px", display: "flex", alignItems: "center", gap: "8px" }}>
+                        <div style={{ display: "flex", gap: "20px" }}>
+                            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "8px" }}>
                                 <MapPin size={16} color="#94a3b8" />
                                 <input type="text" name="hospital" placeholder="Hospital (Local)" value={form.hospital} onChange={handleChange} style={{ border: "none", outline: "none", fontSize: "0.9rem", width: "100%", color: "#475569", background: "transparent" }} />
                             </div>
-                            <div style={{ flex: "1 1 200px", display: "flex", alignItems: "center", gap: "8px" }}>
+                            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "8px" }}>
                                 <FileText size={16} color="#94a3b8" />
                                 <input type="text" name="convenio" placeholder="Convênio" value={form.convenio} onChange={handleChange} style={{ border: "none", outline: "none", fontSize: "0.9rem", width: "100%", color: "#475569", background: "transparent" }} />
                             </div>
                         </div>
                     </div>
 
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
-                        <div style={{ flex: "1 1 200px" }}>
+                    <div style={{ display: "flex", gap: "20px" }}>
+                        <div style={{ flex: 1 }}>
                             <label style={labelStyle}>Procedimento</label>
                             <div style={{ position: "relative" }}>
                                 <Syringe size={18} style={iconStyle} />
                                 <input type="text" name="procedimento" placeholder="Ex: Artroplastia" value={form.procedimento} onChange={handleChange} style={inputStyle} onFocus={(e) => e.target.style.borderColor = "#0078d4"} onBlur={(e) => e.target.style.borderColor = "#e2e8f0"} />
                             </div>
                         </div>
-                        <div style={{ flex: "1 1 200px" }}>
+                        <div style={{ flex: 1 }}>
                             <label style={labelStyle}>Cirurgião</label>
                             <select name="medicoId" value={form.medicoId} onChange={(e) => setForm({...form, medicoId: e.target.value})} style={{ ...inputStyle, paddingLeft: "10px", appearance: "none", cursor: "pointer" }} onFocus={(e) => e.target.style.borderColor = "#0078d4"} onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}>
                                 <option value="" disabled>Selecione...</option>
@@ -218,7 +225,7 @@ function NovaCirurgiaForm({ onSave, dados }) {
                         </div>
                     </div>
 
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+                    <div style={{ display: "flex", gap: "20px" }}>
                         <div style={{ flex: 1 }}>
                             <label style={labelStyle}>Data Agendada</label>
                             <div style={{ position: "relative" }}>
@@ -278,18 +285,18 @@ function NovaCirurgiaForm({ onSave, dados }) {
 
                 </div>
 
-                {/* LADO DIREITO: MINI AGENDA */}
-                <div style={{ flex: "1 1 250px", display: "block" }}>
+                {/* COLUNA DIREITA: MINI AGENDA (Firme e sem quebrar) */}
+                <div style={{ display: "flex", flexDirection: "column" }}>
                     <MiniAgendaDia dataSelecionada={form.data} horarioSelecionado={form.horario} />
                 </div>
             </div>
 
-            {/* BOTÃO SALVAR (Rodapé) */}
-            <div style={{ paddingTop: "15px", marginTop: "15px", borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "flex-end" }}>
+            {/* BOTÃO SALVAR (Rodapé Fixo) */}
+            <div style={{ paddingTop: "15px", marginTop: "15px", borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "flex-end", flexShrink: 0 }}>
                 <button
                     type="button" onClick={handleSalvar} disabled={isUploading}
                     style={{
-                        background: isUploading ? "#94a3b8" : "#0078d4", // Azul Microsoft
+                        background: isUploading ? "#94a3b8" : "#0078d4", 
                         color: "white", border: "none", borderRadius: "6px",
                         padding: "12px 30px", fontWeight: "700", fontSize: "0.95rem", cursor: isUploading ? "wait" : "pointer",
                         transition: "0.2s", display: "flex", alignItems: "center", gap: "8px"
@@ -363,18 +370,28 @@ function CirurgiaModal({ isOpen, onClose, cirurgia, onSave }) {
     });
 
     return (
-        // 👇 A MÁGICA CONTINUA AQUI: O CSS FOI FORÇADO EM LINHA PARA SOBRESCREVER AQUELE QUE VOCÊ ME MANDOU!
         <Modal isOpen={isOpen} onClose={onClose}>
             
-            {/* INJETAMOS CSS AQUI PARA FORÇAR O TAMANHO DO MODAL E IGNORAR O MODAL.CSS */}
+            {/* INJETAMOS CSS AQUI PARA FORÇAR O TAMANHO DO MODAL PARA FICAR IGUAL AO OUTLOOK */}
             <style>{`
                 .modal {
                     max-width: 950px !important;
                     width: 95% !important;
                 }
+                
+                /* Esconde a agenda no celular para não espremer */
+                @media (max-width: 768px) {
+                    .outlook-split-view {
+                        grid-template-columns: 1fr !important;
+                    }
+                    .outlook-split-view > div:last-child {
+                        display: none !important;
+                    }
+                }
             `}</style>
 
-            <div style={{ fontFamily: "'Segoe UI', 'Inter', sans-serif", display: "flex", flexDirection: "column", height: "100%", minHeight: "65vh" }}>
+            {/* 🌟 A MÁGICA DA ALTURA ESTÁ AQUI: height: "75vh" (75% da tela) 🌟 */}
+            <div style={{ fontFamily: "'Segoe UI', 'Inter', sans-serif", display: "flex", flexDirection: "column", height: "75vh", maxHeight: "800px" }}>
                 
                 <h2 style={{ color: "#1e293b", marginTop: 0, marginBottom: "5px", fontSize: "1.3rem", fontWeight: "700" }}>
                     {cirurgia ? `Detalhes do Evento: ${cirurgia.paciente}` : "Novo Evento Cirúrgico"}
@@ -391,7 +408,7 @@ function CirurgiaModal({ isOpen, onClose, cirurgia, onSave }) {
                     <NovaCirurgiaForm dados={cirurgia} onSave={handleSalvarComAuditoria} />
                 </div>
 
-                <div style={{ display: abaAtiva === "historico" ? "block" : "none", height: "400px", overflowY: "auto", paddingRight: "10px" }}>
+                <div style={{ display: abaAtiva === "historico" ? "block" : "none", flex: 1, overflowY: "auto", paddingRight: "10px" }}>
                     {carregandoHistorico ? (
                         <p style={{ textAlign: "center", color: "#64748b" }}>Buscando registros...</p>
                     ) : historico.length === 0 ? (
