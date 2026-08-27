@@ -29,12 +29,13 @@ const CustomCheck = ({ label, field, checked, onChange }) => (
 // COMPONENTE: MINI AGENDA (OUTLOOK STYLE)
 // ==========================================
 const MiniAgendaDia = ({ dataSelecionada, horarioSelecionado }) => {
-    const horas = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+    // 👇 Adicionei horários até as 23h para as cirurgias noturnas não cortarem!
+    const horas = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
 
     let topPosition = -1;
     if (horarioSelecionado) {
         const [hora, minuto] = horarioSelecionado.split(":").map(Number);
-        if (hora >= 7 && hora <= 20) {
+        if (hora >= 7 && hora <= 23) {
             const indexHora = hora - 7;
             topPosition = (indexHora * 40) + (minuto / 60) * 40;
         }
@@ -50,13 +51,14 @@ const MiniAgendaDia = ({ dataSelecionada, horarioSelecionado }) => {
             overflow: "hidden", display: "flex", flexDirection: "column", height: "100%",
             boxShadow: "0 4px 6px rgba(0,0,0,0.02)"
         }}>
-            <div style={{ background: "#f8fafc", padding: "12px", borderBottom: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ background: "#f8fafc", padding: "12px", borderBottom: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#1e293b", fontWeight: "700", fontSize: "0.9rem" }}>
                     <CalendarDays size={18} color="#0078d4" />
                     <span style={{ textTransform: "capitalize" }}>{dataFormatada}</span>
                 </div>
             </div>
 
+            {/* 👇 O segredo pro Scroll da agenda não quebrar o layout todo */}
             <div style={{ flex: 1, overflowY: "auto", position: "relative", padding: "10px 0", background: "#fdfdfd" }}>
                 {horas.map(hora => (
                     <div key={hora} style={{ display: "flex", height: "40px", borderBottom: "1px solid #f1f5f9" }}>
@@ -169,18 +171,18 @@ function NovaCirurgiaForm({ onSave, dados }) {
     const iconStyle = { position: "absolute", left: "5px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" };
 
     return (
-        <form style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+        <form style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
             
-            {/* 🌟 A MÁGICA ESTÁ AQUI: GRID TRAVADO (Não quebra mais!) 🌟 */}
             <div className="outlook-split-view" style={{ 
                 display: "grid", 
-                gridTemplateColumns: "1.5fr 1fr", // Esquerda maior, direita menor
+                gridTemplateColumns: "1.5fr 1fr", 
                 gap: "25px", 
                 flex: 1, 
-                minHeight: 0 // Essencial para o scroll interno funcionar
+                minHeight: 0, // 👈 Blinda o layout contra vazamentos de conteúdo!
+                overflow: "hidden"
             }}>
                 
-                {/* COLUNA ESQUERDA: DADOS CLÍNICOS (Rola sozinha) */}
+                {/* LADO ESQUERDO: DADOS CLÍNICOS */}
                 <div style={{ overflowY: "auto", paddingRight: "15px", display: "flex", flexDirection: "column", gap: "20px" }}>
                     
                     <div style={{ borderBottom: "2px solid #f1f5f9", paddingBottom: "15px" }}>
@@ -251,7 +253,7 @@ function NovaCirurgiaForm({ onSave, dados }) {
                         </div>
                     </div>
 
-                    <div>
+                    <div style={{ paddingBottom: "20px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px", color: "#475569", fontWeight: "600", fontSize: "0.85rem" }}>
                             <Paperclip size={16} /> Arquivos e Documentos
                         </div>
@@ -285,14 +287,18 @@ function NovaCirurgiaForm({ onSave, dados }) {
 
                 </div>
 
-                {/* COLUNA DIREITA: MINI AGENDA (Firme e sem quebrar) */}
-                <div style={{ display: "flex", flexDirection: "column" }}>
+                {/* COLUNA DIREITA: MINI AGENDA */}
+                <div style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
                     <MiniAgendaDia dataSelecionada={form.data} horarioSelecionado={form.horario} />
                 </div>
             </div>
 
-            {/* BOTÃO SALVAR (Rodapé Fixo) */}
-            <div style={{ paddingTop: "15px", marginTop: "15px", borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "flex-end", flexShrink: 0 }}>
+            {/* BOTÃO SALVAR: Agora com fundo branco blindado e z-index para nada passar por baixo! */}
+            <div style={{ 
+                padding: "15px 0 5px 0", marginTop: "10px", 
+                borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "flex-end", 
+                flexShrink: 0, background: "white", position: "relative", zIndex: 20 
+            }}>
                 <button
                     type="button" onClick={handleSalvar} disabled={isUploading}
                     style={{
@@ -372,14 +378,12 @@ function CirurgiaModal({ isOpen, onClose, cirurgia, onSave }) {
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
             
-            {/* INJETAMOS CSS AQUI PARA FORÇAR O TAMANHO DO MODAL PARA FICAR IGUAL AO OUTLOOK */}
             <style>{`
                 .modal {
                     max-width: 950px !important;
                     width: 95% !important;
                 }
                 
-                /* Esconde a agenda no celular para não espremer */
                 @media (max-width: 768px) {
                     .outlook-split-view {
                         grid-template-columns: 1fr !important;
@@ -390,15 +394,15 @@ function CirurgiaModal({ isOpen, onClose, cirurgia, onSave }) {
                 }
             `}</style>
 
-            {/* 🌟 A MÁGICA DA ALTURA ESTÁ AQUI: height: "75vh" (75% da tela) 🌟 */}
-            <div style={{ fontFamily: "'Segoe UI', 'Inter', sans-serif", display: "flex", flexDirection: "column", height: "75vh", maxHeight: "800px" }}>
+            {/* Ajuste suave na altura máxima do Modal para evitar cortes no botão inferior */}
+            <div style={{ fontFamily: "'Segoe UI', 'Inter', sans-serif", display: "flex", flexDirection: "column", height: "100%", maxHeight: "80vh", minHeight: "65vh" }}>
                 
                 <h2 style={{ color: "#1e293b", marginTop: 0, marginBottom: "5px", fontSize: "1.3rem", fontWeight: "700" }}>
                     {cirurgia ? `Detalhes do Evento: ${cirurgia.paciente}` : "Novo Evento Cirúrgico"}
                 </h2>
 
                 {cirurgia && (
-                    <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", marginBottom: "20px", marginTop: "10px" }}>
+                    <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", marginBottom: "20px", marginTop: "10px", flexShrink: 0 }}>
                         <div style={tabStyle(abaAtiva === "dados")} onClick={() => setAbaAtiva("dados")}>Geral</div>
                         <div style={tabStyle(abaAtiva === "historico")} onClick={() => setAbaAtiva("historico")}>Log de Alterações</div>
                     </div>
