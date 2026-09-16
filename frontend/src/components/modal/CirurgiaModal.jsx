@@ -134,6 +134,15 @@ function NovaCirurgiaForm({ onSave, dados }) {
     }
 
     const handleSalvar = async () => {
+        if (!form.paciente || form.paciente.trim() === "") {
+            alert("⚠️ Por favor, informe o nome do paciente.");
+            return;
+        }
+        if (!form.medicoId) {
+            alert("⚠️ Por favor, selecione um cirurgião.");
+            return;
+        }
+
         setIsUploading(true);
         try {
             let linkFinalDoAnexo = form.anexo_url;
@@ -189,10 +198,24 @@ function NovaCirurgiaForm({ onSave, dados }) {
                                 <User size={20} />
                             </div>
                             <div style={{ flex: 1 }}>
-                                <select name="paciente" value={form.paciente} onChange={handleChange} style={{ width: "100%", border: "none", fontSize: "1.2rem", fontWeight: "800", color: "#1e293b", outline: "none", background: "transparent", cursor: "pointer", appearance: "none" }}>
-                                    <option value="" disabled>Selecione o paciente...</option>
-                                    {listaPacientes.map(pac => <option key={pac.id} value={pac.nome}>{pac.nome} {pac.cpf ? `(CPF: ${pac.cpf})` : ""}</option>)}
-                                </select>
+                                {/* 🌟 O NOVO CAMPO INTELIGENTE AQUI 🌟 */}
+                                <input 
+                                    type="text" 
+                                    name="paciente" 
+                                    list="lista-pacientes-cadastrados"
+                                    value={form.paciente} 
+                                    onChange={handleChange} 
+                                    placeholder="Digite o nome ou selecione..."
+                                    style={{ width: "100%", border: "none", fontSize: "1.2rem", fontWeight: "800", color: "#1e293b", outline: "none", background: "transparent" }}
+                                />
+                                {/* Esta é a lista invisível que alimenta as sugestões do campo acima */}
+                                <datalist id="lista-pacientes-cadastrados">
+                                    {listaPacientes && listaPacientes.map(pac => (
+                                        <option key={pac.id} value={pac.nome}>
+                                            {pac.cpf ? `CPF: ${pac.cpf}` : ""}
+                                        </option>
+                                    ))}
+                                </datalist>
                             </div>
                         </div>
 
@@ -218,9 +241,9 @@ function NovaCirurgiaForm({ onSave, dados }) {
                         </div>
                         <div style={{ flex: 1 }}>
                             <label style={labelStyle}>Cirurgião</label>
-                            <select name="medicoId" value={form.medicoId} onChange={(e) => setForm({...form, medicoId: e.target.value})} style={{ ...inputStyle, paddingLeft: "10px", appearance: "none", cursor: "pointer" }} onFocus={(e) => e.target.style.borderColor = "#0078d4"} onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}>
+                            <select name="medicoId" value={form.medicoId} onChange={(e) => setForm({...form, medicoId: e.target.value})} style={{ ...inputStyle, paddingLeft: "10px", cursor: "pointer" }} onFocus={(e) => e.target.style.borderColor = "#0078d4"} onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}>
                                 <option value="" disabled>Selecione...</option>
-                                {listaMedicos.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
+                                {listaMedicos && listaMedicos.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
                             </select>
                         </div>
                     </div>
@@ -295,7 +318,7 @@ function NovaCirurgiaForm({ onSave, dados }) {
             <div style={{ 
                 paddingTop: "15px", marginTop: "15px", 
                 borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "flex-end", 
-                flexShrink: 0, background: "white"
+                flexShrink: 0, background: "white", position: "relative", zIndex: 20 
             }}>
                 <button
                     type="button" onClick={handleSalvar} disabled={isUploading}
@@ -376,7 +399,6 @@ function CirurgiaModal({ isOpen, onClose, cirurgia, onSave }) {
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
             
-            {/* 🌟 MÁGICA 1: ZERANDO O PADDING DO MODAL NATIVO PRA NÃO VAZAR 🌟 */}
             <style>{`
                 .modal {
                     max-width: 950px !important;
@@ -397,7 +419,6 @@ function CirurgiaModal({ isOpen, onClose, cirurgia, onSave }) {
                 }
             `}</style>
 
-            {/* 🌟 MÁGICA 2: TRAZENDO O CONTROLE DO PADDING PRA CÁ COM BOX-SIZING 🌟 */}
             <div style={{ 
                 fontFamily: "'Segoe UI', 'Inter', sans-serif", 
                 display: "flex", 
